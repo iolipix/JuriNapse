@@ -800,7 +800,43 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
   };
 
   // Méthodes stub pour les fonctionnalités manquantes
-  const updateGroupPicture = async (_groupId: string, _pictureData: FormData | string): Promise<void> => {
+  const updateGroupPicture = async (groupId: string, pictureData: FormData | string): Promise<void> => {
+    try {
+      let profilePicture: string;
+      
+      if (typeof pictureData === 'string') {
+        profilePicture = pictureData;
+      } else {
+        // Si c'est FormData, il faut le convertir en base64
+        const file = pictureData.get('profilePicture') as File;
+        if (file) {
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.readAsDataURL(file);
+          });
+          profilePicture = base64;
+        } else {
+          throw new Error('Aucune image fournie');
+        }
+      }
+
+      // Appeler l'API pour mettre à jour la photo du groupe
+      await groupsAPI.updateGroupPicture(groupId, profilePicture);
+      
+      // Mettre à jour le groupe local
+      setGroups(prevGroups => 
+        prevGroups.map(group => 
+          group.id === groupId 
+            ? { ...group, profilePicture }
+            : group
+        )
+      );
+      
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la photo du groupe:', error);
+      throw error;
+    }
   };
 
   const getMessageDeletionInfo = (_messageId: string): any => {
