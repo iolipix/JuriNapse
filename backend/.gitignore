@@ -1,0 +1,28 @@
+# Variables d'environnement - CRITIQUE : Ne jamais committer !
+.env
+.env.local
+.env.production
+.env.staging
+
+# Dépendances
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+.tmp/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# MongoDB dumps
+*.dump
