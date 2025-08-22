@@ -821,20 +821,31 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
         }
       }
 
+      console.log('🖼️ Mise à jour photo du groupe:', groupId);
+      console.log('📷 Taille de l\'image:', profilePicture.length, 'caractères');
+
       // Appeler l'API pour mettre à jour la photo du groupe
-      await groupsAPI.updateGroupPicture(groupId, profilePicture);
+      const response = await groupsAPI.updateGroupPicture(groupId, profilePicture);
+      console.log('✅ Réponse API:', response);
       
       // Mettre à jour le groupe local
-      setGroups(prevGroups => 
-        prevGroups.map(group => 
+      setGroups(prevGroups => {
+        const updatedGroups = prevGroups.map(group => 
           group.id === groupId 
             ? { ...group, profilePicture }
             : group
-        )
-      );
+        );
+        console.log('📝 Groupes mis à jour:', updatedGroups.find(g => g.id === groupId));
+        return updatedGroups;
+      });
+
+      // Forcer la mise à jour des données depuis le serveur pour s'assurer de la synchronisation
+      setTimeout(() => {
+        loadGroups();
+      }, 1000);
       
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de la photo du groupe:', error);
+      console.error('❌ Erreur lors de la mise à jour de la photo du groupe:', error);
       throw error;
     }
   };

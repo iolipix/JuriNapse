@@ -2204,7 +2204,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                         >
                           {activeChat.profilePicture ? (
                             <img 
-                              src={activeChat.profilePicture} 
+                              src={`${activeChat.profilePicture}${activeChat.profilePicture.includes('?') ? '&' : '?'}t=${Date.now()}`}
                               alt={activeChat.name}
                               className="h-32 w-32 object-cover"
                             />
@@ -2262,7 +2262,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                     <div className="mb-6 flex justify-center">
                       <div className="h-24 w-24 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
                         <img 
-                          src={activeChat.profilePicture} 
+                          src={`${activeChat.profilePicture}${activeChat.profilePicture.includes('?') ? '&' : '?'}t=${Date.now()}`}
                           alt={activeChat.name}
                           className="h-24 w-24 object-cover"
                         />
