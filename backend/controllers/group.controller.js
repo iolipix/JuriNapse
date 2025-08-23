@@ -924,6 +924,8 @@ exports.updateGroupPicture = async (req, res) => {
     console.log('🖼️ updateGroupPicture - groupId:', id);
     console.log('📷 Taille de l\'image reçue:', profilePicture ? profilePicture.length : 0, 'caractères');
     console.log('👤 Utilisateur:', currentUserId);
+    console.log('🔍 Type de profilePicture:', typeof profilePicture);
+    console.log('🔍 Commence par data:image?', profilePicture ? profilePicture.startsWith('data:image') : false);
 
     const group = await Group.findById(id);
     if (!group) {
@@ -947,27 +949,45 @@ exports.updateGroupPicture = async (req, res) => {
     // 🚀 OPTIMISATION AUTOMATIQUE si l'image est fournie
     let optimizedProfilePicture = profilePicture;
     if (profilePicture && profilePicture.startsWith('data:image')) {
-      optimizedProfilePicture = await ImageOptimizer.optimizeBase64Image(profilePicture, {
-        width: 300, // Un peu plus grand pour les groupes
-        height: 300,
-        quality: 85
-      });
+      try {
+        console.log('🔄 Début de l\'optimisation de l\'image...');
+        optimizedProfilePicture = await ImageOptimizer.optimizeBase64Image(profilePicture, {
+          width: 300, // Un peu plus grand pour les groupes
+          height: 300,
+          quality: 85
+        });
+        console.log('✅ Optimisation réussie, nouvelle taille:', optimizedProfilePicture.length);
+      } catch (optimizeError) {
+        console.error('⚠️ Erreur lors de l\'optimisation, utilisation de l\'image originale:', optimizeError.message);
+        // En cas d'erreur d'optimisation, on garde l'image originale
+        optimizedProfilePicture = profilePicture;
+      }
     }
 
+    console.log('💾 Avant sauvegarde - profilePicture est:', optimizedProfilePicture ? 'défini (' + optimizedProfilePicture.length + ' chars)' : 'null/undefined');
+    
     group.profilePicture = optimizedProfilePicture || null;
-    await group.save();
+    const savedGroup = await group.save();
 
-    console.log('✅ Photo du groupe sauvegardée, nouvelle URL:', group.profilePicture ? group.profilePicture.substring(0, 100) + '...' : 'null');
+    console.log('✅ Photo du groupe sauvegardée, nouvelle URL:', savedGroup.profilePicture ? savedGroup.profilePicture.substring(0, 100) + '...' : 'null');
+    console.log('🔍 Groupe après sauvegarde:', {
+      id: savedGroup._id,
+      name: savedGroup.name,
+      hasProfilePicture: !!savedGroup.profilePicture,
+      profilePictureLength: savedGroup.profilePicture ? savedGroup.profilePicture.length : 0
+    });
 
     res.json({
       success: true,
       message: 'Image du groupe mise à jour avec succès',
-      data: group
+      data: savedGroup
     });
   } catch (error) {
+    console.error('❌ ERREUR COMPLÈTE dans updateGroupPicture:', error);
+    console.error('❌ Stack trace:', error.stack);
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la mise à jour de l\'image du groupe'
+      message: 'Erreur lors de la mise à jour de l\'image du groupe: ' + error.message
     });
   }
 };
