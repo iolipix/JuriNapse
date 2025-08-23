@@ -383,19 +383,20 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   };
 
   const getChatProfilePicture = (chat: any) => {
+    if (!chat) return undefined;
+    
     const refreshKey = imageRefreshKey[chat.id] || 0;
-    console.log('🖼️ getChatProfilePicture - chatId:', chat.id, 'refreshKey:', refreshKey);
+    
     if (chat.isPrivate) {
       const otherParticipant = getOtherParticipant(chat);
       const profilePic = otherParticipant?.profilePicture;
-      const finalUrl = profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
-      console.log('🖼️ URL privée générée:', finalUrl);
-      return finalUrl;
+      if (!profilePic) return undefined;
+      return `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}`;
     }
+    
     const profilePic = chat.profilePicture;
-    const finalUrl = profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
-    console.log('🖼️ URL groupe générée:', finalUrl);
-    return finalUrl;
+    if (!profilePic) return undefined;
+    return `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}`;
   };
 
   if (!user) {
