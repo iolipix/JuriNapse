@@ -991,3 +991,39 @@ exports.updateGroupPicture = async (req, res) => {
     });
   }
 };
+
+// Renvoyer l'image du groupe (GET /api/groups/:id/picture)
+exports.getGroupPicture = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const group = await Group.findById(id).select('profilePicture');
+
+    if (!group || !group.profilePicture) {
+      return res.status(404).json({ success: false, message: 'Image non trouvée' });
+    }
+
+    const profilePicture = group.profilePicture;
+
+    // Si c'est une data URL (data:image/...), extraire le mime et le buffer
+    if (typeof profilePicture === 'string' && profilePicture.startsWith('data:')) {
+      const match = profilePicture.match(/^data:(image\/[^;]+);base64,(.+)$/);
+      if (!match) {
+        return res.status(415).json({ success: false, message: 'Format d\'image non reconnu' });
+      }
+
+      const mimeType = match[1];
+      const base64Data = match[2];
+      const imgBuffer = Buffer.from(base64Data, 'base64');
+
+      res.setHeader('Content-Type', mimeType);
+      res.setHeader('Content-Length', imgBuffer.length);
+      return res.status(200).end(imgBuffer);
+    }
+
+    // Si c'est déjà un buffer ou autre format non pris en charge
+    return res.status(415).json({ success: false, message: 'Format d\'image non pris en charge' });
+  } catch (error) {
+    console.error('Erreur getGroupPicture:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur lors de la récupération de l\'image' });
+  }
+};

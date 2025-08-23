@@ -29,6 +29,8 @@ router.post('/:id/moderators', authenticateToken, (req, res, next) => {
 }, groupController.promoteModerator);
 router.delete('/:id/moderators', authenticateToken, groupController.demoteModerator);
 router.post('/:id/kick', authenticateToken, groupController.kickMember);
+// Route pour récupérer l'image du groupe (renvoie l'image binaire)
+router.get('/:id/picture', authenticateToken, groupController.getGroupPicture);
 router.put('/:id/picture', authenticateToken, groupController.updateGroupPicture);
 
 module.exports = router;
