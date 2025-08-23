@@ -921,6 +921,10 @@ exports.updateGroupPicture = async (req, res) => {
     const { profilePicture } = req.body;
     const currentUserId = req.user.id;
 
+    console.log('🖼️ updateGroupPicture - groupId:', id);
+    console.log('📷 Taille de l\'image reçue:', profilePicture ? profilePicture.length : 0, 'caractères');
+    console.log('👤 Utilisateur:', currentUserId);
+
     const group = await Group.findById(id);
     if (!group) {
       return res.status(404).json({
@@ -952,6 +956,8 @@ exports.updateGroupPicture = async (req, res) => {
 
     group.profilePicture = optimizedProfilePicture || null;
     await group.save();
+
+    console.log('✅ Photo du groupe sauvegardée, nouvelle URL:', group.profilePicture ? group.profilePicture.substring(0, 100) + '...' : 'null');
 
     res.json({
       success: true,

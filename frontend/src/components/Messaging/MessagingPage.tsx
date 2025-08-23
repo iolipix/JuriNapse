@@ -148,14 +148,19 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
       if (!groupId) return;
       
       console.log('📸 Événement groupPhotoUpdated reçu pour:', groupId);
-      setImageRefreshKey(prev => ({
-        ...prev,
-        [groupId]: (prev[groupId] || 0) + 1
-      }));
+      console.log('📸 imageRefreshKey actuel:', imageRefreshKey);
+      setImageRefreshKey(prev => {
+        const newKey = (prev[groupId] || 0) + 1;
+        console.log('📸 Nouvelle clé de rafraîchissement:', newKey);
+        return {
+          ...prev,
+          [groupId]: newKey
+        };
+      });
     };
     window.addEventListener('groupPhotoUpdated', handler);
     return () => window.removeEventListener('groupPhotoUpdated', handler);
-  }, []);
+  }, [imageRefreshKey]);
 
   // Sauvegarde côté serveur (debounce)
   const recentEmojisRef = useRef(recentEmojis);
@@ -379,13 +384,18 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   const getChatProfilePicture = (chat: any) => {
     const refreshKey = imageRefreshKey[chat.id] || 0;
+    console.log('🖼️ getChatProfilePicture - chatId:', chat.id, 'refreshKey:', refreshKey);
     if (chat.isPrivate) {
       const otherParticipant = getOtherParticipant(chat);
       const profilePic = otherParticipant?.profilePicture;
-      return profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
+      const finalUrl = profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
+      console.log('🖼️ URL privée générée:', finalUrl);
+      return finalUrl;
     }
     const profilePic = chat.profilePicture;
-    return profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
+    const finalUrl = profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
+    console.log('🖼️ URL groupe générée:', finalUrl);
+    return finalUrl;
   };
 
   if (!user) {
@@ -1307,6 +1317,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                       <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
                         {activeChat.profilePicture ? (
                           <img 
+                            key={`group-pic-header-${activeChat.id}-${imageRefreshKey[activeChat.id] || 0}`}
                             src={getChatProfilePicture(activeChat)} 
                             alt={activeChat.name}
                             className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
@@ -2226,6 +2237,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                         >
                           {activeChat.profilePicture ? (
                             <img 
+                              key={`group-pic-${activeChat.id}-${imageRefreshKey[activeChat.id] || 0}`}
                               src={getChatProfilePicture(activeChat)}
                               alt={activeChat.name}
                               className="h-32 w-32 object-cover"
@@ -2284,6 +2296,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                     <div className="mb-6 flex justify-center">
                       <div className="h-24 w-24 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
                         <img 
+                          key={`group-pic-mini-${activeChat.id}-${imageRefreshKey[activeChat.id] || 0}`}
                           src={getChatProfilePicture(activeChat)}
                           alt={activeChat.name}
                           className="h-24 w-24 object-cover"
