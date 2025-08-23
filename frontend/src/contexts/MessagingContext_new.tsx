@@ -996,7 +996,61 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
   };
 
   // Méthodes stub pour les fonctionnalités manquantes
-  const updateGroupPicture = async (_groupId: string, _pictureData: FormData | string): Promise<void> => {
+  const updateGroupPicture = async (groupId: string, pictureData: FormData | string): Promise<void> => {
+    console.log('🚀 updateGroupPicture APPELÉE !', { groupId, dataType: typeof pictureData });
+    
+    try {
+      let profilePicture: string;
+      
+      if (typeof pictureData === 'string') {
+        profilePicture = pictureData;
+      } else {
+        // Si c'est FormData, il faut le convertir en base64
+        const file = pictureData.get('profilePicture') as File;
+        if (file) {
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.readAsDataURL(file);
+          });
+          profilePicture = base64;
+        } else {
+          throw new Error('Aucune image fournie');
+        }
+      }
+
+      console.log('🖼️ Mise à jour photo du groupe:', groupId);
+      console.log('📷 Taille de l\'image:', profilePicture.length, 'caractères');
+
+      // Appeler l'API pour mettre à jour la photo du groupe
+      const response = await groupsAPI.updateGroupPicture(groupId, profilePicture);
+      console.log('✅ Réponse API:', response);
+      
+      // Mettre à jour le groupe local
+      setGroups(prevGroups => {
+        const updatedGroups = prevGroups.map(group => 
+          group.id === groupId 
+            ? { ...group, profilePicture }
+            : group
+        );
+        console.log('📝 Groupes mis à jour:', updatedGroups.find(g => g.id === groupId));
+        return updatedGroups;
+      });
+
+      // Forcer la mise à jour des données depuis le serveur pour s'assurer de la synchronisation
+      setTimeout(() => {
+        loadGroups();
+      }, 1000);
+
+      // Émettre un événement personnalisé pour forcer le rafraîchissement de l'image
+      window.dispatchEvent(new CustomEvent('groupPhotoUpdated', { 
+        detail: { groupId, profilePicture } 
+      }));
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la mise à jour de la photo du groupe:', error);
+      throw error;
+    }
   };
 
   const getMessageDeletionInfo = (messageId: string): any => {
