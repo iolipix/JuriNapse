@@ -801,6 +801,8 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
 
   // Méthodes stub pour les fonctionnalités manquantes
   const updateGroupPicture = async (groupId: string, pictureData: FormData | string): Promise<void> => {
+    console.log('🚀 updateGroupPicture APPELÉE !', { groupId, dataType: typeof pictureData });
+    
     try {
       let profilePicture: string;
       

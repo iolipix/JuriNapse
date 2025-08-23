@@ -2232,7 +2232,16 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                       <div className="relative group">
                         <div 
                           className="h-32 w-32 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-200 relative transform active:scale-95"
-                          onClick={() => document.getElementById('group-photo-input')?.click()}
+                          onClick={() => {
+                            console.log('🖱️ Clic sur la photo de profil du groupe détecté !');
+                            const input = document.getElementById('group-photo-input') as HTMLInputElement;
+                            if (input) {
+                              console.log('✅ Input trouvé, déclenchement du clic');
+                              input.click();
+                            } else {
+                              console.error('❌ Input group-photo-input introuvable !');
+                            }
+                          }}
                           title="Cliquer pour changer la photo du groupe"
                         >
                           {activeChat.profilePicture ? (
@@ -2259,27 +2268,41 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                             type="file"
                             accept="image/*"
                             onChange={async (e) => {
+                              console.log('📁 Input file onChange déclenché !');
                               const file = e.target.files?.[0];
+                              console.log('📁 Fichier sélectionné:', file ? file.name : 'aucun');
+                              
                               if (file) {
+                                console.log('📊 Taille du fichier:', file.size, 'bytes');
+                                console.log('📊 Type de fichier:', file.type);
+                                
                                 if (file.size > 5 * 1024 * 1024) { // 5MB max
+                                  console.error('❌ Fichier trop volumineux');
                                   setShowErrorMessage('La taille de l\'image ne doit pas dépasser 5MB');
                                   return;
                                 }
                                 
                                 if (!file.type.startsWith('image/')) {
+                                  console.error('❌ Type de fichier invalide');
                                   setShowErrorMessage('Veuillez sélectionner une image valide');
                                   return;
                                 }
                                 
+                                console.log('✅ Fichier valide, début de la conversion...');
+                                
                                 try {
                                   const reader = new FileReader();
                                   reader.onload = async (event) => {
+                                    console.log('📖 Lecture du fichier terminée');
                                     const base64 = event.target?.result as string;
+                                    console.log('🔄 Appel de updateGroupPicture avec groupId:', activeChat.id);
                                     await updateGroupPicture(activeChat.id, base64);
+                                    console.log('✅ updateGroupPicture terminé avec succès');
                                     setShowSuccessMessage('Photo du groupe mise à jour avec succès !');
                                   };
                                   reader.readAsDataURL(file);
                                 } catch (error) {
+                                  console.error('❌ Erreur lors de la lecture:', error);
                                   setShowErrorMessage('Erreur lors de la mise à jour de la photo');
                                 }
                               }
