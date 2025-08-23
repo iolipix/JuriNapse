@@ -93,6 +93,9 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   const [tempGroupDescription, setTempGroupDescription] = useState('');
   const [recentEmojis, setRecentEmojis] = useState<string[]>([]); // Emojis récents (session seulement)
   
+  // État pour forcer le rechargement des images de profil
+  const [imageRefreshKey, setImageRefreshKey] = useState<{[chatId: string]: number}>({});
+  
   // États pour les mentions
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionSuggestions, setMentionSuggestions] = useState<any[]>([]);
@@ -136,6 +139,22 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     };
     window.addEventListener('emoji-used', handler);
     return () => window.removeEventListener('emoji-used', handler);
+  }, []);
+
+  // Écouter les mises à jour de photos de groupe
+  useEffect(() => {
+    const handler = (e: any) => {
+      const { groupId } = e?.detail || {};
+      if (!groupId) return;
+      
+      console.log('📸 Événement groupPhotoUpdated reçu pour:', groupId);
+      setImageRefreshKey(prev => ({
+        ...prev,
+        [groupId]: (prev[groupId] || 0) + 1
+      }));
+    };
+    window.addEventListener('groupPhotoUpdated', handler);
+    return () => window.removeEventListener('groupPhotoUpdated', handler);
   }, []);
 
   // Sauvegarde côté serveur (debounce)
@@ -359,11 +378,14 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   };
 
   const getChatProfilePicture = (chat: any) => {
+    const refreshKey = imageRefreshKey[chat.id] || 0;
     if (chat.isPrivate) {
       const otherParticipant = getOtherParticipant(chat);
-      return otherParticipant?.profilePicture;
+      const profilePic = otherParticipant?.profilePicture;
+      return profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
     }
-    return chat.profilePicture;
+    const profilePic = chat.profilePicture;
+    return profilePic ? `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}` : profilePic;
   };
 
   if (!user) {
@@ -1285,7 +1307,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                       <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
                         {activeChat.profilePicture ? (
                           <img 
-                            src={activeChat.profilePicture} 
+                            src={getChatProfilePicture(activeChat)} 
                             alt={activeChat.name}
                             className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
                           />
@@ -2204,7 +2226,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                         >
                           {activeChat.profilePicture ? (
                             <img 
-                              src={`${activeChat.profilePicture}${activeChat.profilePicture.includes('?') ? '&' : '?'}t=${Date.now()}`}
+                              src={getChatProfilePicture(activeChat)}
                               alt={activeChat.name}
                               className="h-32 w-32 object-cover"
                             />
@@ -2262,7 +2284,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                     <div className="mb-6 flex justify-center">
                       <div className="h-24 w-24 rounded-full overflow-hidden bg-blue-100 flex items-center justify-center">
                         <img 
-                          src={`${activeChat.profilePicture}${activeChat.profilePicture.includes('?') ? '&' : '?'}t=${Date.now()}`}
+                          src={getChatProfilePicture(activeChat)}
                           alt={activeChat.name}
                           className="h-24 w-24 object-cover"
                         />

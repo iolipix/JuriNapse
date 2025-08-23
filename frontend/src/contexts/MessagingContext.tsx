@@ -843,6 +843,11 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
       setTimeout(() => {
         loadGroups();
       }, 1000);
+
+      // Émettre un événement personnalisé pour forcer le rafraîchissement de l'image
+      window.dispatchEvent(new CustomEvent('groupPhotoUpdated', { 
+        detail: { groupId, profilePicture } 
+      }));
       
     } catch (error) {
       console.error('❌ Erreur lors de la mise à jour de la photo du groupe:', error);
