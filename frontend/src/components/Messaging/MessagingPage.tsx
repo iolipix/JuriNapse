@@ -391,11 +391,19 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
       const otherParticipant = getOtherParticipant(chat);
       const profilePic = otherParticipant?.profilePicture;
       if (!profilePic) return undefined;
+      // Ne pas ajouter de cache-buster aux data URLs (elles deviennent invalides)
+      if (typeof profilePic === 'string' && profilePic.startsWith('data:')) {
+        return profilePic;
+      }
       return `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}`;
     }
     
     const profilePic = chat.profilePicture;
     if (!profilePic) return undefined;
+    // Ne pas ajouter de cache-buster aux data URLs (elles deviennent invalides)
+    if (typeof profilePic === 'string' && profilePic.startsWith('data:')) {
+      return profilePic;
+    }
     return `${profilePic}${profilePic.includes('?') ? '&' : '?'}t=${Date.now()}&r=${refreshKey}`;
   };
 

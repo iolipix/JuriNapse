@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <!-- Dégradé exact de votre identité visuelle -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="50%" style="stop-color:#3b82f6"/>  
+      <stop offset="100%" style="stop-color:#4338ca"/>
+    </linearGradient>
+    
+    <!-- Dégradé pour le texte comme votre navbar -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#e0e7ff"/>
+    </linearGradient>
+    
+    <!-- Ombre moderne -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#1e293b" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- Fond rond moderne avec votre style -->
+  <rect x="16" y="16" width="224" height="224" rx="56" fill="url(#bgGrad)" filter="url(#shadow)"/>
+  
+  <!-- Balance de justice centrée, même style que votre navbar -->
+  <g transform="translate(128,90)" fill="url(#textGrad)">
+    <!-- Manche principal -->
+    <rect x="-3" y="0" width="6" height="70" rx="3" filter="url(#shadow)"/>
+    
+    <!-- Support haut -->
+    <rect x="-4" y="-8" width="8" height="6" rx="2"/>
+    
+    <!-- Plateau gauche -->
+    <g transform="translate(-32,20)">
+      <ellipse cx="0" cy="0" rx="20" ry="5" opacity="0.95"/>
+      <line x1="-16" y1="0" x2="0" y2="-20" stroke="url(#textGrad)" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    
+    <!-- Plateau droit -->
+    <g transform="translate(32,20)">
+      <ellipse cx="0" cy="0" rx="20" ry="5" opacity="0.95"/>
+      <line x1="16" y1="0" x2="0" y2="-20" stroke="url(#textGrad)" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    
+    <!-- Barre horizontale -->
+    <line x1="-32" y1="-20" x2="32" y2="-20" stroke="url(#textGrad)" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Base élégante -->
+    <rect x="-24" y="70" width="48" height="8" rx="4"/>
+  </g>
+  
+  <!-- Texte JuriNapse avec le même style que votre navbar -->
+  <text x="128" y="200" text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+        font-size="28" font-weight="700" 
+        fill="url(#textGrad)" filter="url(#shadow)">
+    JuriNapse
+  </text>
+  
+  <!-- Sous-titre -->
+  <text x="128" y="225" text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+        font-size="14" fill="url(#textGrad)" opacity="0.8">
+    Réseau juridique
+  </text>
+</svg>

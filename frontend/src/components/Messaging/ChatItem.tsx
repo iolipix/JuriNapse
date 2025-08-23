@@ -102,15 +102,15 @@ const ChatItem: React.FC<ChatItemProps> = ({
                   <img 
                     src={(() => {
                       const imageSource = getChatProfilePicture();
+                      // Si c'est déjà du base64 complet, l'utiliser directement (ne pas ajouter de cache-buster)
+                      if (imageSource.startsWith('data:')) {
+                        return imageSource;
+                      }
                       // Si c'est une URL d'API, l'utiliser directement avec cache-busting
                       if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
                         // Ajouter un paramètre timestamp pour forcer le rechargement
                         const separator = imageSource.includes('?') ? '&' : '?';
                         return `${imageSource}${separator}t=${Date.now()}`;
-                      }
-                      // Si c'est déjà du base64 complet, l'utiliser directement
-                      if (imageSource.startsWith('data:')) {
-                        return imageSource;
                       }
                       // Sinon, ajouter le préfixe base64
                       return `data:image/jpeg;base64,${imageSource}`;

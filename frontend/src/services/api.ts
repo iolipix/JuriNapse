@@ -312,7 +312,12 @@ export const postsAPI = {
 export const groupsAPI = {
   getAllGroups: async () => {
     const response = await api.get('/groups');
-    return response.data;
+    // Appliquer la correction des URLs pour les photos de profil
+    const correctedData = {
+      ...response.data,
+      data: response.data.data ? fixUrlsInResponse(response.data.data) : response.data.data
+    };
+    return correctedData;
   },
 
   createGroup: async (groupData: { name: string; description: string; isPrivate?: boolean; selectedMembers?: string[] }) => {
@@ -322,7 +327,12 @@ export const groupsAPI = {
 
   getGroup: async (groupId: string) => {
     const response = await api.get(`/groups/${groupId}`);
-    return response.data;
+    // Appliquer la correction des URLs pour les photos de profil
+    const correctedData = {
+      ...response.data,
+      data: response.data.data ? fixUrlsInResponse(response.data.data) : response.data.data
+    };
+    return correctedData;
   },
 
   updateGroup: async (groupId: string, groupData: { name?: string; description?: string }) => {

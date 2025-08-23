@@ -204,7 +204,8 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
           createdAt: new Date(group.createdAt),
           isPrivate: group.isPrivate || false,
           hiddenFor: group.hiddenFor || [],
-          notificationsEnabled: group.notificationsEnabled || {}
+          notificationsEnabled: group.notificationsEnabled || {},
+          profilePicture: group.profilePicture // Ajout de la photo de profil du groupe
         }));
         
         setGroups(apiGroups);

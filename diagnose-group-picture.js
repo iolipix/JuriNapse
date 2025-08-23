@@ -2,7 +2,13 @@
 
 /**
  * Script de diagnostic pour l'upload de photo de groupe
- * Usage: node diagnose-group-picture.js
+ * Usage: nod  if (contextContent.includes('updateGroupPicture: async (groupId: string, pictureData:')) {
+    console.log('   ✅ Signature updateGroupPicture trouvée dans le contexte');
+  } else if (contextContent.includes('updateGroupPicture = async (groupId: string, pictureData:')) {
+    console.log('   ✅ Signature updateGroupPicture trouvée dans le contexte (format alternatif)');
+  } else {
+    console.log('   ❌ Signature updateGroupPicture incorrecte dans le contexte');
+  }gnose-group-picture.js
  */
 
 console.log('🔍 Diagnostic de l\'upload de photo de groupe\n');
@@ -97,7 +103,7 @@ try {
   const fs = require('fs');
   const contextContent = fs.readFileSync('./frontend/src/contexts/MessagingContext.tsx', 'utf8');
   
-  if (contextContent.includes('updateGroupPicture: async (groupId: string, pictureData:')) {
+  if (contextContent.includes('updateGroupPicture: (groupId: string, pictureData:')) {
     console.log('   ✅ Signature updateGroupPicture trouvée dans le contexte');
   } else {
     console.log('   ❌ Signature updateGroupPicture incorrecte dans le contexte');
