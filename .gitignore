@@ -29,6 +29,25 @@ build
 .env
 .env.production
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Fichiers de sécurité sensibles
+*.key
+*.pem
+*.p12
+*.pfx
+auth-token.txt
+.env.encrypted
+config/secrets.json
+secrets/
+
+# Fichiers temporaires avec des données sensibles
+temp-credentials.*
+backup-*.sql
+dump-*.json
+.env.local
 .env.encoded
 config/.env
 
