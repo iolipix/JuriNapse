@@ -266,7 +266,15 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
               return mappedPost;
             });
             setPosts(mappedPosts);
-            setHasMore(response.data.hasMore);
+            // Utiliser la même logique de pagination que loadPosts
+            const newHasMore = response.data.pagination && response.data.pagination.page < response.data.pagination.pages;
+            console.log('Initial pagination info:', { 
+              currentPage: response.data.pagination?.page, 
+              totalPages: response.data.pagination?.pages,
+              hasMore: newHasMore,
+              postsCount: mappedPosts.length
+            });
+            setHasMore(newHasMore);
             setCurrentPage(1);
           }
         } catch (error) {
