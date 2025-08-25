@@ -327,7 +327,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
             return (
               <React.Fragment key={`${post.id}-${index}-${activeTab}`}>
                 {/* Injecter une publicité toutes les 4 posts (après les posts 4, 8, 12, etc.) */}
-                {(index + 1) % 4 === 0 && index > 0 && (
+                {(index + 1) % 4 === 0 && (
                   <div className="my-6">
                     <div className="text-xs text-gray-400 text-center mb-2">Contenu sponsorisé</div>
                     <SimpleAdBanner className="mx-auto" />
