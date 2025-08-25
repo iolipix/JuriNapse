@@ -76,6 +76,13 @@ const FeedPage: React.FC<FeedPageProps> = ({
           tab: activeTab, 
           posts_loaded: posts.length 
         });
+      } else if (scrollPosition >= threshold) {
+        console.log('❌ LoadMorePosts NOT triggered:', {
+          threshold_reached: scrollPosition >= threshold,
+          hasMore,
+          loading,
+          reason: !hasMore ? 'hasMore is false/undefined' : loading ? 'currently loading' : 'unknown'
+        });
       }
     };
 

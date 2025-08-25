@@ -492,12 +492,16 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
   }, [loadPosts]);
 
   const loadMorePosts = useCallback(async () => {
-    console.log('LoadMorePosts called:', { hasMore, loading, currentPage });
+    console.log('📞 LoadMorePosts called:', { hasMore, loading, currentPage });
     if (hasMore && !loading) {
-      console.log('Loading page:', currentPage + 1);
+      console.log('✅ Loading page:', currentPage + 1);
       await loadPosts(currentPage + 1, false);
     } else {
-      console.log('LoadMorePosts blocked - hasMore:', hasMore, 'loading:', loading);
+      console.log('❌ LoadMorePosts blocked:', { 
+        hasMore, 
+        loading,
+        reason: !hasMore ? 'No more posts available' : loading ? 'Already loading' : 'Unknown'
+      });
     }
   }, [hasMore, loading, currentPage, loadPosts]);
 
