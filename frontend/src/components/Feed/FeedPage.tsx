@@ -286,16 +286,12 @@ const FeedPage: React.FC<FeedPageProps> = ({
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-      {/* Layout avec sidebar publicitaire */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Contenu principal */}
-        <div className="xl:col-span-3">
-          {/* Header */}
-          <div className="mb-4 sm:mb-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{getActiveTabTitle()}</h1>
-            </div>
-          </div>
+      {/* Header */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{getActiveTabTitle()}</h1>
+        </div>
+      </div>
 
       {/* Tags - Affichés uniquement dans le fil d'actualité */}
       {popularTags.length > 0 && activeTab === 'feed' && (
@@ -331,8 +327,8 @@ const FeedPage: React.FC<FeedPageProps> = ({
             
             return (
               <React.Fragment key={`${post.id}-${index}-${activeTab}`}>
-                {/* Injecter une publicité après le 3ème post */}
-                {index === 3 && (
+                {/* Injecter une publicité toutes les 4 posts (après les posts 4, 8, 12, etc.) */}
+                {(index + 1) % 4 === 0 && index > 0 && (
                   <div className="my-6">
                     <div className="text-xs text-gray-400 text-center mb-2">Contenu sponsorisé</div>
                     <SimpleAdBanner className="mx-auto" />
@@ -402,20 +398,6 @@ const FeedPage: React.FC<FeedPageProps> = ({
           <p className="text-gray-500 text-sm sm:text-base">Vous avez vu tous les posts disponibles</p>
         </div>
       )}
-        </div>
-
-        {/* Sidebar publicitaire - visible uniquement sur grand écran */}
-        <div className="hidden xl:block xl:col-span-1">
-          <div className="sticky top-4 space-y-4">
-            <SimpleAdBanner className="mx-auto" />
-            
-            {/* Deuxième publicité plus bas */}
-            <div className="mt-6">
-              <SimpleAdBanner className="mx-auto" />
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
