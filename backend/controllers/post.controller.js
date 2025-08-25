@@ -225,8 +225,8 @@ const getPosts = async (req, res) => {
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: validPosts.length, // Utiliser le nombre réel de posts valides
-        pages: Math.ceil(validPosts.length / limit)
+        total: total, // Utiliser le total de la base de données, pas validPosts.length
+        pages: Math.ceil(total / limit) // Calculer les pages sur le total de la base
       }
     };
 
