@@ -40,12 +40,21 @@ const FeedPage: React.FC<FeedPageProps> = ({
   // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-        document.documentElement.offsetHeight - 1000 && // Charger avant d'atteindre le bas
-        hasMore &&
-        !loading
-      ) {
+      const scrollPosition = window.innerHeight + document.documentElement.scrollTop;
+      const documentHeight = document.documentElement.offsetHeight;
+      const threshold = documentHeight - 1000;
+      
+      console.log('Scroll event:', {
+        scrollPosition,
+        documentHeight,
+        threshold,
+        hasMore,
+        loading,
+        shouldTrigger: scrollPosition >= threshold && hasMore && !loading
+      });
+      
+      if (scrollPosition >= threshold && hasMore && !loading) {
+        console.log('Triggering loadMorePosts');
         loadMorePosts();
         // Track infinite scroll
         trackEvent('feed_load_more', { 
@@ -57,7 +66,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loading, activeTab, posts.length, trackEvent]); // Pas de dépendance sur loadMorePosts
+  }, [hasMore, loading, activeTab, posts.length, trackEvent, loadMorePosts]);
 
   // Determine which tag to use for filtering
   const effectiveSelectedTag = selectedTag || localSelectedTag;
@@ -326,14 +335,6 @@ const FeedPage: React.FC<FeedPageProps> = ({
             
             return (
               <React.Fragment key={`${post.id}-${index}-${activeTab}`}>
-                {/* Injecter une publicité toutes les 4 posts (après les posts 4, 8, 12, etc.) */}
-                {(index + 1) % 4 === 0 && (
-                  <div className="my-6">
-                    <div className="text-xs text-gray-400 text-center mb-2">Contenu sponsorisé</div>
-                    <SimpleAdBanner className="mx-auto" />
-                  </div>
-                )}
-                
                 <div className="relative">
                 {/* Badges de tendance selon l'onglet */}
                 {activeTab === 'trending' ? (
@@ -378,6 +379,14 @@ const FeedPage: React.FC<FeedPageProps> = ({
                   onViewDecision={onViewDecision}
                 />
                 </div>
+                
+                {/* Injecter une publicité après les posts 4, 8, 12, etc. */}
+                {(index + 1) % 4 === 0 && (
+                  <div className="my-6">
+                    <div className="text-xs text-gray-400 text-center mb-2">Contenu sponsorisé</div>
+                    <SimpleAdBanner className="mx-auto" />
+                  </div>
+                )}
               </React.Fragment>
             );
           })
