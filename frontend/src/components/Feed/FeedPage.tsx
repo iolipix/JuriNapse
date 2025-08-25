@@ -27,6 +27,16 @@ const FeedPage: React.FC<FeedPageProps> = ({
   onViewDecision
 }) => {
   const { posts, loading, error, hasMore, loadMorePosts } = usePost();
+  
+  // Debug : afficher l'état des posts au chargement
+  useEffect(() => {
+    console.log('📊 Feed state update:', { 
+      postsCount: posts.length, 
+      hasMore, 
+      loading, 
+      error 
+    });
+  }, [posts.length, hasMore, loading, error]);
   const { subscriptions } = useSubscriptions();
   const { user } = useAuth();
   const { trackEvent, trackPageView } = useAnalytics();
@@ -44,17 +54,22 @@ const FeedPage: React.FC<FeedPageProps> = ({
       const documentHeight = document.documentElement.offsetHeight;
       const threshold = documentHeight - 1000;
       
-      console.log('Scroll event:', {
+      const scrollInfo = {
         scrollPosition,
         documentHeight,
         threshold,
         hasMore,
         loading,
         shouldTrigger: scrollPosition >= threshold && hasMore && !loading
-      });
+      };
+      
+      // Ne logger que quand on est proche du bas pour éviter le spam
+      if (scrollPosition >= threshold - 100) {
+        console.log('Scroll near bottom:', scrollInfo);
+      }
       
       if (scrollPosition >= threshold && hasMore && !loading) {
-        console.log('Triggering loadMorePosts');
+        console.log('🚀 Triggering loadMorePosts');
         loadMorePosts();
         // Track infinite scroll
         trackEvent('feed_load_more', { 
