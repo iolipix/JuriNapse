@@ -3,6 +3,7 @@ export { AdProvider, useAds } from './AdProvider';
 export { default as AdBanner } from './AdBanner';
 export { default as AdFeedNative } from './AdFeedNative';
 export { default as AdSidebar } from './AdSidebar';
+export { default as SimpleAdBanner } from './SimpleAdBanner';
 export { 
   AdSidebarProfile, 
   AdSidebarPost, 

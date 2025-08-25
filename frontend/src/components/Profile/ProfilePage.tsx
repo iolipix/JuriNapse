@@ -8,6 +8,7 @@ import { authAPI } from '../../services/api';
 import PostCard from '../Post/PostCard';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import FoldersPage from '../Folder/FoldersPage';
+import { SimpleAdBanner } from '../Ads';
 
 interface ProfilePageProps {
   onLogin: () => void;
@@ -405,8 +406,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-      {/* Profile Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
+      {/* Layout avec sidebar publicitaire */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Contenu principal */}
+        <div className="xl:col-span-3">
+          {/* Profile Header */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
           <div className="flex items-start space-x-3 sm:space-x-6 flex-1 min-w-0">
             {/* Profile Picture */}
@@ -723,6 +728,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
           </div>
         </div>
       )}
+        </div>
+
+        {/* Sidebar publicitaire - visible uniquement sur grand écran */}
+        <div className="hidden xl:block xl:col-span-1">
+          <div className="sticky top-4 space-y-4">
+            <SimpleAdBanner className="mx-auto" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
