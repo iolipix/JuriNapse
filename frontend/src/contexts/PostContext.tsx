@@ -142,7 +142,14 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
         }
         
         // Vérifier s'il y a plus de posts
-        setHasMore(response.data.pagination && response.data.pagination.page < response.data.pagination.pages);
+        const newHasMore = response.data.pagination && response.data.pagination.page < response.data.pagination.pages;
+        console.log('Pagination info:', { 
+          currentPage: response.data.pagination?.page, 
+          totalPages: response.data.pagination?.pages,
+          hasMore: newHasMore,
+          postsCount: mappedPosts.length
+        });
+        setHasMore(newHasMore);
         setCurrentPage(page);
       } else {
         console.error('PostContext: Response not successful:', response.data);
@@ -477,8 +484,12 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
   }, [loadPosts]);
 
   const loadMorePosts = useCallback(async () => {
+    console.log('LoadMorePosts called:', { hasMore, loading, currentPage });
     if (hasMore && !loading) {
+      console.log('Loading page:', currentPage + 1);
       await loadPosts(currentPage + 1, false);
+    } else {
+      console.log('LoadMorePosts blocked - hasMore:', hasMore, 'loading:', loading);
     }
   }, [hasMore, loading, currentPage, loadPosts]);
 
