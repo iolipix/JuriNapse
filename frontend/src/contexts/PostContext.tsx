@@ -56,7 +56,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get(`/posts?page=${page}&limit=25`); // Augmenter la limite pour plus de posts par page
+      const response = await api.get(`/posts?page=${page}&limit=12`); // 12 posts par page pour pagination claire
       
       if (response.data.success) {
         // Mapper les données avec tous les champs nécessaires
@@ -184,7 +184,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-          const response = await api.get('/posts?page=1&limit=50');
+          const response = await api.get('/posts?page=1&limit=12');
           if (response.data.success) {
             const mappedPosts = response.data.posts.map((post: any) => {
               const mappedPost = {
