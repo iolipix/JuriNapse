@@ -9,6 +9,7 @@ import { SavedPostsProvider } from './contexts/SavedPostsContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CookieProvider } from './hooks/useCookieConsent';
+import { AdProvider } from './components/Ads';
 import AuthForm from './components/Auth/AuthForm';
 import Navbar from './components/Layout/Navbar';
 import Sidebar from './components/Layout/Sidebar';
@@ -880,16 +881,18 @@ function App() {
           <SocketProvider>
             <SubscriptionProvider>
               <PostProvider>
-                <SavedPostsProvider>
-                  <FolderProvider>
-                    <MessagingProvider>
-                      <NotificationProvider>
-                        <MainApp />
-                        <CookieConsent />
-                      </NotificationProvider>
-                    </MessagingProvider>
-                  </FolderProvider>
-                </SavedPostsProvider>
+                <AdProvider>
+                  <SavedPostsProvider>
+                    <FolderProvider>
+                      <MessagingProvider>
+                        <NotificationProvider>
+                          <MainApp />
+                          <CookieConsent />
+                        </NotificationProvider>
+                      </MessagingProvider>
+                    </FolderProvider>
+                  </SavedPostsProvider>
+                </AdProvider>
               </PostProvider>
             </SubscriptionProvider>
           </SocketProvider>

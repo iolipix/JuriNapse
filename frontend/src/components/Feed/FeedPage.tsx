@@ -5,7 +5,6 @@ import { useSubscriptions } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnalytics } from '../../hooks/useCookieConsent';
 import PostCard from '../Post/PostCard';
-import { AdProvider, AdSidebar, AdFeedNative, usePostsWithAds } from '../Ads';
 
 interface FeedPageProps {
   activeTab?: string;
@@ -223,9 +222,6 @@ const FeedPage: React.FC<FeedPageProps> = ({
     return filtered;
   }, [postsWithScores, effectiveSelectedTag, searchQuery, activeTab, friendsUserIds, user]);
 
-  // Intégrer les publicités dans le feed
-  const postsWithAds = usePostsWithAds(filteredPosts, 4); // Une pub tous les 4 posts
-
   const popularTags = useMemo(() => {
     const tagCounts = new Map<string, number>();
     posts.forEach(post => {
@@ -288,140 +284,110 @@ const FeedPage: React.FC<FeedPageProps> = ({
   }
 
   return (
-    <AdProvider>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        {/* Layout avec sidebar publicitaire */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Contenu principal */}
-          <div className="xl:col-span-3">
-            {/* Header */}
-            <div className="mb-4 sm:mb-6">
-              <div className="flex items-center justify-between">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{getActiveTabTitle()}</h1>
-              </div>
-            </div>
-
-            {/* Tags - Affichés uniquement dans le fil d'actualité */}
-            {popularTags.length > 0 && activeTab === 'feed' && (
-              <div className="mb-4 sm:mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-2 sm:mb-3">Tags populaires</h3>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  {popularTags.map(tag => (
-                    <button
-                      key={tag}
-                      onClick={() => handleTagClick(tag)}
-                      className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
-                        effectiveSelectedTag === tag
-                          ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      #{tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Posts avec publicités intégrées */}
-            <div className="space-y-4 sm:space-y-6">
-              {postsWithAds.length === 0 ? (
-                <div className="text-center py-8 sm:py-12">
-                  <p className="text-gray-500 text-sm sm:text-base">Aucun post trouvé</p>
-                </div>
-              ) : (
-                postsWithAds.map((item, index) => {
-                  // Vérifier si c'est une publicité
-                  if ('isAd' in item && item.isAd) {
-                    return (
-                      <AdFeedNative
-                        key={item.id}
-                        slot={`feed-native-${item.adIndex}`}
-                        index={item.adIndex}
-                        className="mb-6"
-                        title="Contenu sponsorisé"
-                      />
-                    );
-                  }
-
-                  // C'est un post normal
-                  const post = item as any;
-                  const isTrending = post.trendingScore >= 1;
-                  
-                  return (
-                    <div key={`${post.id}-${index}-${activeTab}`} className="relative">
-                      {/* Badges de tendance selon l'onglet */}
-                      {activeTab === 'trending' ? (
-                        // Dans l'onglet trending : badges numérotés pour les 3 premiers, "Tendance" pour les autres
-                        index < 3 ? (
-                          <div className="absolute -top-2 -left-2 z-10">
-                            <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg ${
-                              index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
-                              index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
-                              'bg-gradient-to-r from-orange-600 to-red-500'
-                            }`}>
-                              <Flame className="h-3 w-3" />
-                              <span>#{index + 1}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="absolute -top-2 -left-2 z-10">
-                            <div className="flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-red-500 shadow-lg">
-                              <Flame className="h-3 w-3" />
-                              <span>Tendance</span>
-                            </div>
-                          </div>
-                        )
-                      ) : (
-                        // Dans les autres onglets : badge "Tendance" pour les posts trending
-                        isTrending && (
-                          <div className="absolute -top-2 -left-2 z-10">
-                            <div className="flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-red-500 shadow-lg">
-                              <Flame className="h-3 w-3" />
-                              <span>Tendance</span>
-                            </div>
-                          </div>
-                        )
-                      )}
-
-                      <PostCard 
-                        post={post} 
-                        onLogin={() => {}}
-                        onViewUserProfile={onViewUserProfile || (() => {})}
-                        onTagClick={handleTagClick}
-                        onViewPost={onViewPost}
-                        onViewDecision={onViewDecision}
-                      />
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            {/* Indicateur de chargement pour l'infinite scroll */}
-            {loading && posts.length > 0 && (
-              <div className="flex justify-center py-6 sm:py-8">
-                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
-              </div>
-            )}
-
-            {/* Indicateur fin de liste */}
-            {!hasMore && posts.length > 0 && (
-              <div className="text-center py-6 sm:py-8">
-                <p className="text-gray-500 text-sm sm:text-base">Vous avez vu tous les posts disponibles</p>
-              </div>
-            )}
-          </div>
-
-          {/* Sidebar publicitaire - visible uniquement sur grand écran */}
-          <div className="hidden xl:block xl:col-span-1">
-            <div className="sticky top-4">
-              <AdSidebar type="post" className="space-y-4" />
-            </div>
-          </div>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      {/* Header */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{getActiveTabTitle()}</h1>
         </div>
       </div>
-    </AdProvider>
+
+      {/* Tags - Affichés uniquement dans le fil d'actualité */}
+      {popularTags.length > 0 && activeTab === 'feed' && (
+        <div className="mb-4 sm:mb-6">
+          <h3 className="text-sm font-medium text-gray-700 mb-2 sm:mb-3">Tags populaires</h3>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {popularTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => handleTagClick(tag)}
+                className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
+                  effectiveSelectedTag === tag
+                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Posts */}
+      <div className="space-y-4 sm:space-y-6">
+        {filteredPosts.length === 0 ? (
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-gray-500 text-sm sm:text-base">Aucun post trouvé</p>
+          </div>
+        ) : (
+          filteredPosts.map((post, index) => {
+            const isTrending = post.trendingScore >= 1;
+            
+            return (
+              <div key={`${post.id}-${index}-${activeTab}`} className="relative">
+                {/* Badges de tendance selon l'onglet */}
+                {activeTab === 'trending' ? (
+                  // Dans l'onglet trending : badges numérotés pour les 3 premiers, "Tendance" pour les autres
+                  index < 3 ? (
+                    <div className="absolute -top-2 -left-2 z-10">
+                      <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg ${
+                        index === 0 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
+                        index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                        'bg-gradient-to-r from-orange-600 to-red-500'
+                      }`}>
+                        <Flame className="h-3 w-3" />
+                        <span>#{index + 1}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="absolute -top-2 -left-2 z-10">
+                      <div className="flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-red-500 shadow-lg">
+                        <Flame className="h-3 w-3" />
+                        <span>Tendance</span>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  // Dans les autres onglets : badge "Tendance" pour les posts trending
+                  isTrending && (
+                    <div className="absolute -top-2 -left-2 z-10">
+                      <div className="flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-red-500 shadow-lg">
+                        <Flame className="h-3 w-3" />
+                        <span>Tendance</span>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                <PostCard 
+                  post={post} 
+                  onLogin={() => {}}
+                  onViewUserProfile={onViewUserProfile || (() => {})}
+                  onTagClick={handleTagClick}
+                  onViewPost={onViewPost}
+                  onViewDecision={onViewDecision}
+                />
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Indicateur de chargement pour l'infinite scroll */}
+      {loading && posts.length > 0 && (
+        <div className="flex justify-center py-6 sm:py-8">
+          <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+
+      {/* Indicateur fin de liste */}
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center py-6 sm:py-8">
+          <p className="text-gray-500 text-sm sm:text-base">Vous avez vu tous les posts disponibles</p>
+        </div>
+      )}
+    </div>
   );
 };
 

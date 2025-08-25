@@ -5,7 +5,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { postsAPI } from '../../services/api';
 import PostCard from './PostCard';
 import PostSEO from './PostSEO';
-import { AdProvider, AdSidebar } from '../Ads';
 
 interface PostDetailPageProps {
   postId: string;
@@ -392,23 +391,18 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
   const recommendedPosts = React.useMemo(() => getRecommendedPosts(), [post, posts]);
 
   return (
-    <AdProvider>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Layout avec sidebar publicitaire */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Contenu principal */}
-          <div className="xl:col-span-3">
-            {/* SEO Meta tags pour le post */}
-            {post && <PostSEO post={post} />}
-            
-            {/* Navigation */}
-            <button
-              onClick={onBack}
-              className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 mb-4 sm:mb-6 transition-colors touch-manipulation"
-            >
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="text-sm sm:text-base">Retour</span>
-            </button>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* SEO Meta tags pour le post */}
+      {post && <PostSEO post={post} />}
+      
+      {/* Navigation */}
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 mb-4 sm:mb-6 transition-colors touch-manipulation"
+      >
+        <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+        <span className="text-sm sm:text-base">Retour</span>
+      </button>
 
       {/* Post principal */}
       <div className="mb-6 sm:mb-8">
@@ -755,17 +749,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
           </div>
         </div>
       )}
-          </div>
-
-          {/* Sidebar publicitaire - visible uniquement sur grand écran */}
-          <div className="hidden xl:block xl:col-span-1">
-            <div className="sticky top-4">
-              <AdSidebar type="post" className="space-y-4" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </AdProvider>
+    </div>
   );
 };
 
