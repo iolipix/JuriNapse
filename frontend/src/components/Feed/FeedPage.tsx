@@ -47,7 +47,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
     trackPageView(`/feed/${activeTab}`);
   }, [activeTab, trackPageView]);
 
-  // Infinite scroll
+  // Infinite scroll avec préservation de position
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.innerHeight + document.documentElement.scrollTop;
@@ -70,7 +70,22 @@ const FeedPage: React.FC<FeedPageProps> = ({
       
       if (scrollPosition >= threshold && hasMore && !loading) {
         console.log('🚀 Triggering loadMorePosts');
-        loadMorePosts();
+        
+        // Sauvegarder la hauteur actuelle du document pour préserver la position
+        const currentHeight = document.documentElement.scrollHeight;
+        const currentScrollTop = window.pageYOffset;
+        
+        loadMorePosts().then(() => {
+          // Après le chargement, ajuster la position de scroll
+          setTimeout(() => {
+            const newHeight = document.documentElement.scrollHeight;
+            const heightDifference = newHeight - currentHeight;
+            
+            // Maintenir la position relative en ajustant pour la nouvelle hauteur
+            window.scrollTo(0, currentScrollTop + heightDifference);
+          }, 100);
+        });
+        
         // Track infinite scroll
         trackEvent('feed_load_more', { 
           tab: activeTab, 
