@@ -8,6 +8,7 @@ import { authAPI } from '../../services/api';
 import PostCard from '../Post/PostCard';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import FoldersPage from '../Folder/FoldersPage';
+import { AdProvider, AdSidebar } from '../Ads';
 
 interface ProfilePageProps {
   onLogin: () => void;
@@ -404,9 +405,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-      {/* Profile Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
+    <AdProvider>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        {/* Layout principal avec sidebar publicitaire */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Contenu principal */}
+          <div className="xl:col-span-3">
+            {/* Profile Header */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-6">
           <div className="flex items-start space-x-3 sm:space-x-6 flex-1 min-w-0">
             {/* Profile Picture */}
@@ -701,29 +707,39 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
         <div className="p-4 sm:p-6">
           {renderTabContent()}
         </div>
-      </div>
-
-      {/* Modal des abonnements */}
-      <SubscriptionModal
-        isOpen={showSubscriptionModal.isOpen}
-        onClose={() => setShowSubscriptionModal({ isOpen: false, type: 'followers' })}
-        userId={user.id}
-        type={showSubscriptionModal.type}
-        onViewUserProfile={handleViewUserProfile}
-      />
-
-      {/* Message de succès */}
-      {showSuccessMessage && (
-        <div className="fixed top-24 right-6 z-50 transform transition-all">
-          <div className="bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg flex items-center space-x-3">
-            <div className="bg-white/20 p-1 rounded-full">
-              <Check className="h-4 w-4" />
             </div>
-            <span className="font-medium">{showSuccessMessage}</span>
+          </div>
+
+          {/* Sidebar publicitaire - visible uniquement sur grand écran */}
+          <div className="hidden xl:block xl:col-span-1">
+            <div className="sticky top-4">
+              <AdSidebar type="profile" className="space-y-4" />
+            </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Modal des abonnements */}
+        <SubscriptionModal
+          isOpen={showSubscriptionModal.isOpen}
+          onClose={() => setShowSubscriptionModal({ isOpen: false, type: 'followers' })}
+          userId={user.id}
+          type={showSubscriptionModal.type}
+          onViewUserProfile={handleViewUserProfile}
+        />
+
+        {/* Message de succès */}
+        {showSuccessMessage && (
+          <div className="fixed top-24 right-6 z-50 transform transition-all">
+            <div className="bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg flex items-center space-x-3">
+              <div className="bg-white/20 p-1 rounded-full">
+                <Check className="h-4 w-4" />
+              </div>
+              <span className="font-medium">{showSuccessMessage}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </AdProvider>
   );
 };
 
