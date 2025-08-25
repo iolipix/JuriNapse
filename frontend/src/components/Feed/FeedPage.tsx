@@ -176,8 +176,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
         // Filter by trending score and sort by score (interactions récentes = plus haut)
         filtered = filtered
           .filter(post => post.trendingScore >= 1) // Seuil très bas pour capturer toutes les interactions
-          .sort((a, b) => b.trendingScore - a.trendingScore) // Tri par score décroissant
-          .slice(0, 20); // Afficher plus de posts trending
+          .sort((a, b) => b.trendingScore - a.trendingScore); // Tri par score décroissant, sans limite
         break;
       case 'saved':
         // TODO: Implement saved posts functionality

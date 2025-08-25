@@ -166,7 +166,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
         setLoading(true);
         setError(null);
         try {
-          const response = await api.get('/posts?page=1&limit=12');
+          const response = await api.get('/posts?page=1&limit=50');
           if (response.data.success) {
             const mappedPosts = response.data.posts.map((post: any) => {
               const mappedPost = {
