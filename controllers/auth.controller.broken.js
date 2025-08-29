@@ -3,61 +3,54 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const ProfilePicture = require('../models/profilePicture.model');
 const TokenService = require('../services/token.service');
+const fs = require('fs');
+const path = require('path');
 
-console.log('🔍 Chargement du contrôleur auth...');
-console.log('📂 __dirname:', __dirname);
+// Vérifier si EmailService existe et l'importer conditionnellement
+let EmailService;
+const emailServicePath = path.join(__dirname, '../services/email.service.js');
+const alternateEmailServicePath = path.join(__dirname, './services/email.service.js'); // Path alternatif pour Railway
 
-// EmailService complètement dynamique sans import statique
-let EmailService = null;
+let emailServiceExists = false;
+let actualEmailServicePath = null;
 
-// Fonction pour charger EmailService de manière dynamique
-function loadEmailService() {
-  if (EmailService) return EmailService;
-  
-  // Essayer plusieurs chemins possibles
-  const possiblePaths = [
-    '../services/email.service',
-    './services/email.service',
-    '../services/email.service.js',
-    './services/email.service.js'
-  ];
-  
-  console.log('🔄 Tentative de chargement dynamique d\'EmailService...');
-  
-  for (const possiblePath of possiblePaths) {
-    try {
-      const fullPath = require.resolve(possiblePath);
-      EmailService = require(possiblePath);
-      console.log(`✅ EmailService chargé depuis: ${possiblePath} (${fullPath})`);
-      return EmailService;
-    } catch (error) {
-      console.log(`❌ Échec chargement depuis ${possiblePath}: ${error.code}`);
-    }
+if (fs.existsSync(emailServicePath)) {
+  actualEmailServicePath = '../services/email.service';
+  emailServiceExists = true;
+} else if (fs.existsSync(alternateEmailServicePath)) {
+  actualEmailServicePath = './services/email.service';  
+  emailServiceExists = true;
+} else {
+  console.log('⚠️ Aucun fichier EmailService trouvé');
+  console.log('⚠️ Cherché dans:', emailServicePath);
+  console.log('⚠️ Cherché dans:', alternateEmailServicePath);
+}
+
+if (emailServiceExists && actualEmailServicePath) {
+  try {
+    EmailService = require(actualEmailServicePath);
+    console.log('✅ EmailService trouvé et importé avec succès depuis:', actualEmailServicePath);
+  } catch (error) {
+    console.log('⚠️ Erreur lors de l\'import d\'EmailService:', error.message);
+    EmailService = null;
   }
-  
-  // Si aucun EmailService trouvé, créer une version de secours
-  console.log('🔧 Création d\'EmailService de secours');
-  EmailService = class FallbackEmailService {
+} else {
+  EmailService = null;
+}
+
+// Classe EmailService de secours si pas disponible
+if (!EmailService) {
+  console.log('🔧 Utilisation de EmailService en mode dégradé');
+  EmailService = class {
     constructor() {
-      console.log('🚨 EmailService de secours initialisé - emails simulés');
+      console.log('🔧 EmailService en mode dégradé initialisé');
     }
-    
     async sendVerificationEmail(user, token) {
-      console.log('📧 SIMULATION - Email de vérification pour:', user.email);
-      console.log('🔗 SIMULATION - Token:', token.substring(0, 10) + '...');
-      
-      // Simuler un délai d'envoi
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      return {
-        success: true,
-        messageId: `sim-${Date.now()}`,
-        provider: 'fallback-simulation'
-      };
+      console.log('📧 Simulation envoi email pour:', user.email);
+      console.log('🔗 Token de vérification:', token);
+      return { success: true, messageId: 'simulated-fallback' };
     }
   };
-  
-  return EmailService;
 }
 
 // Controller pour l'inscription
@@ -143,25 +136,22 @@ const register = async (req, res) => {
     });
 
     await newUser.save();
-    console.log('✅ Utilisateur créé:', newUser.username, newUser._id.toString());
 
     // Générer et envoyer l'email de vérification
     try {
       const verificationToken = await TokenService.generateVerificationToken(newUser._id, 'email_verification');
-      console.log('🎫 Token de vérification généré:', verificationToken.substring(0, 10) + '...');
+      const emailService = new EmailService();
+      await emailService.sendVerificationEmail(newUser, verificationToken);
       
-      const EmailServiceClass = loadEmailService();
-      const emailService = new EmailServiceClass();
-      const emailResult = await emailService.sendVerificationEmail(newUser, verificationToken);
-      
-      console.log('📧 Résultat envoi email:', emailResult);
-      
+      console.log(`📧 Email de vérification traité pour ${newUser.email}`);
     } catch (emailError) {
-      console.error('⚠️ Erreur lors de l\'envoi de l\'email de vérification:', emailError);
+      console.error('⚠️ Erreur email vérification:', emailError);
       // On ne bloque pas l'inscription si l'email échoue
     }
 
     // Ne pas générer de token JWT pour un compte non vérifié
+    // L'utilisateur doit d'abord vérifier son email
+
     res.status(201).json({
       success: true,
       message: 'Utilisateur créé avec succès. Vérifiez votre email pour activer votre compte.',
@@ -175,12 +165,12 @@ const register = async (req, res) => {
         graduationYear: newUser.graduationYear,
         isStudent: newUser.isStudent,
         bio: newUser.bio,
-        profilePicture: null,
+        profilePicture: null, // Pas de photo de profil lors de l'inscription
         joinedAt: newUser.createdAt,
-        isVerified: false
+        isVerified: false // Indiquer que le compte n'est pas vérifié
       },
       requiresVerification: true,
-      needsVerification: true
+      needsVerification: true // Flag pour le frontend
     });
 
   } catch (error) {
@@ -197,9 +187,11 @@ const login = async (req, res) => {
   try {
     const { emailOrPseudo, emailOrUsername, password, motDePasse } = req.body;
     
+    // Support des deux formats de champs
     const emailOrUserField = emailOrPseudo || emailOrUsername;
     const passwordField = motDePasse || password;
 
+    // Validation des champs obligatoires
     if (!emailOrUserField || !passwordField) {
       return res.status(400).json({
         success: false,
@@ -207,6 +199,8 @@ const login = async (req, res) => {
       });
     }
 
+    // Trouver l'utilisateur par email ou username
+    console.log('🔍 DEBUG: Recherche utilisateur avec:', emailOrUserField);
     const user = await User.findOne({
       $or: [
         { email: emailOrUserField },
@@ -215,37 +209,39 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      console.log('❌ Aucun utilisateur trouvé pour:', emailOrUserField);
+      console.log('❌ DEBUG: Aucun utilisateur trouvé pour:', emailOrUserField);
       return res.status(400).json({
         success: false,
         message: 'Email/pseudo ou mot de passe incorrect'
       });
     }
 
-    console.log('👤 Utilisateur trouvé:', user.username, 'Vérifié:', user.isVerified);
+    console.log('👤 DEBUG: Utilisateur trouvé:', user.username, 'ID:', user._id.toString());
 
+    // Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(passwordField, user.password);
+    console.log('✅ DEBUG: Validation mot de passe:', isPasswordValid);
 
     if (!isPasswordValid) {
+      console.log('❌ DEBUG: Mot de passe invalide');
       return res.status(400).json({
         success: false,
         message: 'Email/pseudo ou mot de passe incorrect'
       });
     }
 
-    // VÉRIFICATION CRITIQUE - Bloquer les comptes non vérifiés
+    // Vérifier que le compte est activé
     if (!user.isVerified) {
-      console.log('🚫 Tentative de connexion avec compte non vérifié:', user.email);
+      console.log('⚠️ DEBUG: Compte non vérifié pour:', user.email);
       return res.status(403).json({
         success: false,
         message: 'Compte non vérifié. Vérifiez votre email pour activer votre compte.',
         requiresVerification: true,
-        email: user.email,
-        needsVerification: true
+        email: user.email
       });
     }
 
-    console.log('✅ Connexion autorisée pour:', user.username);
+    console.log('🎉 DEBUG: Connexion réussie pour:', user.username);
 
     // Générer un JWT token
     const token = jwt.sign(
@@ -259,7 +255,7 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
     });
 
     // Récupérer la photo de profil si elle existe
@@ -280,8 +276,7 @@ const login = async (req, res) => {
         isStudent: user.isStudent,
         bio: user.bio,
         profilePicture: profilePicture ? profilePicture.imageData : null,
-        joinedAt: user.createdAt,
-        isVerified: true // Seulement les utilisateurs vérifiés peuvent se connecter
+        joinedAt: user.createdAt
       }
     });
 
@@ -294,14 +289,14 @@ const login = async (req, res) => {
   }
 };
 
-// Fonctions simplifiées pour éviter d'autres erreurs
+// Export des autres fonctions (simplifié pour le debug)
 const logout = (req, res) => {
   res.clearCookie('jurinapse_token');
   res.json({ success: true, message: 'Déconnexion réussie' });
 };
 
 const getProfile = (req, res) => {
-  res.json({ success: true, user: req.user || {} });
+  res.json({ success: true, user: req.user });
 };
 
 const updateProfile = (req, res) => {
@@ -327,8 +322,6 @@ const checkUsernameAvailability = (req, res) => {
 const changePassword = (req, res) => {
   res.json({ success: true, message: 'Mot de passe changé (placeholder)' });
 };
-
-console.log('✅ Contrôleur auth chargé avec succès');
 
 module.exports = {
   register,
