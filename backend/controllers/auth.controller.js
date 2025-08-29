@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const ProfilePicture = require('../models/profilePicture.model');
 const EmailVerification = require('../models/emailVerification.model');
+const EmailService = require('../../services/email.service');
 const crypto = require('crypto');
 
 // Fonction utilitaire pour configurer les cookies JWT
@@ -111,6 +112,29 @@ const register = async (req, res) => {
     });
 
     await newUser.save();
+
+    // Créer un token de vérification
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    
+    // Sauvegarder le token de vérification
+    const emailVerification = new EmailVerification({
+      userId: newUser._id,
+      email: newUser.email,
+      code: verificationToken,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+    });
+    
+    await emailVerification.save();
+
+    // Envoyer l'email de vérification
+    try {
+      const emailService = new EmailService();
+      await emailService.sendVerificationEmail(newUser, verificationToken);
+      console.log('✅ Email de vérification envoyé à:', newUser.email);
+    } catch (emailError) {
+      console.error('❌ Erreur lors de l\'envoi de l\'email:', emailError);
+      // Ne pas bloquer l'inscription si l'email échoue
+    }
 
     // Ne pas générer de token ni connecter l'utilisateur automatiquement
     // L'utilisateur doit d'abord vérifier son email
