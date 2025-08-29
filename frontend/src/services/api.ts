@@ -117,7 +117,18 @@ export const authAPI = {
       
       return response.data;
     } catch (error) {
-      // Retourner un objet d'erreur standardisé pour les erreurs d'authentification
+      const err: any = error;
+      // Propager la réponse du serveur si disponible (ex: 403 requiresVerification)
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      if (status === 403 && data) {
+        return { ...data, success: false };
+      }
+      // Si on a un message spécifique (ex: besoin vérification mais flag manquant)
+      if (data && (data.requiresVerification || /vérifi|activ/i.test(data.message || ''))) {
+        return { success: false, requiresVerification: true, message: data.message || 'Vérification email requise', email: emailOrUsername.includes('@') ? emailOrUsername : undefined };
+      }
+      // Fallback générique
       return { success: false, message: 'Email/pseudo ou mot de passe incorrect' };
     }
   },
