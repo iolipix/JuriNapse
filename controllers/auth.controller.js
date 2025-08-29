@@ -100,20 +100,8 @@ const register = async (req, res) => {
       // On ne bloque pas l'inscription si l'email échoue
     }
 
-    // Générer un JWT token
-    const token = jwt.sign(
-      { userId: newUser._id },
-      process.env.JWT_SECRET || 'jurinapse_secret_key',
-      { expiresIn: '7d' }
-    );
-
-    // Définir le cookie HTTP avec le token
-    res.cookie('jurinapse_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
-    });
+    // Ne pas générer de token JWT pour un compte non vérifié
+    // L'utilisateur doit d'abord vérifier son email
 
     res.status(201).json({
       success: true,
@@ -132,7 +120,8 @@ const register = async (req, res) => {
         joinedAt: newUser.createdAt,
         isVerified: false // Indiquer que le compte n'est pas vérifié
       },
-      requiresVerification: true
+      requiresVerification: true,
+      needsVerification: true // Flag pour le frontend
     });
 
   } catch (error) {
