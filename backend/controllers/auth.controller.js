@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const ProfilePicture = require('../models/profilePicture.model');
 const EmailVerification = require('../models/emailVerification.model');
-const EmailService = require('../services/email.service');
+// const EmailService = require('../services/email.service'); // DÉSACTIVÉ POUR RAILWAY
 const crypto = require('crypto');
 
 // Fonction utilitaire pour configurer les cookies JWT
@@ -128,11 +128,13 @@ const register = async (req, res) => {
 
     // Envoyer l'email de vérification
     try {
-      const emailService = new EmailService();
-      await emailService.sendVerificationEmail(newUser, verificationToken);
-      console.log('✅ Email de vérification envoyé à:', newUser.email);
+      // SIMULATION EMAIL POUR RAILWAY
+      console.log('🚀 [RAILWAY SIMULATION] Email de vérification simulé');
+      console.log('📧 Destinataire:', newUser.email);
+      console.log('🔗 Token de vérification:', verificationToken);
+      console.log('✅ Email de vérification simulé envoyé à:', newUser.email);
     } catch (emailError) {
-      console.error('❌ Erreur lors de l\'envoi de l\'email:', emailError);
+      console.error('❌ Erreur lors de la simulation email:', emailError);
       // Ne pas bloquer l'inscription si l'email échoue
     }
 
