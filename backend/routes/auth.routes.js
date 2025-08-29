@@ -15,7 +15,7 @@ const {
   changePassword,
   sendEmailVerification,
   verifyEmail
-} = require('../controllers/auth.controller');
+} = require('../controllers/auth-new-232235');
 const { authenticateToken } = require('../middleware/auth.middleware');
 const optionalAuthMiddleware = require('../middleware/optionalAuth.middleware');
 
