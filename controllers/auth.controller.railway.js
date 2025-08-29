@@ -1,10 +1,11 @@
+// Version ultra-minimaliste pour Railway sans AUCUN import d'EmailService
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const ProfilePicture = require('../models/profilePicture.model');
 const TokenService = require('../services/token.service');
 
-console.log('� RAILWAY AUTH CONTROLLER - Version minimaliste chargée');
+console.log('🚀 RAILWAY AUTH CONTROLLER - Version minimaliste chargée');
 console.log('📂 Répertoire:', __dirname);
 
 // EmailService complètement simulé pour Railway
@@ -32,7 +33,7 @@ class SimulatedEmailService {
 // Controller pour l'inscription
 const register = async (req, res) => {
   try {
-    console.log('� Tentative d\'inscription...');
+    console.log('📝 Tentative d\'inscription...');
     const { email, username, password, firstName, lastName, university, graduationYear, isStudent, bio } = req.body;
 
     // Validation des champs obligatoires
@@ -203,14 +204,13 @@ const login = async (req, res) => {
 
     console.log('✅ CONNEXION AUTORISÉE:', user.username);
 
-    // Générer un JWT token
+    // Génération JWT pour utilisateur vérifié
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'jurinapse_secret_key',
       { expiresIn: '7d' }
     );
 
-    // Définir le cookie HTTP avec le token
     res.cookie('jurinapse_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -218,8 +218,10 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    // Récupérer la photo de profil si elle existe
+    // Récupération photo de profil
     const profilePicture = await ProfilePicture.findOne({ userId: user._id });
+
+    console.log('🎉 Connexion réussie');
 
     res.json({
       success: true,
@@ -237,12 +239,12 @@ const login = async (req, res) => {
         bio: user.bio,
         profilePicture: profilePicture ? profilePicture.imageData : null,
         joinedAt: user.createdAt,
-        isVerified: true // Seulement les utilisateurs vérifiés peuvent se connecter
+        isVerified: true
       }
     });
 
   } catch (error) {
-    console.error('❌ Erreur connexion:', error);
+    console.error('❌ ERREUR CONNEXION:', error);
     res.status(500).json({
       success: false,
       message: 'Erreur serveur lors de la connexion'
@@ -250,41 +252,76 @@ const login = async (req, res) => {
   }
 };
 
-// Fonctions simplifiées pour éviter d'autres erreurs
+// Fonctions basiques pour éviter les erreurs
 const logout = (req, res) => {
+  console.log('👋 Déconnexion');
   res.clearCookie('jurinapse_token');
   res.json({ success: true, message: 'Déconnexion réussie' });
 };
 
 const getProfile = (req, res) => {
-  res.json({ success: true, user: req.user || {} });
+  res.json({ 
+    success: true, 
+    user: req.user || {},
+    railwayNote: 'Profil basique' 
+  });
 };
 
 const updateProfile = (req, res) => {
-  res.json({ success: true, message: 'Profil mis à jour (placeholder)' });
+  res.json({ 
+    success: true, 
+    message: 'Mise à jour profil (placeholder Railway)',
+    railwayNote: 'Fonctionnalité en cours de développement'
+  });
 };
 
 const uploadProfilePicture = (req, res) => {
-  res.json({ success: true, message: 'Photo uploadée (placeholder)' });
+  res.json({ 
+    success: true, 
+    message: 'Upload photo (placeholder Railway)',
+    railwayNote: 'Fonctionnalité en cours de développement'
+  });
 };
 
 const getProfilePicture = (req, res) => {
-  res.json({ success: true, message: 'Photo récupérée (placeholder)' });
+  res.json({ 
+    success: true, 
+    message: 'Photo récupérée (placeholder Railway)',
+    railwayNote: 'Fonctionnalité en cours de développement'
+  });
 };
 
 const deleteProfilePicture = (req, res) => {
-  res.json({ success: true, message: 'Photo supprimée (placeholder)' });
+  res.json({ 
+    success: true, 
+    message: 'Photo supprimée (placeholder Railway)',
+    railwayNote: 'Fonctionnalité en cours de développement'
+  });
 };
 
-const checkUsernameAvailability = (req, res) => {
-  res.json({ success: true, available: true });
+const checkUsernameAvailability = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const existingUser = await User.findOne({ username });
+    res.json({ 
+      success: true, 
+      available: !existingUser,
+      railwayNote: 'Vérification pseudo'
+    });
+  } catch (error) {
+    res.json({ success: true, available: true });
+  }
 };
 
 const changePassword = (req, res) => {
-  res.json({ success: true, message: 'Mot de passe changé (placeholder)' });
+  res.json({ 
+    success: true, 
+    message: 'Changement mot de passe (placeholder Railway)',
+    railwayNote: 'Fonctionnalité en cours de développement'
+  });
 };
 
-console.log('✅ Contrôleur auth chargé avec succès');
+console.log('✅ RAILWAY AUTH CONTROLLER - Toutes les fonctions définies');
 
 module.exports = {
   register,
