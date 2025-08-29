@@ -307,6 +307,155 @@ const changePassword = (req, res) => {
   });
 };
 
+// RESEND VERIFICATION EMAIL - RAILWAY OPTIMIZED
+const resendVerificationEmail = async (req, res) => {
+  try {
+    console.log('🔄 RAILWAY - Resend verification email attempt');
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email requis'
+      });
+    }
+
+    console.log('🔍 Finding user with email:', email);
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      console.log('❌ User not found:', email);
+      return res.status(404).json({
+        success: false,
+        message: 'Aucun utilisateur trouvé avec cet email'
+      });
+    }
+
+    console.log('👤 User found:', user._id.toString());
+
+    if (user.isVerified) {
+      console.log('✅ User already verified');
+      return res.status(400).json({
+        success: false,
+        message: 'Ce compte est déjà vérifié'
+      });
+    }
+
+    try {
+      console.log('🎫 Generating new verification token...');
+      const verificationToken = await TokenService.generateVerificationToken(user._id, 'email_verification', 24); // 24h validity
+      
+      console.log('📨 Simulating email send for resend...');
+      const emailSim = new RailwayEmailSimulator();
+      const result = await emailSim.sendVerificationEmail(user, verificationToken);
+      
+      console.log('✅ RAILWAY SIMULATION - Email resent:', result);
+      console.log('🔗 RAILWAY SIMULATION - Verification URL:', `https://jurinapse.com/verify-email?token=${verificationToken}`);
+      
+      return res.json({
+        success: true,
+        message: 'Email de vérification envoyé avec succès',
+        railwaySimulation: true,
+        verificationUrl: `https://jurinapse.com/verify-email?token=${verificationToken}`,
+        devNote: 'En développement - Vérifiez les logs Railway pour le lien'
+      });
+      
+    } catch (tokenError) {
+      console.error('❌ Token generation error:', tokenError);
+      return res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la génération du token de vérification'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ RAILWAY - Resend verification error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors du renvoi de vérification'
+    });
+  }
+};
+
+// VERIFY EMAIL - RAILWAY OPTIMIZED
+const verifyEmail = async (req, res) => {
+  try {
+    console.log('✅ RAILWAY - Email verification attempt');
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token de vérification requis'
+      });
+    }
+
+    console.log('🔍 Verifying token:', token.substring(0, 20) + '...');
+    
+    try {
+      const tokenData = await TokenService.verifyAndConsumeToken(token, 'email_verification');
+      
+      if (!tokenData) {
+        console.log('❌ Token invalid or expired');
+        return res.status(400).json({
+          success: false,
+          message: 'Token de vérification invalide ou expiré'
+        });
+      }
+
+      console.log('👤 Token valid for user:', tokenData.userId);
+      
+      // Mettre à jour l'utilisateur comme vérifié
+      const user = await User.findByIdAndUpdate(
+        tokenData.userId,
+        { 
+          isVerified: true,
+          emailVerified: true,
+          requiresVerification: false 
+        },
+        { new: true }
+      );
+
+      if (!user) {
+        console.log('❌ User not found for token');
+        return res.status(404).json({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+      }
+
+      console.log('✅ RAILWAY - User verified:', user.email);
+
+      return res.json({
+        success: true,
+        message: 'Email vérifié avec succès ! Votre compte est maintenant actif.',
+        user: {
+          id: user._id.toString(),
+          email: user.email,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isVerified: true
+        }
+      });
+
+    } catch (tokenError) {
+      console.error('❌ Token verification error:', tokenError);
+      return res.status(400).json({
+        success: false,
+        message: 'Token de vérification invalide ou expiré'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ RAILWAY - Verify email error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors de la vérification'
+    });
+  }
+};
+
 console.log('✅ RAILWAY AUTH CONTROLLER - All functions loaded');
 
 module.exports = {
@@ -319,5 +468,7 @@ module.exports = {
   getProfilePicture,
   deleteProfilePicture,
   checkUsernameAvailability,
-  changePassword
+  changePassword,
+  resendVerificationEmail,
+  verifyEmail
 };
