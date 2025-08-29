@@ -16,7 +16,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
-  const { login, register, completeEmailVerification } = useAuth();
+  const { login, register, completeEmailVerification, needsEmailVerification, pendingVerificationUserId } = useAuth();
 
   // États pour la vérification du username
   const [usernameStatus, setUsernameStatus] = useState<{
@@ -129,6 +129,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
     };
   }, [formData.username, isLogin]);
 
+  // Fermer automatiquement le formulaire quand une vérification d'email est requise
+  useEffect(() => {
+    if (needsEmailVerification && pendingVerificationUserId) {
+      console.log('🔄 Email verification required - closing auth form');
+      setIsSubmitting(false);
+      onClose?.();
+    }
+  }, [needsEmailVerification, pendingVerificationUserId, onClose]);
+
   const generateUsername = (firstName: string, lastName: string) => {
     const base = `${firstName.toLowerCase()}.${lastName.toLowerCase()}`;
     const random = Math.floor(Math.random() * 1000);
@@ -145,24 +154,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
     try {
       if (isLogin) {
         const success = await login(formData.emailOrUsername, formData.password);
-        if (!success) {
-          // Vérifier si c'est un problème de vérification d'email
-          const errorMessage = error || 'Email/pseudo ou mot de passe incorrect';
-          
-          if (errorMessage.includes('vérifi') || errorMessage.includes('activ')) {
-            // L'utilisateur doit vérifier son email
-            setPendingUser({
-              email: formData.emailOrUsername.includes('@') ? formData.emailOrUsername : null
-            });
-            setShowEmailVerification(true);
-            setError('Votre compte doit être vérifié. Vérifiez vos emails.');
-            return;
-          }
-          
-          setError('Email/pseudo ou mot de passe incorrect');
-        } else {
+        if (success) {
           onClose?.();
+        } else if (!needsEmailVerification) {
+          // Si ce n'est pas un problème de vérification, afficher l'erreur
+          setError('Email/pseudo ou mot de passe incorrect');
         }
+        // Si needsEmailVerification est true, l'useEffect se chargera de fermer le formulaire
       } else {
         // Validation pour l'inscription
         if (!formData.password || formData.password.length < 8) {
