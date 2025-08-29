@@ -131,8 +131,15 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
 
   // Fermer automatiquement le formulaire quand une vérification d'email est requise
   useEffect(() => {
+    console.log('🔍 DEBUG AuthForm useEffect:', {
+      needsEmailVerification,
+      pendingVerificationUserId,
+      shouldClose: needsEmailVerification && pendingVerificationUserId
+    });
+    
     if (needsEmailVerification && pendingVerificationUserId) {
       console.log('🔄 Email verification required - closing auth form');
+      console.log('🔍 DEBUG - Calling onClose()');
       setIsSubmitting(false);
       onClose?.();
     }

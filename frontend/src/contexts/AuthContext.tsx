@@ -105,6 +105,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     } catch (error: any) {
       console.error('Login error:', error);
+      console.log('🔍 DEBUG - Login error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.response?.data?.message,
+        requiresVerification: error.response?.data?.requiresVerification
+      });
       
       // Vérifier si l'erreur est liée à la vérification d'email
       const errorData = error.response?.data;
@@ -114,6 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Status 403 avec requiresVerification = compte non vérifié
       if (statusCode === 403 && errorData?.requiresVerification) {
         console.log('🚫 Account requires verification - redirecting to verification page');
+        console.log('🔍 DEBUG - Setting needsEmailVerification = true');
         setNeedsEmailVerification(true);
         setPendingVerificationUserId(errorData?.userId || errorData?.email || (emailOrUsername.includes('@') ? emailOrUsername : null));
         return false;
@@ -121,6 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Autres cas de vérification d'email
       if (errorData?.requiresVerification || errorData?.needsEmailVerification || errorMessage.includes('vérifi') || errorMessage.includes('activ')) {
+        console.log('🔍 DEBUG - Fallback verification condition matched');
         setNeedsEmailVerification(true);
         // Utiliser l'userId fourni par le serveur ou l'email comme fallback
         setPendingVerificationUserId(errorData?.userId || (emailOrUsername.includes('@') ? emailOrUsername : null));
