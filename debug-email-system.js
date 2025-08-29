@@ -4,7 +4,7 @@ const VerificationToken = require('./models/verificationToken.model');
 
 async function debugEmailSystem() {
     try {
-        await mongoose.connect('mongodb+srv://theophane:Theophane2005@jurinapse.t9z3v.mongodb.net/jurinapse?retryWrites=true&w=majority&appName=JuriNapse');
+        await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jurinapse');
         console.log('✅ Connecté à MongoDB');
 
         // 1. Vérifier votre utilisateur
