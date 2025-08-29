@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const ProfilePicture = require('../models/profilePicture.model');
 const EmailVerification = require('../models/emailVerification.model');
-const EmailService = require('../../services/email.service');
+const EmailService = require('../services/email.service');
 const crypto = require('crypto');
 
 // Fonction utilitaire pour configurer les cookies JWT
