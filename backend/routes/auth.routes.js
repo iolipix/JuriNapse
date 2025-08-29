@@ -14,7 +14,8 @@ const {
   checkUsernameAvailability,
   changePassword,
   sendEmailVerification,
-  verifyEmail
+  verifyEmail,
+  resendVerificationEmail
 } = require('../controllers/auth.controller');
 const { authenticateToken } = require('../middleware/auth.middleware');
 const optionalAuthMiddleware = require('../middleware/optionalAuth.middleware');
@@ -41,5 +42,6 @@ router.delete('/profile-picture', authenticateToken, deleteProfilePicture);
 // Routes pour la vérification d'email
 router.post('/send-email-verification', sendEmailVerification);
 router.post('/verify-email', verifyEmail);
+router.post('/resend-verification-email', resendVerificationEmail);
 
 module.exports = router;

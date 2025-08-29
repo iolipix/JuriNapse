@@ -822,6 +822,80 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+// Renvoyer un email de vérification avec token
+const resendVerificationEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email requis'
+      });
+    }
+
+    // Vérifier que l'utilisateur existe et n'est pas déjà vérifié
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Aucun utilisateur trouvé avec cet email'
+      });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cet email est déjà vérifié'
+      });
+    }
+
+    // Supprimer l'ancien token s'il existe
+    await EmailVerification.deleteOne({ userId: user._id });
+
+    // Générer un nouveau token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+
+    // Créer une nouvelle entrée de vérification
+    const emailVerification = new EmailVerification({
+      userId: user._id,
+      email: user.email,
+      token: verificationToken,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+    });
+    
+    await emailVerification.save();
+
+    // Simuler l'envoi de l'email pour Railway
+    try {
+      console.log('🚀 [RAILWAY SIMULATION] Nouveau email de vérification simulé');
+      console.log('📧 Destinataire:', user.email);
+      console.log('🔗 Nouveau token:', verificationToken);
+      console.log('📅 Expire le:', emailVerification.expiresAt);
+      console.log('✅ Email de re-vérification simulé envoyé');
+    } catch (emailError) {
+      console.error('❌ Erreur lors de la simulation email:', emailError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Un nouveau lien de vérification a été envoyé à votre email',
+      // En mode développement, on peut retourner le token pour test
+      ...(process.env.NODE_ENV !== 'production' && { 
+        devToken: verificationToken,
+        devUrl: `https://www.jurinapse.com/verify-email.html?token=${verificationToken}`
+      })
+    });
+
+  } catch (error) {
+    console.error('Erreur lors du renvoi de vérification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur lors du renvoi de vérification'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -834,5 +908,6 @@ module.exports = {
   checkUsernameAvailability,
   changePassword,
   sendEmailVerification,
-  verifyEmail
+  verifyEmail,
+  resendVerificationEmail
 };
