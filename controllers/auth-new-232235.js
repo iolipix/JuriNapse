@@ -181,10 +181,13 @@ const login = async (req, res) => {
       console.log('🚫 RAILWAY - LOGIN BLOCKED - Account not verified:', user.email);
       return res.status(403).json({
         success: false,
-        message: 'Compte non vérifié. Sur Railway, vérification par simulation requise.',
+        message: 'Votre compte n\'est pas encore vérifié. Veuillez vérifier votre email.',
         requiresVerification: true,
         needsVerification: true,
+        needsEmailVerification: true,
         email: user.email,
+        userId: user._id,
+        redirectTo: '/verification-required',
         railwayNote: 'Email verification required - simulation mode active'
       });
     }
