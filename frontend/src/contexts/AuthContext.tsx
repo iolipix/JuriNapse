@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else if (response.requiresVerification) {
         // L'utilisateur doit vérifier son email
         setNeedsEmailVerification(true);
-        setPendingVerificationUserId(response.userId);
+        setPendingVerificationUserId(response.userId || response.email);
         return false;
       }
       
@@ -109,7 +109,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Vérifier si l'erreur est liée à la vérification d'email
       const errorData = error.response?.data;
       const errorMessage = errorData?.message || '';
+      const statusCode = error.response?.status;
       
+      // Status 403 avec requiresVerification = compte non vérifié
+      if (statusCode === 403 && errorData?.requiresVerification) {
+        console.log('🚫 Account requires verification - redirecting to verification page');
+        setNeedsEmailVerification(true);
+        setPendingVerificationUserId(errorData?.userId || errorData?.email || (emailOrUsername.includes('@') ? emailOrUsername : null));
+        return false;
+      }
+      
+      // Autres cas de vérification d'email
       if (errorData?.requiresVerification || errorData?.needsEmailVerification || errorMessage.includes('vérifi') || errorMessage.includes('activ')) {
         setNeedsEmailVerification(true);
         // Utiliser l'userId fourni par le serveur ou l'email comme fallback
