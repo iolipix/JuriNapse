@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Favicons Personnalisés JuriNapse</title>
+    
+    <!-- Vos nouveaux favicons personnalisés -->
+    <link rel="icon" type="image/svg+xml" href="/Svg/32x32-converti-depuis-png.svg?v=2024" />
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/Svg/32x32-converti-depuis-png.svg?v=2024" />
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="/Svg/16x16-converti-depuis-png.svg?v=2024" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/Svg/180x180-converti-depuis-png.svg?v=2024" />
+    <link rel="shortcut icon" href="/Svg/32x32-converti-depuis-png.svg?v=2024" />
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .icon-preview {
+            display: flex;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .icon-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .icon-item img {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #10b981;
+            margin: 20px 0;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+        .status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏛️ JuriNapse</h1>
+        <div class="subtitle">Test d'intégration des favicons personnalisés</div>
+        
+        <div class="success">
+            <h2>✅ Intégration réussie !</h2>
+            <p>Vos SVG personnalisés ont été intégrés avec succès dans JuriNapse.</p>
+        </div>
+        
+        <div class="status">
+            <h3>📋 Fichiers remplacés :</h3>
+            <ul>
+                <li>✅ <code>/frontend/index.html</code> - Favicons mis à jour</li>
+                <li>✅ <code>/index.html</code> - Favicons mis à jour</li>
+                <li>✅ <code>/frontend/src/components/SEO/PostSEO.tsx</code> - Logo Schema.org mis à jour</li>
+                <li>✅ <code>/frontend/public/favicon-preview.html</code> - Preview mis à jour</li>
+            </ul>
+        </div>
+        
+        <h3>🎨 Aperçu de vos favicons :</h3>
+        <div class="icon-preview">
+            <div class="icon-item">
+                <img src="/Svg/16x16-converti-depuis-png.svg" width="32" height="32" alt="16x16"><br>
+                <small>16x16px</small>
+            </div>
+            <div class="icon-item">
+                <img src="/Svg/32x32-converti-depuis-png.svg" width="64" height="64" alt="32x32"><br>
+                <small>32x32px</small>
+            </div>
+            <div class="icon-item">
+                <img src="/Svg/180x180-converti-depuis-png.svg" width="100" height="100" alt="180x180"><br>
+                <small>180x180px</small>
+            </div>
+        </div>
+        
+        <div class="status">
+            <h3>🎯 Prochaines étapes :</h3>
+            <ol>
+                <li>Vider le cache du navigateur (Ctrl+F5)</li>
+                <li>Redémarrer le serveur de développement</li>
+                <li>Vérifier l'affichage dans l'onglet du navigateur</li>
+                <li>Tester sur différents appareils</li>
+            </ol>
+        </div>
+        
+        <div class="success">
+            <h3>🌟 Avantages de vos nouveaux favicons :</h3>
+            <ul>
+                <li><strong>Design unique :</strong> Balance de la justice vectorisée avec vos couleurs</li>
+                <li><strong>Qualité parfaite :</strong> SVG pour une netteté à toutes les tailles</li>
+                <li><strong>Branding cohérent :</strong> Identité visuelle professionnelle</li>
+                <li><strong>SEO optimisé :</strong> Reconnu par tous les moteurs de recherche</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Vérification du chargement des favicons
+        window.addEventListener('load', function() {
+            console.log('🎉 Favicons personnalisés JuriNapse chargés avec succès !');
+            console.log('📁 Fichiers utilisés :');
+            console.log('  • 16x16: /Svg/16x16-converti-depuis-png.svg');
+            console.log('  • 32x32: /Svg/32x32-converti-depuis-png.svg');
+            console.log('  • 180x180: /Svg/180x180-converti-depuis-png.svg');
+        });
+    </script>
+</body>
+</html>

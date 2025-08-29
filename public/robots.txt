@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /profile/*
+Allow: /post/*
+Allow: /folder/*
+Allow: /feed
+Allow: /trending
+
+Disallow: /api/*
+Disallow: /admin/*
+Disallow: /settings/*
+Disallow: /messaging/*
+
+Sitemap: https://yourdomain.com/sitemap.xml

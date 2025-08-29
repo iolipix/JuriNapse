@@ -1,0 +1,131 @@
+{
+  "timestamp": "2025-07-24T17:13:59.284Z",
+  "createdIndexes": [
+    {
+      "collection": "users",
+      "fields": {
+        "isActive": 1,
+        "lastLogin": -1
+      },
+      "name": "isActive_1_lastLogin_-1",
+      "description": "Index composé pour utilisateurs actifs"
+    },
+    {
+      "collection": "posts",
+      "fields": {
+        "authorId": 1,
+        "createdAt": -1
+      },
+      "name": "authorId_1_createdAt_-1",
+      "description": "Index composé pour posts par auteur (optimise les profils)"
+    },
+    {
+      "collection": "posts",
+      "fields": {
+        "type": 1,
+        "createdAt": -1
+      },
+      "name": "type_1_createdAt_-1",
+      "description": "Index pour filtrer par type de post (fiches, publications, etc.)"
+    },
+    {
+      "collection": "posts",
+      "fields": {
+        "status": 1,
+        "createdAt": -1
+      },
+      "name": "status_1_createdAt_-1",
+      "description": "Index pour posts actifs/archivés"
+    },
+    {
+      "collection": "posts",
+      "fields": {
+        "likesCount": -1,
+        "createdAt": -1
+      },
+      "name": "likesCount_-1_createdAt_-1",
+      "description": "Index pour trending posts"
+    },
+    {
+      "collection": "notifications",
+      "fields": {
+        "recipient": 1,
+        "read": 1,
+        "createdAt": -1
+      },
+      "name": "recipient_1_read_1_createdAt_-1",
+      "description": "Index composé pour notifications non lues"
+    },
+    {
+      "collection": "notifications",
+      "fields": {
+        "type": 1,
+        "createdAt": -1
+      },
+      "name": "type_1_createdAt_-1",
+      "description": "Index pour filtrer par type de notification"
+    },
+    {
+      "collection": "notifications",
+      "fields": {
+        "postId": 1
+      },
+      "name": "postId_1",
+      "description": "Index pour notifications liées aux posts"
+    },
+    {
+      "collection": "notifications",
+      "fields": {
+        "createdAt": -1
+      },
+      "name": "createdAt_-1",
+      "description": "Index pour cleanup des anciennes notifications"
+    },
+    {
+      "collection": "messages",
+      "fields": {
+        "conversation": 1,
+        "createdAt": -1
+      },
+      "name": "conversation_1_createdAt_-1",
+      "description": "Index principal pour messages par conversation"
+    },
+    {
+      "collection": "messages",
+      "fields": {
+        "sender": 1,
+        "recipient": 1,
+        "createdAt": -1
+      },
+      "name": "sender_1_recipient_1_createdAt_-1",
+      "description": "Index composé pour discussions privées"
+    },
+    {
+      "collection": "messages",
+      "fields": {
+        "recipient": 1,
+        "read": 1,
+        "createdAt": -1
+      },
+      "name": "recipient_1_read_1_createdAt_-1",
+      "description": "Index pour messages non lus"
+    },
+    {
+      "collection": "users",
+      "fields": {
+        "username": "text",
+        "profile.displayName": "text",
+        "profile.bio": "text"
+      },
+      "name": "users_text_search",
+      "description": "Index de recherche textuelle pour utilisateurs",
+      "type": "text"
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "totalCreated": 13,
+    "totalErrors": 0,
+    "success": true
+  }
+}

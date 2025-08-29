@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-07-24T17:21:42.353Z",
+  "summary": {
+    "totalQueries": 13,
+    "slowQueries": 8,
+    "criticalQueries": 8,
+    "recommendations": 1
+  },
+  "queryResults": {
+    "Users - Find all (no populate)": 45857,
+    "Posts - Find all (no populate)": 5601,
+    "Notifications - Find all (no populate)": 35,
+    "Messages - Find all (no populate)": 61,
+    "Posts - With authorId populate": 5632,
+    "Posts - With full author populate": 51365,
+    "Posts - Multiple populates": 5616,
+    "Notifications - With populate": 73,
+    "Messages - With populate": 88,
+    "Posts - Lean (no populate)": 5597,
+    "Posts - Lean + select fields": 44,
+    "Posts - Minimal populate": 5626,
+    "Posts - Aggregation (optimal)": 5607
+  },
+  "recommendations": [
+    {
+      "type": "ERROR",
+      "message": "Requête critique détectée: Posts - With full author populate (51365ms). Optimisation urgente requise."
+    }
+  ]
+}

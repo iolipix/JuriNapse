@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#4338ca"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Balance de justice directement, sans fond de forme -->
+  <g transform="translate(32,28)">
+    <!-- Balance complète pour Apple Touch Icon -->
+    <rect x="-2" y="0" width="4" height="28" rx="2" fill="url(#bg)"/>
+    
+    <!-- Plateau gauche -->
+    <g transform="translate(-16,8)" fill="url(#bg)">
+      <ellipse cx="0" cy="0" rx="9" ry="2.5" opacity="0.95"/>
+      <line x1="-7" y1="0" x2="0" y2="-8" stroke="url(#bg)" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+    
+    <!-- Plateau droit -->
+    <g transform="translate(16,8)" fill="url(#bg)">
+      <ellipse cx="0" cy="0" rx="9" ry="2.5" opacity="0.95"/>
+      <line x1="7" y1="0" x2="0" y2="-8" stroke="url(#bg)" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+    
+    <!-- Barre horizontale -->
+    <line x1="-16" y1="0" x2="16" y2="0" stroke="url(#bg)" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- Base -->
+    <rect x="-12" y="28" width="24" height="4" rx="2" fill="url(#bg)"/>
+  </g>
+  
+  <!-- Texte JuriNapse -->
+  <text x="32" y="56" text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, sans-serif" 
+        font-size="7" font-weight="600" 
+        fill="url(#bg)" opacity="0.9">
+    JuriNapse
+  </text>
+</svg>

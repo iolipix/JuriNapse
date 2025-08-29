@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Scrollbar utilities for responsive design */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Styles pour le thème sombre */
+body.dark {
+  @apply bg-gray-900 text-white;
+}
+
+body.dark .bg-white {
+  @apply bg-gray-800;
+}
+
+body.dark .text-gray-900 {
+  @apply text-gray-100;
+}
+
+body.dark .text-gray-700 {
+  @apply text-gray-300;
+}
+
+body.dark .text-gray-600 {
+  @apply text-gray-400;
+}
+
+body.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+
+body.dark .border-gray-300 {
+  @apply border-gray-600;
+}
+
+/* Styles pour les cartes en mode sombre */
+body.dark .shadow-sm {
+  @apply shadow-gray-900/20;
+}
+
+body.dark .shadow-md {
+  @apply shadow-gray-900/30;
+}
+
+body.dark .shadow-lg {
+  @apply shadow-gray-900/40;
+}
+
+/* Input fields en mode sombre */
+body.dark input[type="text"],
+body.dark input[type="password"],
+body.dark input[type="email"],
+body.dark textarea,
+body.dark select {
+  @apply bg-gray-700 border-gray-600 text-gray-100;
+}
+
+body.dark input[type="text"]:focus,
+body.dark input[type="password"]:focus,
+body.dark input[type="email"]:focus,
+body.dark textarea:focus,
+body.dark select:focus {
+  @apply bg-gray-600 border-blue-500;
+}

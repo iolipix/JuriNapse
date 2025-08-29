@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Dégradé exact de votre navbar -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#4338ca"/>
+    </linearGradient>
+    
+    <!-- Ombre comme votre navbar -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Fond rond avec le même style que votre navbar -->
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#bgGrad)" filter="url(#shadow)"/>
+  
+  <!-- Balance de justice exactement comme dans votre navbar -->
+  <g transform="translate(32,32)" fill="white">
+    <!-- Manche central -->
+    <rect x="-0.8" y="-16" width="1.6" height="24" />
+    
+    <!-- Plateau gauche -->
+    <g transform="translate(-12,-8)">
+      <ellipse cx="0" cy="0" rx="6" ry="1.5" opacity="0.95"/>
+      <line x1="-4" y1="0" x2="0" y2="-8" stroke="white" stroke-width="0.8"/>
+    </g>
+    
+    <!-- Plateau droit -->  
+    <g transform="translate(12,-8)">
+      <ellipse cx="0" cy="0" rx="6" ry="1.5" opacity="0.95"/>
+      <line x1="4" y1="0" x2="0" y2="-8" stroke="white" stroke-width="0.8"/>
+    </g>
+    
+    <!-- Barre horizontale -->
+    <line x1="-12" y1="-16" x2="12" y2="-16" stroke="white" stroke-width="1.2"/>
+    
+    <!-- Base -->
+    <rect x="-8" y="8" width="16" height="2" rx="1"/>
+  </g>
+</svg>

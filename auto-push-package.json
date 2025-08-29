@@ -1,0 +1,13 @@
+{
+  "name": "auto-push-github",
+  "version": "1.0.0",
+  "description": "Système d'auto-push automatique vers GitHub",
+  "main": "auto-push.js",
+  "scripts": {
+    "auto-push": "node auto-push.js",
+    "start-autopush": "node auto-push.js"
+  },
+  "keywords": ["git", "github", "auto-push", "automation"],
+  "author": "Theo",
+  "license": "MIT"
+}

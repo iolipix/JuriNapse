@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /profile/*
+Allow: /post/*
+Allow: /folder/*
+Allow: /feed
+Allow: /trending
+
+Disallow: /api/*
+Disallow: /admin/*
+Disallow: /settings/*
+Disallow: /messaging/*
+Disallow: /privacy-policy
+Disallow: /politique-confidentialite
+
+Sitemap: https://jurinapse.com/sitemap.xml

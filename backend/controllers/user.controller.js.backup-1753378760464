@@ -1,0 +1,97 @@
+const User = require('../models/user.model');
+
+// GET /api/users - Récupérer tous les utilisateurs (pour les suggestions)
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, '-password -refreshToken').sort({ createdAt: -1 });
+    
+    // Normaliser les utilisateurs pour ajouter le champ 'id'
+    const normalizedUsers = users.map(user => ({
+      ...user.toObject(),
+      id: user._id.toString()
+    }));
+    
+    res.json({
+      success: true,
+      data: normalizedUsers
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: 'Erreur lors de la récupération des utilisateurs' 
+    });
+  }
+};
+
+// GET /api/users/:id - Récupérer un utilisateur spécifique
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id, '-password -refreshToken');
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+    
+    // Normaliser l'utilisateur pour ajouter le champ 'id'
+    const normalizedUser = {
+      ...user.toObject(),
+      id: user._id.toString()
+    };
+    
+    res.json(normalizedUser);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur lors de la récupération de l\'utilisateur' });
+  }
+};
+
+// GET /api/users/username/:username - Récupérer un utilisateur par son username
+const getUserByUsername = async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.params.username }, '-password -refreshToken -profilePicture');
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+    
+    // Normaliser l'utilisateur pour ajouter le champ 'id'
+    const normalizedUser = {
+      ...user.toObject(),
+      id: user._id.toString()
+    };
+    
+    res.json(normalizedUser);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur lors de la récupération de l\'utilisateur' });
+  }
+};
+
+// GET /api/users/:id/stats - Récupérer les statistiques d'un utilisateur
+const getUserStats = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Chercher l'utilisateur par ID ou username
+    let user;
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      user = await User.findById(id, 'followersCount followingCount');
+    } else {
+      user = await User.findOne({ username: id }, 'followersCount followingCount');
+    }
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+    
+    res.json({
+      followersCount: user.followersCount || 0,
+      followingCount: user.followingCount || 0
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur lors de la récupération des statistiques' });
+  }
+};
+
+module.exports = {
+  getUsers,
+  getUserById,
+  getUserByUsername,
+  getUserStats
+};

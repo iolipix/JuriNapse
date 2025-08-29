@@ -1,0 +1,26 @@
+{
+  "source": "dist",
+  "destination": "dist",
+  "include": [
+    "/",
+    "/feed",
+    "/trending",
+    "/decision",
+    "/messaging",
+    "/notifications",
+    "/profile",
+    "/folders",
+    "/settings/blocked"
+  ],
+  "skipThirdPartyRequests": true,
+  "cacheAjaxRequests": false,
+  "puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox"],
+  "crawlFrom": "/",
+  "waitFor": 2000,
+  "removeBlobs": true,
+  "sourceMaps": false,
+  "minifyHtml": {
+    "collapseWhitespace": true,
+    "removeComments": true
+  }
+}

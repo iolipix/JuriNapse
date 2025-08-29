@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cookie Auth</title>
+</head>
+<body>
+    <h1>Test Authentification Cookies</h1>
+    <div id="results"></div>
+    
+    <script>
+        const resultsDiv = document.getElementById('results');
+        
+        function log(message) {
+            console.log(message);
+            resultsDiv.innerHTML += `<p>${message}</p>`;
+        }
+        
+        async function testCookieAuth() {
+            try {
+                log('🔐 Test de connexion...');
+                
+                // Test connexion
+                const loginResponse = await fetch('https://jurinapse-production.up.railway.app/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include', // Important pour les cookies cross-origin
+                    body: JSON.stringify({
+                        emailOrUsername: 'alahuagbar',
+                        password: 'password123'
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                log(`📊 Login response: ${JSON.stringify(loginData)}`);
+                
+                if (loginData.success) {
+                    log('✅ Connexion réussie');
+                    
+                    // Test profil immédiatement après
+                    const profileResponse = await fetch('https://jurinapse-production.up.railway.app/api/auth/profile', {
+                        method: 'GET',
+                        credentials: 'include' // Important pour envoyer les cookies
+                    });
+                    
+                    const profileData = await profileResponse.json();
+                    log(`👤 Profile response: ${JSON.stringify(profileData)}`);
+                    
+                    if (profileData.success) {
+                        log('✅ Profil récupéré avec succès');
+                    } else {
+                        log('❌ Échec récupération profil');
+                    }
+                } else {
+                    log('❌ Échec connexion');
+                }
+                
+            } catch (error) {
+                log(`❌ Erreur: ${error.message}`);
+            }
+        }
+        
+        // Auto-exécuter le test
+        testCookieAuth();
+        
+        // Tester aussi les cookies stockés
+        log(`🍪 Cookies actuels: ${document.cookie}`);
+        
+    </script>
+</body>
+</html>
