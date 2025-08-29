@@ -3,20 +3,32 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const ProfilePicture = require('../models/profilePicture.model');
 const TokenService = require('../services/token.service');
+const fs = require('fs');
+const path = require('path');
 
-// Import conditionnel pour éviter le crash
+// Vérifier si EmailService existe et l'importer conditionnellement
 let EmailService;
-try {
-  EmailService = require('../services/email.service');
-  console.log('✅ EmailService importé avec succès');
-} catch (error) {
-  console.log('⚠️ Erreur import EmailService:', error.message);
-  console.log('⚠️ Utilisation du mode dégradé sans email');
-  
-  // Classe EmailService de secours
+const emailServicePath = path.join(__dirname, '../services/email.service.js');
+
+if (fs.existsSync(emailServicePath)) {
+  try {
+    EmailService = require('../services/email.service');
+    console.log('✅ EmailService trouvé et importé avec succès');
+  } catch (error) {
+    console.log('⚠️ Erreur lors de l\'import d\'EmailService:', error.message);
+    EmailService = null;
+  }
+} else {
+  console.log('⚠️ Fichier EmailService non trouvé à:', emailServicePath);
+  EmailService = null;
+}
+
+// Classe EmailService de secours si pas disponible
+if (!EmailService) {
+  console.log('🔧 Utilisation de EmailService en mode dégradé');
   EmailService = class {
     constructor() {
-      console.log('🔧 EmailService en mode dégradé');
+      console.log('🔧 EmailService en mode dégradé initialisé');
     }
     async sendVerificationEmail(user, token) {
       console.log('📧 Simulation envoi email pour:', user.email);
