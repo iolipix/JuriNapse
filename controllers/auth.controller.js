@@ -9,17 +9,32 @@ const path = require('path');
 // Vérifier si EmailService existe et l'importer conditionnellement
 let EmailService;
 const emailServicePath = path.join(__dirname, '../services/email.service.js');
+const alternateEmailServicePath = path.join(__dirname, './services/email.service.js'); // Path alternatif pour Railway
+
+let emailServiceExists = false;
+let actualEmailServicePath = null;
 
 if (fs.existsSync(emailServicePath)) {
+  actualEmailServicePath = '../services/email.service';
+  emailServiceExists = true;
+} else if (fs.existsSync(alternateEmailServicePath)) {
+  actualEmailServicePath = './services/email.service';  
+  emailServiceExists = true;
+} else {
+  console.log('⚠️ Aucun fichier EmailService trouvé');
+  console.log('⚠️ Cherché dans:', emailServicePath);
+  console.log('⚠️ Cherché dans:', alternateEmailServicePath);
+}
+
+if (emailServiceExists && actualEmailServicePath) {
   try {
-    EmailService = require('../services/email.service');
-    console.log('✅ EmailService trouvé et importé avec succès');
+    EmailService = require(actualEmailServicePath);
+    console.log('✅ EmailService trouvé et importé avec succès depuis:', actualEmailServicePath);
   } catch (error) {
     console.log('⚠️ Erreur lors de l\'import d\'EmailService:', error.message);
     EmailService = null;
   }
 } else {
-  console.log('⚠️ Fichier EmailService non trouvé à:', emailServicePath);
   EmailService = null;
 }
 
