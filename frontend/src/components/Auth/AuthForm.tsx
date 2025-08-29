@@ -160,9 +160,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
 
     try {
       if (isLogin) {
-        const success = await login(formData.emailOrUsername, formData.password);
-        if (success) {
+        const result = await login(formData.emailOrUsername, formData.password);
+        if (result.success) {
           onClose?.();
+        } else if (result.requiresVerification || needsEmailVerification) {
+          // Ne rien afficher, l'useEffect fermera et App affichera la page de vérification
+          setError('');
         } else if (!needsEmailVerification) {
           // Si ce n'est pas un problème de vérification, afficher l'erreur
           setError('Email/pseudo ou mot de passe incorrect');

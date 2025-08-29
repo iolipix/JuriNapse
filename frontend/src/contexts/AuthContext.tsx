@@ -5,7 +5,8 @@ import { fixProfilePictureUrl } from '../utils/apiUrlFixer';
 
 interface AuthContextType {
   user: User | null;
-  login: (emailOrUsername: string, password: string) => Promise<boolean>;
+  // Retourne un objet pour éviter les conditions de course sur l'état needsEmailVerification
+  login: (emailOrUsername: string, password: string) => Promise<{ success: boolean; requiresVerification?: boolean }>;
   loginWithToken: (token: string, userData: any) => void; // Nouvelle méthode pour connexion par code
   register: (userData: Omit<User, 'id' | 'joinedAt'>, password: string) => Promise<{ success: boolean; user?: any; needsVerification?: boolean }>;
   logout: () => void;
@@ -82,7 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuth();
   }, []); // Pas de dépendances - ne charge qu'une fois au montage
 
-  const login = React.useCallback(async (emailOrUsername: string, password: string): Promise<boolean> => {
+  const login = React.useCallback(async (emailOrUsername: string, password: string): Promise<{ success: boolean; requiresVerification?: boolean }> => {
     try {
       const response = await authAPI.login(emailOrUsername, password);
       
@@ -94,15 +95,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.setItem('jurinapse_token', response.token);
         }
         
-        return true;
+        return { success: true };
       } else if (response.requiresVerification) {
         // L'utilisateur doit vérifier son email
         setNeedsEmailVerification(true);
         setPendingVerificationUserId(response.userId || response.email);
-        return false;
+        return { success: false, requiresVerification: true };
       }
       
-      return false;
+      return { success: false };
     } catch (error: any) {
       console.error('Login error:', error);
       console.log('🔍 DEBUG - Login error details:', {
@@ -123,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔍 DEBUG - Setting needsEmailVerification = true');
         setNeedsEmailVerification(true);
         setPendingVerificationUserId(errorData?.userId || errorData?.email || (emailOrUsername.includes('@') ? emailOrUsername : null));
-        return false;
+        return { success: false, requiresVerification: true };
       }
       
       // Autres cas de vérification d'email
@@ -132,9 +133,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setNeedsEmailVerification(true);
         // Utiliser l'userId fourni par le serveur ou l'email comme fallback
         setPendingVerificationUserId(errorData?.userId || (emailOrUsername.includes('@') ? emailOrUsername : null));
+        return { success: false, requiresVerification: true };
       }
       
-      return false;
+      return { success: false };
     }
   }, [createUserData]);
 
