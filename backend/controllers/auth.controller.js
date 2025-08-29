@@ -118,6 +118,7 @@ const register = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Compte créé avec succès. Vérifiez votre email pour l\'activer.',
+      needsVerification: true, // Flag pour le frontend
       user: {
         id: newUser._id,
         email: newUser.email,
@@ -209,6 +210,17 @@ const login = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Email/pseudo ou mot de passe incorrect'
+      });
+    }
+
+    // Vérifier si l'email est vérifié
+    if (!user.emailVerified) {
+      console.log('❌ DEBUG: Email non vérifié pour:', user.email);
+      return res.status(403).json({
+        success: false,
+        message: 'Vous devez vérifier votre email avant de pouvoir vous connecter.',
+        requiresVerification: true,
+        email: user.email
       });
     }
 
