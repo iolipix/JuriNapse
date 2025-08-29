@@ -107,13 +107,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Login error:', error);
       
       // Vérifier si l'erreur est liée à la vérification d'email
-      const errorMessage = error.response?.data?.message || '';
-      if (errorMessage.includes('vérifi') || errorMessage.includes('activ')) {
+      const errorData = error.response?.data;
+      const errorMessage = errorData?.message || '';
+      
+      if (errorData?.requiresVerification || errorData?.needsEmailVerification || errorMessage.includes('vérifi') || errorMessage.includes('activ')) {
         setNeedsEmailVerification(true);
-        // Essayer d'extraire l'email si c'est un email
-        if (emailOrUsername.includes('@')) {
-          setPendingVerificationUserId(emailOrUsername);
-        }
+        // Utiliser l'userId fourni par le serveur ou l'email comme fallback
+        setPendingVerificationUserId(errorData?.userId || (emailOrUsername.includes('@') ? emailOrUsername : null));
       }
       
       return false;
