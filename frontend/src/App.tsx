@@ -11,6 +11,8 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { CookieProvider } from './hooks/useCookieConsent';
 import { AdProvider } from './components/Ads';
 import AuthForm from './components/Auth/AuthForm';
+import EmailVerificationPage from './components/Auth/EmailVerificationPage';
+import VerificationRequiredPage from './components/Auth/VerificationRequiredPage';
 import Navbar from './components/Layout/Navbar';
 import Sidebar from './components/Layout/Sidebar';
 import BetaBanner from './components/Layout/BetaBanner';
@@ -29,7 +31,7 @@ import TermsOfService from './components/Legal/TermsOfService';
 import CookieConsent from './components/Common/CookieConsent';
 
 const MainApp: React.FC = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
   const { posts, getPostBySlugOrId } = usePost();
   const { getTotalUnreadMessagesCount } = useMessaging();
   const userRef = useRef(user);
@@ -50,120 +52,104 @@ const MainApp: React.FC = () => {
   const [targetMessageUserId, setTargetMessageUserId] = useState<string | null>(null);
   const [settingsTab, setSettingsTab] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [showVerificationRequired, setShowVerificationRequired] = useState(false);
+
+  // Fonction pour gérer les changements d'URL
+  const handlePopState = () => {
+    const path = window.location.pathname;
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    // Détecter les pages de vérification d'email
+    if (path === '/verify-email' || searchParams.has('token')) {
+      setShowEmailVerification(true);
+      return;
+    }
+    
+    if (path === '/verification-required') {
+      setShowVerificationRequired(true);
+      return;
+    }
+    
+    // Réinitialiser les états de vérification
+    setShowEmailVerification(false);
+    setShowVerificationRequired(false);
+    
+    // Route en fonction du path et réinitialiser seulement les états non pertinents
+    if (path === '/' || path === '') {
+      // Réinitialiser tous les états sauf activeTab
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setTargetMessageUserId(null);
+      setSettingsTab(null);
+      setSelectedTag(null);
+      setActiveTab('feed');
+    } else if (path === '/messages') {
+      // Réinitialiser les états non liés aux messages
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSettingsTab(null);
+      setSelectedTag(null);
+      setActiveTab('messages');
+      const userParam = searchParams.get('user');
+      if (userParam) {
+        setTargetMessageUserId(userParam);
+      } else {
+        setTargetMessageUserId(null);
+      }
+    } else if (path === '/notifications') {
+      // Réinitialiser les états non liés aux notifications
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setTargetMessageUserId(null);
+      setSettingsTab(null);
+      setSelectedTag(null);
+      setActiveTab('notifications');
+    } else if (path === '/conditions-utilisation' || path === '/terms-of-service') {
+      // Réinitialiser les états non liés aux conditions
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setTargetMessageUserId(null);
+      setSettingsTab(null);
+      setSelectedTag(null);
+      setActiveTab('terms');
+    }
+    // ... autres routes
+  };
+
+  // Détecter automatiquement le besoin de vérification d'email
+  useEffect(() => {
+    const path = window.location.pathname;
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    // Si on a un token dans l'URL, afficher la page de vérification
+    if (searchParams.has('token')) {
+      setShowEmailVerification(true);
+      return;
+    }
+    
+    // Si l'utilisateur doit vérifier son email
+    if (needsEmailVerification && !user) {
+      setShowVerificationRequired(true);
+      return;
+    }
+    
+    // Réinitialiser les états si tout est OK
+    setShowEmailVerification(false);
+    setShowVerificationRequired(false);
+  }, [needsEmailVerification, user]);
+
+  // Gérer l'URL au chargement initial
+  useEffect(() => {
+    handlePopState();
+  }, []);
 
   // Gérer la navigation avec les boutons du navigateur
   useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      const searchParams = new URLSearchParams(window.location.search);
-      
-      // Route en fonction du path et réinitialiser seulement les états non pertinents
-      if (path === '/' || path === '') {
-        // Réinitialiser tous les états sauf activeTab
-        setViewingUserId(null);
-        setViewingPostId(null);
-        setViewingDecision(null);
-        setTargetMessageUserId(null);
-        setSettingsTab(null);
-        setSelectedTag(null);
-        setActiveTab('feed');
-      } else if (path === '/messages') {
-        // Réinitialiser les états non liés aux messages
-        setViewingUserId(null);
-        setViewingPostId(null);
-        setViewingDecision(null);
-        setSettingsTab(null);
-        setSelectedTag(null);
-        setActiveTab('messages');
-        const userParam = searchParams.get('user');
-        if (userParam) {
-          setTargetMessageUserId(userParam);
-        } else {
-          setTargetMessageUserId(null);
-        }
-      } else if (path === '/notifications') {
-        // Réinitialiser les états non liés aux notifications
-        setViewingUserId(null);
-        setViewingPostId(null);
-        setViewingDecision(null);
-        setTargetMessageUserId(null);
-        setSettingsTab(null);
-        setSelectedTag(null);
-        setActiveTab('notifications');
-      } else if (path === '/conditions-utilisation' || path === '/terms-of-service') {
-        // Réinitialiser les états non liés aux conditions
-        setViewingUserId(null);
-        setViewingPostId(null);
-        setViewingDecision(null);
-        setTargetMessageUserId(null);
-        setSettingsTab(null);
-        setSelectedTag(null);
-        setActiveTab('terms');
-      } else if (path.startsWith('/post/')) {
-        const postId = path.replace('/post/', '');
-        // Réinitialiser les états non liés aux posts
-        setViewingUserId(null);
-        setViewingDecision(null);
-        setTargetMessageUserId(null);
-        setSettingsTab(null);
-        setSelectedTag(null);
-        setViewingPostId(postId);
-        setActiveTab('post-detail');
-      } else if (path.startsWith('/decision/')) {
-        const decisionNumber = path.replace('/decision/', '');
-        // Réinitialiser les états non liés aux décisions
-        setViewingUserId(null);
-        setViewingPostId(null);
-        setTargetMessageUserId(null);
-        setSettingsTab(null);
-        setSelectedTag(null);
-        setViewingDecision(decisionNumber);
-        setActiveTab('decision');
-      } else if (path.startsWith('/settings/')) {
-        const tab = path.replace('/settings/', '');
-        // Réinitialiser les états non liés aux paramètres
-        setViewingUserId(null);
-        setViewingPostId(null);
-        setViewingDecision(null);
-        setTargetMessageUserId(null);
-        setSelectedTag(null);
-        // Garder l'onglet des paramètres
-        setSettingsTab(tab);
-        setActiveTab('settings');
-      } else if (path === '/settings') {
-        // Réinitialiser les états non liés au menu des paramètres
-        setViewingUserId(null);
-        setViewingPostId(null);
-        setViewingDecision(null);
-        setTargetMessageUserId(null);
-        setSelectedTag(null);
-        setActiveTab('settings-menu');
-        setSettingsTab(null);
-      } else if (path.startsWith('/')) {
-        // Profil utilisateur
-        const username = path.substring(1);
-        if (username) {
-          // Réinitialiser les états non liés aux profils
-          setViewingPostId(null);
-          setViewingDecision(null);
-          setTargetMessageUserId(null);
-          setSettingsTab(null);
-          setSelectedTag(null);
-          
-          // Vérifier si c'est le profil de l'utilisateur connecté
-          if (userRef.current && username === userRef.current.username) {
-            setViewingUserId(null);
-            setActiveTab('profile');
-          } else {
-            // Pour les autres profils, ou si l'utilisateur n'est pas encore chargé,
-            // toujours traiter comme un profil externe
-            setViewingUserId(username);
-            setActiveTab('user-profile');
-          }
-        }
-      }
-    };
-
     // Écouter les événements de navigation
     window.addEventListener('popstate', handlePopState);
 
@@ -883,68 +869,104 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar 
-        onCreatePost={handleCreatePost}
-        onLogin={handleLogin}
-        onHome={handleHome}
-        onProfileClick={handleProfileClick}
-        onMessagesClick={handleMessagesClick}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onViewUserProfile={handleViewUserProfile}
-        onViewPost={handleViewPost}
-        onViewDecision={handleViewDecision}
-        unreadMessagesCount={user ? getTotalUnreadMessagesCount() : 0}
-        onToggleMobileMenu={handleToggleMobileMenu}
-      />
-      
-      {/* Bandeau Bêta */}
-      <BetaBanner variant="animated" />
-      
-      <div className="relative min-h-[calc(100vh-128px)]">
-        <Sidebar 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-          onLogin={handleLogin}
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
+      {/* Pages de vérification d'email */}
+      {showEmailVerification && (
+        <EmailVerificationPage 
+          onBack={() => {
+            setShowEmailVerification(false);
+            window.history.pushState(null, '', '/');
+            handlePopState();
+          }}
+          onVerificationSuccess={() => {
+            setShowEmailVerification(false);
+            window.history.pushState(null, '', '/');
+            handlePopState();
+          }}
         />
-        
-        <div className="lg:ml-64 min-h-full">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {renderMainContent()}
-          </div>
-        </div>
-      </div>
-
-      {/* Auth Modal */}
-      {isAuthOpen && !isLoading && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onMouseDown={(e) => {
-            // Sauvegarder si le mousedown est sur le backdrop
-            if (e.target === e.currentTarget) {
-              (e.currentTarget as any)._mouseDownOnBackdrop = true;
-            }
-          }}
-          onClick={(e) => {
-            // Ne fermer que si mousedown ET click sont sur le backdrop
-            if (e.target === e.currentTarget && (e.currentTarget as any)._mouseDownOnBackdrop) {
-              setIsAuthOpen(false);
-            }
-            // Nettoyer le flag
-            (e.currentTarget as any)._mouseDownOnBackdrop = false;
-          }}
-        >
-          <AuthForm onClose={() => setIsAuthOpen(false)} />
-        </div>
       )}
+      
+      {showVerificationRequired && (
+        <VerificationRequiredPage 
+          onBack={() => {
+            setShowVerificationRequired(false);
+            window.history.pushState(null, '', '/');
+            handlePopState();
+          }}
+          onLogin={handleLogin}
+          userEmail={typeof pendingVerificationUserId === 'string' && pendingVerificationUserId.includes('@') 
+            ? pendingVerificationUserId 
+            : user?.email
+          }
+        />
+      )}
+      
+      {/* Interface principale */}
+      {!showEmailVerification && !showVerificationRequired && (
+        <>
+          <Navbar 
+            onCreatePost={handleCreatePost}
+            onLogin={handleLogin}
+            onHome={handleHome}
+            onProfileClick={handleProfileClick}
+            onMessagesClick={handleMessagesClick}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onViewUserProfile={handleViewUserProfile}
+            onViewPost={handleViewPost}
+            onViewDecision={handleViewDecision}
+            unreadMessagesCount={user ? getTotalUnreadMessagesCount() : 0}
+            onToggleMobileMenu={handleToggleMobileMenu}
+          />
+          
+          {/* Bandeau Bêta */}
+          <BetaBanner variant="animated" />
+          
+          <div className="relative min-h-[calc(100vh-128px)]">
+            <Sidebar 
+              activeTab={activeTab} 
+              onTabChange={handleTabChange}
+              onLogin={handleLogin}
+              isMobileMenuOpen={isMobileMenuOpen}
+              setIsMobileMenuOpen={setIsMobileMenuOpen}
+            />
+            
+            <div className="lg:ml-64 min-h-full">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {renderContent()}
+              </div>
+            </div>
+          </div>
 
-      {/* Create Post Modal */}
-      <CreatePostModal
-        isOpen={isCreatePostOpen}
-        onClose={() => setIsCreatePostOpen(false)}
-      />
+          {/* Auth Modal */}
+          {isAuthOpen && !isLoading && (
+            <div 
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              onMouseDown={(e) => {
+                // Sauvegarder si le mousedown est sur le backdrop
+                if (e.target === e.currentTarget) {
+                  (e.currentTarget as any)._mouseDownOnBackdrop = true;
+                }
+              }}
+              onClick={(e) => {
+                // Ne fermer que si mousedown ET click sont sur le backdrop
+                if (e.target === e.currentTarget && (e.currentTarget as any)._mouseDownOnBackdrop) {
+                  setIsAuthOpen(false);
+                }
+                // Nettoyer le flag
+                (e.currentTarget as any)._mouseDownOnBackdrop = false;
+              }}
+            >
+              <AuthForm onClose={() => setIsAuthOpen(false)} />
+            </div>
+          )}
+
+          {/* Create Post Modal */}
+          <CreatePostModal
+            isOpen={isCreatePostOpen}
+            onClose={() => setIsCreatePostOpen(false)}
+          />
+        </>
+      )}
     </div>
   );
 };

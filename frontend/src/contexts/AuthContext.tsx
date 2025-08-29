@@ -95,11 +95,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         
         return true;
+      } else if (response.requiresVerification) {
+        // L'utilisateur doit vérifier son email
+        setNeedsEmailVerification(true);
+        setPendingVerificationUserId(response.userId);
+        return false;
       }
       
       return false;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      
+      // Vérifier si l'erreur est liée à la vérification d'email
+      const errorMessage = error.response?.data?.message || '';
+      if (errorMessage.includes('vérifi') || errorMessage.includes('activ')) {
+        setNeedsEmailVerification(true);
+        // Essayer d'extraire l'email si c'est un email
+        if (emailOrUsername.includes('@')) {
+          setPendingVerificationUserId(emailOrUsername);
+        }
+      }
+      
       return false;
     }
   }, [createUserData]);

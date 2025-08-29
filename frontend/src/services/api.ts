@@ -235,6 +235,24 @@ export const authAPI = {
       throw error;
     }
   },
+
+  verifyEmailByToken: async (token: string) => {
+    try {
+      const response = await api.post('/auth/verify-email', { token });
+      return response.data;
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
+  resendVerificationEmail: async (email: string) => {
+    try {
+      const response = await api.post('/auth/resend-verification-email', { email });
+      return response.data;
+    } catch (error: any) {
+      throw error;
+    }
+  },
 };
 
 // Users API methods

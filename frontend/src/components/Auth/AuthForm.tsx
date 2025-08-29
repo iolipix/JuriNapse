@@ -146,6 +146,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
       if (isLogin) {
         const success = await login(formData.emailOrUsername, formData.password);
         if (!success) {
+          // Vérifier si c'est un problème de vérification d'email
+          const errorMessage = error || 'Email/pseudo ou mot de passe incorrect';
+          
+          if (errorMessage.includes('vérifi') || errorMessage.includes('activ')) {
+            // L'utilisateur doit vérifier son email
+            setPendingUser({
+              email: formData.emailOrUsername.includes('@') ? formData.emailOrUsername : null
+            });
+            setShowEmailVerification(true);
+            setError('Votre compte doit être vérifié. Vérifiez vos emails.');
+            return;
+          }
+          
           setError('Email/pseudo ou mot de passe incorrect');
         } else {
           onClose?.();
@@ -199,27 +212,22 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
           bio: formData.bio,
         }, formData.password);
         
-        // TEMPORAIRE: Forcer l'affichage du modal de vérification pour test
-        if (result.success || !result.success) {
+        // Gérer la réponse d'inscription
+        if (result.success) {
+          // Inscription réussie, montrer le modal de vérification
           setPendingUser({
-            id: 'test-user-id',
+            id: result.user?.id || 'new-user',
             email: formData.email,
-            username: formData.username,
+            username: username,
             firstName: formData.firstName,
             lastName: formData.lastName
           });
           setShowEmailVerification(true);
+          setError(''); // Effacer les erreurs précédentes
           return; // Ne pas fermer le modal
-        }
-        
-        if (!result.success) {
-          setError('Cet email ou ce pseudo est déjà utilisé');
-        } else if (result.needsVerification && result.user) {
-          // Afficher le modal de vérification email au lieu de fermer le modal
-          setPendingUser(result.user);
-          setShowEmailVerification(true);
         } else {
-          onClose?.();
+          // Erreur lors de l'inscription
+          setError('Cet email ou ce pseudo est déjà utilisé');
         }
       }
     } catch (err) {
