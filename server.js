@@ -100,7 +100,14 @@ const connectDB = async () => {
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5175', 'http://localhost:5176'], // Les origines de votre frontend
+  origin: [
+    'http://localhost:3000', 
+    'http://localhost:5173', 
+    'http://localhost:5175', 
+    'http://localhost:5176',
+    'https://www.jurinapse.com',
+    'https://jurinapse.com'
+  ], // Les origines de votre frontend + production
   credentials: true // Pour permettre les cookies
 }));
 app.use(cookieParser()); // Pour parser les cookies
