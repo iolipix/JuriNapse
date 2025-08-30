@@ -443,6 +443,16 @@ const uploadProfilePicture = async (req, res) => {
       quality: 80
     });
     
+    // Calcul de la taille réelle du buffer optimisé (en bytes)
+    let optimizedSize = 0;
+    try {
+      const base64Part = optimizedImageData.split(',')[1] || '';
+      optimizedSize = Buffer.from(base64Part, 'base64').length; // bytes réels
+    } catch(_) {
+      // Fallback : utiliser la taille fournie côté client si dispo
+      optimizedSize = size || 0;
+    }
+    
     // Supprimer l'ancienne photo de profil si elle existe
     await ProfilePicture.findOneAndDelete({ userId: req.user._id });
     
@@ -452,7 +462,7 @@ const uploadProfilePicture = async (req, res) => {
       imageData: optimizedImageData, // Image optimisée !
       originalName,
       mimeType: 'image/jpeg', // Forcé en JPEG pour la performance
-      size: optimizedSize // Nouvelle taille
+      size: optimizedSize // Taille réelle calculée
     });
     
     await profilePicture.save();
