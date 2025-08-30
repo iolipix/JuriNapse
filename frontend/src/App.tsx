@@ -30,6 +30,12 @@ import DecisionPage from './components/Decision/DecisionPage';
 import TermsOfService from './components/Legal/TermsOfService';
 import CookieConsent from './components/Common/CookieConsent';
 
+// Frontend App identifier (distinct from legacy src/App.tsx)
+if (typeof window !== 'undefined') {
+  (window as any).__debugWhichApp = 'frontend-App';
+  console.log('[FrontendApp] Loaded frontend/src/App.tsx version');
+}
+
 const MainApp: React.FC = () => {
   const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
   const { posts, getPostBySlugOrId } = usePost();
@@ -887,6 +893,9 @@ const MainApp: React.FC = () => {
     const noSuggestionsPages = ['profile', 'user-profile', 'post-detail', 'messages', 'notifications', 'settings', 'settings-menu', 'decision', 'terms'];
     
     if (noSuggestionsPages.includes(activeTab) || !user) {
+      if (typeof window !== 'undefined') {
+        (window as any).__debugRenderMainContent = { branch: 'no-suggestions', activeTab, userPresent: !!user };
+      }
       return (
         <main className="flex-1 p-6">
           {renderContent()}
@@ -895,6 +904,9 @@ const MainApp: React.FC = () => {
     }
 
     // Pour les autres pages, afficher les suggestions à droite (seulement si l'utilisateur est connecté)
+    if (typeof window !== 'undefined') {
+      (window as any).__debugRenderMainContent = { branch: 'with-suggestions', activeTab, userPresent: !!user };
+    }
     return (
       <div className="flex-1 flex">
         <main className="flex-1 p-6 pr-0">
@@ -904,6 +916,7 @@ const MainApp: React.FC = () => {
           <div className="sticky top-36">
             {(() => { try { console.log('[App] About to render <SuggestedUsers /> activeTab=', activeTab, 'user?', !!user); if (typeof window !== 'undefined') { (window as any).__debugAppSuggestionsBlock = { time: Date.now(), activeTab, userPresent: !!user }; } } catch(_) {} return null; })()}
             <div className="text-xs text-purple-600 mb-2">[Debug] Bloc suggestions monté (activeTab={activeTab}, user={String(!!user)})</div>
+            <div id="__suggestions_probe" className="mb-2 p-1 border border-dashed border-purple-400 text-[10px] text-purple-700">SUGG_PROBE</div>
             <SuggestedUsers onViewUserProfile={handleViewUserProfile} />
             {!user && (
               <div className="text-xs text-gray-400 mt-2">(Pas connecté – suggestions masquées)</div>
