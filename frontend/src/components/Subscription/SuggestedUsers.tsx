@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { usersAPI } from '../../services/api';
+import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
 import '../Suggestions.css';
 
 interface User {
@@ -160,7 +161,24 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
               <div key={suggestedUser._id} className="suggestion-item">
                 <div className="user-info">
                   <img 
-                    src={suggestedUser.profilePicture || '/default-profile.svg'} 
+                    src={(() => {
+                      if (!suggestedUser.profilePicture) {
+                        return '/default-profile.svg';
+                      }
+                      const fixedUrl = fixProfilePictureUrl(suggestedUser.profilePicture);
+                      const imageSource = fixedUrl || suggestedUser.profilePicture;
+                      // Si c'est une URL d'API, l'utiliser directement avec cache-busting
+                      if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
+                        const separator = imageSource.includes('?') ? '&' : '?';
+                        return `${imageSource}${separator}t=${Date.now()}`;
+                      }
+                      // Si c'est déjà du base64 complet, l'utiliser directement
+                      if (imageSource.startsWith('data:')) {
+                        return imageSource;
+                      }
+                      // Sinon, ajouter le préfixe base64
+                      return `data:image/jpeg;base64,${imageSource}`;
+                    })()} 
                     alt={`${suggestedUser.username} profile`}
                     className="profile-picture cursor-pointer"
                     onClick={() => onViewUserProfile?.(suggestedUser.username)}

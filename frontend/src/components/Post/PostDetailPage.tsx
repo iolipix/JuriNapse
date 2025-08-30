@@ -7,6 +7,7 @@ import PostCard from './PostCard';
 import PostSEO from './PostSEO';
 import SimpleAdBanner from '../Ads/SimpleAdBanner';
 import { WideSkyscraper } from '../Ads';
+import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
 
 interface PostDetailPageProps {
   postId: string;
@@ -532,7 +533,21 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
               <div className="h-6 w-6 sm:h-8 sm:w-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
                 {user.profilePicture ? (
                   <img 
-                    src={user.profilePicture} 
+                    src={(() => {
+                      const fixedUrl = fixProfilePictureUrl(user.profilePicture);
+                      const imageSource = fixedUrl || user.profilePicture;
+                      // Si c'est une URL d'API, l'utiliser directement avec cache-busting
+                      if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
+                        const separator = imageSource.includes('?') ? '&' : '?';
+                        return `${imageSource}${separator}t=${Date.now()}`;
+                      }
+                      // Si c'est déjà du base64 complet, l'utiliser directement
+                      if (imageSource.startsWith('data:')) {
+                        return imageSource;
+                      }
+                      // Sinon, ajouter le préfixe base64
+                      return `data:image/jpeg;base64,${imageSource}`;
+                    })()} 
                     alt={user.username}
                     className="h-full w-full object-cover rounded-full"
                   />
@@ -614,7 +629,21 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
                     >
                       {author.profilePicture ? (
                         <img 
-                          src={author.profilePicture} 
+                          src={(() => {
+                            const fixedUrl = fixProfilePictureUrl(author.profilePicture);
+                            const imageSource = fixedUrl || author.profilePicture;
+                            // Si c'est une URL d'API, l'utiliser directement avec cache-busting
+                            if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
+                              const separator = imageSource.includes('?') ? '&' : '?';
+                              return `${imageSource}${separator}t=${Date.now()}`;
+                            }
+                            // Si c'est déjà du base64 complet, l'utiliser directement
+                            if (imageSource.startsWith('data:')) {
+                              return imageSource;
+                            }
+                            // Sinon, ajouter le préfixe base64
+                            return `data:image/jpeg;base64,${imageSource}`;
+                          })()} 
                           alt={author.username}
                           className="h-full w-full object-cover"
                         />
