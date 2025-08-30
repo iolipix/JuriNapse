@@ -406,145 +406,50 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// Controller pour uploader une photo de profil
+// Controller pour uploader une photo de profil (méthode embarquée)
 const uploadProfilePicture = async (req, res) => {
   try {
     const ImageOptimizer = require('../utils/imageOptimizer');
     const { imageData, originalName, mimeType, size } = req.body;
-    
-    // Validation
-    if (!imageData || !originalName || !mimeType) {
-      return res.status(400).json({
-        success: false,
-        message: 'Données de l\'image manquantes'
-      });
+    if (!imageData || !mimeType) {
+      return res.status(400).json({ success: false, message: 'Image manquante' });
     }
-    
-    // Vérifier la taille (max 5MB)
-    if (size > 5 * 1024 * 1024) {
-      return res.status(400).json({
-        success: false,
-        message: 'L\'image ne doit pas dépasser 5MB'
-      });
-    }
-    
-    // Vérifier le type MIME
     if (!mimeType.startsWith('image/')) {
-      return res.status(400).json({
-        success: false,
-        message: 'Le fichier doit être une image'
-      });
+      return res.status(400).json({ success: false, message: 'Type invalide' });
     }
-
-    // 🚀 OPTIMISATION AUTOMATIQUE AVEC SHARP !
-    const optimizedImageData = await ImageOptimizer.optimizeBase64Image(imageData, {
-      width: 200,
-      height: 200,
-      quality: 80
-    });
-    
-    // Calcul de la taille réelle du buffer optimisé (en bytes)
-    let optimizedSize = 0;
-    try {
-      const base64Part = optimizedImageData.split(',')[1] || '';
-      optimizedSize = Buffer.from(base64Part, 'base64').length; // bytes réels
-    } catch(_) {
-      // Fallback : utiliser la taille fournie côté client si dispo
-      optimizedSize = size || 0;
+    if (size && size > 5 * 1024 * 1024) {
+      return res.status(400).json({ success: false, message: 'Max 5MB' });
     }
-    
-    // Supprimer l'ancienne photo de profil si elle existe
-    await ProfilePicture.findOneAndDelete({ userId: req.user._id });
-    
-    // Créer la nouvelle photo de profil avec l'image OPTIMISÉE
-    const profilePicture = new ProfilePicture({
-      userId: req.user._id,
-      imageData: optimizedImageData, // Image optimisée !
-      originalName,
-      mimeType: 'image/jpeg', // Forcé en JPEG pour la performance
-      size: optimizedSize // Taille réelle calculée
-    });
-    
-    await profilePicture.save();
-    
-    // Mettre à jour l'utilisateur avec l'URL de la photo
-    const profilePictureUrl = `/api/auth/profile-picture/${req.user._id}`;
-    await User.findByIdAndUpdate(req.user._id, { profilePicture: profilePictureUrl });
-    
-    res.json({
-      success: true,
-      message: 'Photo de profil mise à jour avec succès',
-      profilePictureUrl
-    });
-    
+    const optimizedImageData = await ImageOptimizer.optimizeBase64Image(imageData, { width: 200, height: 200, quality: 80 });
+    await User.findByIdAndUpdate(req.user._id, { profilePicture: optimizedImageData });
+    res.json({ success: true, message: 'Photo de profil mise à jour', profilePicture: optimizedImageData });
   } catch (error) {
-    console.error('❌ uploadProfilePicture error:', {
-      message: error?.message,
-      stack: error?.stack?.split('\n').slice(0,4).join(' | '),
-      name: error?.name,
-      hasUser: !!req.user,
-      bodyKeys: Object.keys(req.body || {})
-    });
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de l\'upload de la photo de profil',
-      detail: error?.message || 'unknown'
-    });
+    console.error('uploadProfilePicture error:', error.message);
+    res.status(500).json({ success: false, message: 'Erreur upload photo' });
   }
 };
 
-// Controller pour récupérer une photo de profil
+// Récupération de la photo: on renvoie directement le base64 stocké
 const getProfilePicture = async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    const profilePicture = await ProfilePicture.findOne({ userId });
-    
-    if (!profilePicture) {
-      return res.status(404).json({
-        success: false,
-        message: 'Photo de profil non trouvée'
-      });
+    const user = await User.findById(userId).select('profilePicture');
+    if (!user || !user.profilePicture) {
+      return res.status(404).json({ success: false, message: 'Photo non trouvée' });
     }
-    
-    // Convertir base64 en buffer
-    const imageBuffer = Buffer.from(profilePicture.imageData.split(',')[1], 'base64');
-    
-    res.set({
-      'Content-Type': profilePicture.mimeType,
-      'Content-Length': imageBuffer.length,
-      'Cache-Control': 'public, max-age=86400' // Cache 24h
-    });
-    
-    res.send(imageBuffer);
-    
+    res.json({ success: true, profilePicture: user.profilePicture });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération de la photo de profil'
-    });
+    res.status(500).json({ success: false, message: 'Erreur récupération photo' });
   }
 };
 
-// Controller pour supprimer une photo de profil
+// Suppression: vider le champ embedded
 const deleteProfilePicture = async (req, res) => {
   try {
-    // Supprimer la photo de profil
-    await ProfilePicture.findOneAndDelete({ userId: req.user._id });
-    
-    // Mettre à jour l'utilisateur
     await User.findByIdAndUpdate(req.user._id, { profilePicture: '' });
-    
-    res.json({
-      success: true,
-      message: 'Photo de profil supprimée avec succès'
-    });
-    
+    res.json({ success: true, message: 'Photo de profil supprimée' });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la suppression de la photo de profil'
-    });
+    res.status(500).json({ success: false, message: 'Erreur suppression photo' });
   }
 };
 
