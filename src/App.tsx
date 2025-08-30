@@ -24,6 +24,12 @@ import SettingsMenu from './components/Settings/SettingsMenu';
 import SuggestedUsers from './components/Subscription/SuggestedUsers';
 import DecisionPage from './components/Decision/DecisionPage';
 
+// DEBUG FLAG to detect legacy App build in browser
+if (typeof window !== 'undefined') {
+  (window as any).__debugWhichApp = 'root-src-App';
+  console.log('[LegacyApp] Loaded src/App.tsx version');
+}
+
 const MainApp: React.FC = () => {
   const { user, isLoading } = useAuth();
   const { posts, getPostBySlugOrId } = usePost();
@@ -750,7 +756,7 @@ const MainApp: React.FC = () => {
 
   const renderMainContent = () => {
     // Pour les pages qui n'ont pas besoin de suggestions (profil utilisateur, détail post, etc.)
-    const noSuggestionsPages = ['profile', 'user-profile', 'post-detail', 'messages', 'notifications', 'settings', 'decision'];
+  const noSuggestionsPages = ['profile', 'user-profile', 'post-detail', 'messages', 'notifications', 'settings', 'decision'];
     
     if (noSuggestionsPages.includes(activeTab) || !user) {
       return (
@@ -770,6 +776,8 @@ const MainApp: React.FC = () => {
         {/* Sidebar droite avec suggestions (seulement si utilisateur connecté) */}
         <aside className="w-80 p-6 pl-6">
           <div className="sticky top-36">
+            {/* Debug wrapper for suggestions in legacy App */}
+            {(() => { try { console.log('[LegacyApp] Rendering <SuggestedUsers /> activeTab=', activeTab, 'user?', !!user); } catch(_) {} return null; })()}
             <SuggestedUsers onViewUserProfile={handleViewUserProfile} />
           </div>
         </aside>
