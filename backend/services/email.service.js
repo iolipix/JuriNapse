@@ -40,8 +40,35 @@ const initNodemailer = () => {
   }
 };
 
+// Validation & sanitisation du champ FROM
+const sanitizeFrom = (raw) => {
+  if (!raw) return null;
+  let v = raw.trim();
+  // Supprime guillemets englobants éventuels
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    v = v.slice(1, -1).trim();
+  }
+  // Remplace plusieurs espaces internes par un seul
+  v = v.replace(/\s+/g, ' ');
+  // Si le format contient des chevrons, valider
+  const displayMatch = v.match(/^([^<>]{1,80})<\s*([^<>@\s]+@[^<>@\s]+\.[^<>@\s]+)\s*>$/);
+  if (displayMatch) {
+    return displayMatch[1].trim() + ' <' + displayMatch[2].trim() + '>';
+  }
+  // Sinon si c'est juste une adresse email simple
+  const simpleMatch = v.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+  if (simpleMatch) return v;
+  return null; // invalide
+};
+
 const sendVerificationEmail = async (email, code) => {
-  const from = process.env.MAIL_FROM || 'JuriNapse <no-reply@jurinapse.com>';
+  const fallbackFrom = 'JuriNapse <no-reply@jurinapse.com>';
+  const rawFrom = process.env.MAIL_FROM;
+  const sanitized = sanitizeFrom(rawFrom);
+  const from = sanitized || fallbackFrom;
+  if (!sanitized && rawFrom) {
+    console.warn('⚠️ MAIL_FROM invalide, fallback utilisé. Valeur brute:', rawFrom);
+  }
   const subject = 'Votre code de vérification JuriNapse';
   const text = `Votre code de vérification est ${code} (valide 10 minutes).`;
   const html = `<p>Bonjour,</p><p>Votre code de vérification est :</p><p style="font-size:24px;font-weight:bold;letter-spacing:3px;">${code}</p><p>Ce code expire dans 10 minutes.</p><p>Merci,<br/>L'équipe JuriNapse</p>`;
@@ -58,7 +85,13 @@ const sendVerificationEmail = async (email, code) => {
       console.warn('⚠️ Réponse inattendue Resend:', result);
       return { provider: 'resend', id: null };
     } catch (e) {
-      console.error('❌ Échec envoi via Resend:', e.message);
+      const msg = e?.message || 'Erreur inconnue';
+      // Essayons d'extraire plus de détails si structure connue (Resend renvoie parfois e.response?.data)
+      let extra = '';
+      if (e?.response?.data) {
+        try { extra = ' | data=' + JSON.stringify(e.response.data); } catch(_) {}
+      }
+      console.error('❌ Échec envoi via Resend:', msg + extra, '| from utilisé =', from);
       // fallback SMTP/log
     }
   }
