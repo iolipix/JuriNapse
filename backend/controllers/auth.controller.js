@@ -850,27 +850,28 @@ const resendVerificationEmail = async (req, res) => {
       });
     }
 
-    // Supprimer l'ancien token s'il existe
+    // Supprimer l'ancien enregistrement s'il existe
     await EmailVerification.deleteOne({ userId: user._id });
 
-    // Générer un nouveau token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    // Générer un nouveau code (compatible avec le schéma actuel qui exige 'code')
+    const verificationCode = crypto.randomBytes(3).toString('hex'); // 6 hex chars (~24 bits)
 
-    // Créer une nouvelle entrée de vérification
+    // Créer une nouvelle entrée (réutilise le schéma existant basé sur 'code')
     const emailVerification = new EmailVerification({
       userId: user._id,
       email: user.email,
-      token: verificationToken,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
+      code: verificationCode,
+      used: false,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h pour le renvoi
     });
-    
+
     await emailVerification.save();
 
     // Simuler l'envoi de l'email pour Railway
     try {
       console.log('🚀 [RAILWAY SIMULATION] Nouveau email de vérification simulé');
       console.log('📧 Destinataire:', user.email);
-      console.log('🔗 Nouveau token:', verificationToken);
+  console.log('🔗 Nouveau code (resend):', verificationCode);
       console.log('📅 Expire le:', emailVerification.expiresAt);
       console.log('✅ Email de re-vérification simulé envoyé');
     } catch (emailError) {
@@ -882,8 +883,7 @@ const resendVerificationEmail = async (req, res) => {
       message: 'Un nouveau lien de vérification a été envoyé à votre email',
       // En mode développement, on peut retourner le token pour test
       ...(process.env.NODE_ENV !== 'production' && { 
-        devToken: verificationToken,
-        devUrl: `https://www.jurinapse.com/verify-email.html?token=${verificationToken}`
+        devCode: verificationCode
       })
     });
 
