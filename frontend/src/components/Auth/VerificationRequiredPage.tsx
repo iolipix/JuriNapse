@@ -14,7 +14,7 @@ const VerificationRequiredPage: React.FC<VerificationRequiredPageProps> = ({
   onLogin,
   userEmail 
 }) => {
-  const { user, logout, setUser } = useAuth() as any;
+  const { user, logout, setUser, pendingVerificationUserId } = useAuth() as any;
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -25,8 +25,9 @@ const VerificationRequiredPage: React.FC<VerificationRequiredPageProps> = ({
   const email = userEmail || user?.email;
 
   const handleResendVerification = async () => {
-    if (!email) {
-      setMessage('Adresse email non disponible');
+    // On peut renvoyer soit via email, soit via userId si email inconnu (juste créé)
+    if (!email && !pendingVerificationUserId) {
+      setMessage('Identifiant de vérification indisponible');
       setResendStatus('error');
       return;
     }
@@ -36,7 +37,13 @@ const VerificationRequiredPage: React.FC<VerificationRequiredPageProps> = ({
     setMessage('');
 
     try {
-      const response = await authAPI.resendVerificationEmail(email);
+      let response;
+      if (email) {
+        response = await authAPI.resendVerificationEmail(email);
+      } else {
+        // Fallback userId
+        response = await authAPI.sendEmailVerification(pendingVerificationUserId);
+      }
       
       if (response.success) {
         setResendStatus('success');
@@ -128,7 +135,17 @@ const VerificationRequiredPage: React.FC<VerificationRequiredPageProps> = ({
                       if (code.length !== 6) return;
                       setVerifying(true); setVerifyError(''); setMessage('');
                       try {
-                        const resp = await authAPI.verifyEmailByEmail(email!, code);
+                        let resp;
+                        if (email) {
+                          resp = await authAPI.verifyEmailByEmail(email!, code);
+                        } else if (pendingVerificationUserId) {
+                          // Fallback vers userId direct
+                          resp = await authAPI.verifyEmail(pendingVerificationUserId, code);
+                        } else {
+                          setVerifyError('Impossible de déterminer le compte à vérifier');
+                          setVerifying(false);
+                          return;
+                        }
                         if (resp.success) {
                           setMessage('✅ Email vérifié ! Redirection...');
                           // Mettre à jour le user dans le contexte si disponible
