@@ -478,9 +478,17 @@ const uploadProfilePicture = async (req, res) => {
     });
     
   } catch (error) {
+    console.error('❌ uploadProfilePicture error:', {
+      message: error?.message,
+      stack: error?.stack?.split('\n').slice(0,4).join(' | '),
+      name: error?.name,
+      hasUser: !!req.user,
+      bodyKeys: Object.keys(req.body || {})
+    });
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de l\'upload de la photo de profil'
+      message: 'Erreur lors de l\'upload de la photo de profil',
+      detail: error?.message || 'unknown'
     });
   }
 };
