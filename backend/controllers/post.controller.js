@@ -1,7 +1,7 @@
 const Post = require('../models/post.model');
 const User = require('../models/user.model');
 const Folder = require('../models/folder.model');
-const ProfilePicture = require('../models/profilePicture.model');
+// Ancienne import de ProfilePicture supprimée (profil embarqué désormais)
 const NodeCache = require('node-cache');
 const mongoose = require('mongoose');
 

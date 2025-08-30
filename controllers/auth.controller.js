@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
-const ProfilePicture = require('../models/profilePicture.model');
 const TokenService = require('../services/token.service');
 
 console.log('🚀 RAILWAY AUTH CONTROLLER FINAL - NO EMAIL IMPORTS');
@@ -205,11 +204,12 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    const profilePicture = await ProfilePicture.findOne({ userId: user._id });
+  // Embedded profile picture now stored directly on user document
+  const profilePictureData = user.profilePicture || null;
 
-    console.log('🎉 Railway login successful');
+  console.log('🎉 Railway login successful');
 
-    res.json({
+  res.json({
       success: true,
       message: 'Connexion réussie',
       token: token,
@@ -223,7 +223,7 @@ const login = async (req, res) => {
         graduationYear: user.graduationYear,
         isStudent: user.isStudent,
         bio: user.bio,
-        profilePicture: profilePicture ? profilePicture.imageData : null,
+    profilePicture: profilePictureData,
         joinedAt: user.createdAt,
         isVerified: true
       }

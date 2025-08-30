@@ -1,7 +1,6 @@
 const Post = require('../models/post.model');
 const User = require('../models/user.model');
 const Folder = require('../models/folder.model');
-const ProfilePicture = require('../models/profilePicture.model');
 const NodeCache = require('node-cache');
 const mongoose = require('mongoose');
 
@@ -772,25 +771,8 @@ const getComments = async (req, res) => {
       select: 'username firstName lastName university isStudent bio'
     });
 
-    // Récupérer les photos de profil des auteurs
-    const authorIds = paginatedComments.map(comment => comment.authorId._id);
-    const profilePictures = await ProfilePicture.find({ 
-      userId: { $in: authorIds } 
-    }).select('userId imageData');
-
-    const profilePictureMap = {};
-    profilePictures.forEach(pp => {
-      if (pp.imageData && pp.imageData.length < 5000000) {
-        profilePictureMap[pp.userId.toString()] = pp.imageData;
-      }
-    });
-
-    // Ajouter les photos de profil aux commentaires
-    const commentsWithProfilePictures = paginatedComments.map(comment => {
-      const commentObj = comment.toObject();
-      commentObj.authorId.profilePicture = profilePictureMap[comment.authorId._id.toString()] || null;
-      return commentObj;
-    });
+  // Photos de profil déjà embarquées dans authorId.profilePicture (méthode Louis)
+  const commentsWithProfilePictures = paginatedComments.map(c => c.toObject());
 
     res.json({
       success: true,

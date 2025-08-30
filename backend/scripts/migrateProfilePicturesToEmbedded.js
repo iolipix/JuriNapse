@@ -7,7 +7,8 @@
 const mongoose = require('mongoose');
 require('dotenv').config({ path: process.env.ENV_PATH || '.env' });
 const User = require('../models/user.model');
-const ProfilePicture = require('../models/profilePicture.model');
+// Ancien modèle ProfilePicture supprimé; variable conservée uniquement pour éviter les erreurs de référence dans le code commenté.
+// let ProfilePicture; // deprecated
 
 (async () => {
   const purge = process.argv.includes('--purge-collection');
@@ -17,20 +18,21 @@ const ProfilePicture = require('../models/profilePicture.model');
     await mongoose.connect(uri, { autoIndex: false });
     console.log('🔄 Migration profile pictures -> embedded (User.profilePicture)');
 
-    const cursor = ProfilePicture.find({}).select('userId imageData').cursor();
-    let updated = 0, skipped = 0;
-    for await (const doc of cursor) {
-      const user = await User.findById(doc.userId).select('profilePicture');
-      if (!user) continue;
-      if (user.profilePicture && user.profilePicture.length > 20) {
-        skipped++; // déjà présent
-        continue;
-      }
-      if (doc.imageData && doc.imageData.length > 20) {
-        user.profilePicture = doc.imageData;
-        try { await user.save(); updated++; } catch (e) { console.warn('⚠️  Save fail user', doc.userId.toString(), e.message); }
-      }
-    }
+  // Disabled: collection plus présente.
+  // const cursor = ProfilePicture.find({}).select('userId imageData').cursor();
+  // let updated = 0, skipped = 0;
+  // for await (const doc of cursor) {
+  //   const user = await User.findById(doc.userId).select('profilePicture');
+  //   if (!user) continue;
+  //   if (user.profilePicture && user.profilePicture.length > 20) {
+  //     skipped++; // déjà présent
+  //     continue;
+  //   }
+  //   if (doc.imageData && doc.imageData.length > 20) {
+  //     user.profilePicture = doc.imageData;
+  //     try { await user.save(); updated++; } catch (e) { console.warn('⚠️  Save fail user', doc.userId.toString(), e.message); }
+  //   }
+  // }
 
     console.log(`✅ Migration terminée. Users mis à jour: ${updated}. Skipped (déjà ok): ${skipped}.`);
     if (purge) {

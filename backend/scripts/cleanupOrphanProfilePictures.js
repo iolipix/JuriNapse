@@ -8,7 +8,8 @@
  */
 const mongoose = require('mongoose');
 require('dotenv').config({ path: process.env.ENV_PATH || '.env' });
-const ProfilePicture = require('../models/profilePicture.model');
+// Deprecated: ProfilePicture model removed.
+// const ProfilePicture = require('../models/profilePicture.model');
 const User = require('../models/user.model');
 
 async function connect() {
@@ -29,7 +30,7 @@ async function cleanupOrphanProfilePictures({ dryRun = true, forceAllIfNoUsers =
     forceAllPurge: false
   };
   console.log('🧹 Démarrage nettoyage photos de profil orphelines', dryRun ? '(DRY RUN)' : '');
-  stats.total = await ProfilePicture.estimatedDocumentCount();
+  stats.total = 0; // Model removed
   const users = await User.find({}, '_id isDeleted').lean();
   stats.totalUsers = users.length;
   stats.systemUsers = users.filter(u => u.isSystemAccount).length;
@@ -37,36 +38,11 @@ async function cleanupOrphanProfilePictures({ dryRun = true, forceAllIfNoUsers =
   const userIds = new Set(users.map(u => u._id.toString()));
   const activeUserIds = new Set(users.filter(u => !u.isDeleted && (!ignoreSystemAccounts || !u.isSystemAccount)).map(u => u._id.toString()));
 
-  if (forceAllIfNoUsers && stats.activeUsers === 0) {
-    stats.forceAllPurge = true;
-    if (!dryRun) {
-      const res = await ProfilePicture.deleteMany({});
-      stats.deleted = res.deletedCount || 0;
-    } else {
-      stats.deleted = stats.total;
-    }
-    console.log('⚠️  Aucun utilisateur actif -> purge complète des photos de profil', dryRun ? '(simulation)' : '');
-    return stats;
-  }
+  // Force purge logic disabled since collection removed.
 
-  const cursor = ProfilePicture.find({}, '_id userId').cursor();
+  // No cursor iteration; collection removed.
   const toDelete = [];
-  for await (const p of cursor) {
-    let orphan = false; const reasons = [];
-    if (!p.userId || !userIds.has(p.userId.toString())) { orphan = true; stats.orphanUserMissing++; reasons.push('user inexistant'); }
-    else if (!activeUserIds.has(p.userId.toString())) { orphan = true; stats.orphanUserDeleted++; reasons.push('user supprimé'); }
-    if (orphan) {
-      toDelete.push(p._id);
-      if (toDelete.length <= 5) console.log(`➡️  Photo de profil orpheline ${p._id} (${reasons.join(', ')})`);
-    }
-  }
-  if (toDelete.length > 5) console.log(`… +${toDelete.length - 5} autres photos orphelines`);
-  if (!dryRun && toDelete.length) {
-    const res = await ProfilePicture.deleteMany({ _id: { $in: toDelete } });
-    stats.deleted = res.deletedCount || 0;
-  } else {
-    stats.deleted = toDelete.length;
-  }
+  stats.deleted = 0;
   console.log('\n📊 Résumé photos orphelines:');
   console.log('  Total:               ', stats.total);
   console.log('  Utilisateurs actifs: ', stats.activeUsers, '/', stats.totalUsers, ignoreSystemAccounts ? `(system ignorés: ${stats.systemUsers})` : '');

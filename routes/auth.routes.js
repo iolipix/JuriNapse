@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 // Import des controllers et middleware
+// Import unique backend auth controller (legacy variants removed)
 const { 
   register, 
   login, 
@@ -13,7 +14,7 @@ const {
   deleteProfilePicture,
   checkUsernameAvailability,
   changePassword
-} = require('../controllers/auth-new-232235');
+} = require('../backend/controllers/auth.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const optionalAuthMiddleware = require('../middleware/optionalAuth.middleware');
 

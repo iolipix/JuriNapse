@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
-const ProfilePicture = require('../models/profilePicture.model');
+// Suppression de l'ancien modèle ProfilePicture (méthode embarquée active)
 const EmailVerification = require('../models/emailVerification.model');
 // const EmailService = require('../services/email.service'); // DÉSACTIVÉ POUR RAILWAY
 const crypto = require('crypto');
@@ -262,9 +262,6 @@ const login = async (req, res) => {
     // Définir le cookie HTTP avec le token
     setJwtCookie(res, token);
 
-    // Récupérer la photo de profil si elle existe
-    const profilePicture = await ProfilePicture.findOne({ userId: user._id });
-
     res.json({
       success: true,
       message: 'Connexion réussie',
@@ -279,7 +276,7 @@ const login = async (req, res) => {
         graduationYear: user.graduationYear,
         isStudent: user.isStudent,
         bio: user.bio,
-        profilePicture: profilePicture ? profilePicture.imageData : null,
+  profilePicture: user.profilePicture || null,
         joinedAt: user.createdAt
       }
     });
@@ -304,9 +301,6 @@ const getProfile = async (req, res) => {
       });
     }
 
-    // Récupérer la photo de profil si elle existe
-    const profilePicture = await ProfilePicture.findOne({ userId: user._id });
-
     res.json({
       success: true,
       user: {
@@ -319,7 +313,7 @@ const getProfile = async (req, res) => {
         graduationYear: user.graduationYear,
         isStudent: user.isStudent,
         bio: user.bio,
-        profilePicture: profilePicture ? profilePicture.imageData : null,
+  profilePicture: user.profilePicture || null,
         joinedAt: user.createdAt
       }
     });
