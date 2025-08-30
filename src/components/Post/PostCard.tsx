@@ -699,8 +699,9 @@ const PostCard: React.FC<PostCardProps> = ({
         {!isEditing && post.tags && post.tags.length > 0 && (
           <div className="flex items-center space-x-1 mt-4">
             <Tag className="h-4 w-4 text-gray-400" />
+            {/* DEBUG: Tags limités à 5 - Version 2.0 */}
             <div className="flex flex-wrap gap-1">
-              {post.tags.map((tag, index) => (
+              {post.tags.slice(0, 5).map((tag, index) => (
                 <span
                   key={index}
                   onClick={(e) => handleTagClick(tag, e)}
@@ -709,6 +710,11 @@ const PostCard: React.FC<PostCardProps> = ({
                   #{tag}
                 </span>
               ))}
+              {post.tags.length > 5 && (
+                <span className="px-2 py-1 bg-gray-50 text-gray-500 rounded-md text-xs font-medium">
+                  +{post.tags.length - 5}
+                </span>
+              )}
             </div>
           </div>
         )}
