@@ -900,11 +900,12 @@ const MainApp: React.FC = () => {
         <main className="flex-1 p-6 pr-0">
           {renderContent()}
         </main>
-        
-        {/* Sidebar droite avec suggestions (seulement si utilisateur connecté) */}
-        <aside className="w-80 p-6">
+        <aside className="w-80 p-6" data-suggestions-visible={!!user}>
           <div className="sticky top-36">
             <SuggestedUsers onViewUserProfile={handleViewUserProfile} />
+            {!user && (
+              <div className="text-xs text-gray-400 mt-2">(Pas connecté – suggestions masquées)</div>
+            )}
           </div>
         </aside>
       </div>

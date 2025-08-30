@@ -19,15 +19,13 @@ interface SuggestedUsersProps {
 const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) => {
   const { user } = useAuth();
   const { followUser, unfollowUser, isFollowingSync } = useSubscriptions();
-  
-  // Ne pas afficher les suggestions si l'utilisateur n'est pas connecté
-  if (!user) {
-    if (typeof window !== 'undefined') {
-      (window as any).__debugSuggestedUsers = { reason: 'no-user' };
-      console.log('[SuggestedUsers] Pas d\'utilisateur connecté – composant masqué');
-    }
-    return null;
+  // DEBUG rendu initial à chaque render
+  if (typeof window !== 'undefined') {
+    (window as any).__debugSuggestedUsersRenderCount = ((window as any).__debugSuggestedUsersRenderCount || 0) + 1;
   }
+  console.log('[SuggestedUsers] Render start user?', !!user, user ? Object.keys(user) : 'no-user');
+  
+  // On décale le early-return plus bas après instrumentation pour confirmer le montage
   
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,10 +37,15 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
 
   useEffect(() => {
     if (user) {
-      console.log('[SuggestedUsers] Chargement des utilisateurs pour', user.username, user.id);
+      // Essayer plusieurs identifiants possibles (id / _id)
+      const displayId = (user as any).id || (user as any)._id || 'no-id';
+      console.log('[SuggestedUsers] useEffect déclenché – chargement utilisateurs pour', user.username, 'id=', displayId);
       loadUsers();
+    } else {
+      console.log('[SuggestedUsers] useEffect: pas d\'utilisateur (attente)');
     }
-  }, [user?.id]);
+  // Dépendre de l'objet user entier pour éviter le cas où user.id est undefined
+  }, [user]);
 
   const loadUsers = async () => {
     // Ne pas charger si l'utilisateur n'est pas connecté
@@ -54,10 +57,11 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     setError(null);
     
     try {
-      const data = await usersAPI.getAllUsers();
-      const users = Array.isArray(data) ? data : (data.data || []);
-      setAllUsers(users);
-      console.log('[SuggestedUsers] Utilisateurs chargés:', users.length);
+  const data = await usersAPI.getAllUsers();
+  console.log('[SuggestedUsers] Réponse brute getAllUsers =', data);
+  const users = Array.isArray(data) ? data : (data?.data || []);
+  setAllUsers(users);
+  console.log('[SuggestedUsers] Utilisateurs chargés:', users.length, 'ex first=', users[0]);
     } catch (error) {
       console.error('[SuggestedUsers] Erreur lors du chargement des utilisateurs:', error);
       setError('Erreur lors du chargement des utilisateurs');
@@ -145,6 +149,14 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     );
   }
 
+  // Si l'utilisateur est finalement absent, on arrête ici (après instrumentation précédente)
+  if (!user) {
+    if (typeof window !== 'undefined') {
+      (window as any).__debugSuggestedUsers = { reason: 'no-user-after-instrumentation' };
+    }
+    return null;
+  }
+
   const suggestedUsers = getSuggestedUsers();
   if (typeof window !== 'undefined') {
     (window as any).__debugSuggestedUsers = {
@@ -152,7 +164,8 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
       suggested: suggestedUsers.length,
       isLoading,
       error,
-      user: user?.username
+      user: user?.username,
+      renderCount: (window as any).__debugSuggestedUsersRenderCount
     };
   }
 
