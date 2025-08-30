@@ -14,10 +14,13 @@ const VerificationRequiredPage: React.FC<VerificationRequiredPageProps> = ({
   onLogin,
   userEmail 
 }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth() as any;
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
 
   const email = userEmail || user?.email;
 
@@ -104,6 +107,49 @@ const VerificationRequiredPage: React.FC<VerificationRequiredPageProps> = ({
             )}
             
             <div className="space-y-4">
+              {/* Zone de saisie du code */}
+              <div className="text-left">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Entrez le code reçu (6 chiffres)
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g,'').slice(0,6))}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent tracking-widest text-center font-semibold"
+                    placeholder="000000"
+                  />
+                  <button
+                    disabled={code.length !== 6 || verifying}
+                    onClick={async () => {
+                      if (code.length !== 6) return;
+                      setVerifying(true); setVerifyError(''); setMessage('');
+                      try {
+                        const resp = await authAPI.verifyEmailByEmail(email!, code);
+                        if (resp.success) {
+                          setMessage('✅ Email vérifié ! Redirection...');
+                          // Mettre à jour le user dans le contexte si disponible
+                          if (setUser && user) {
+                            setUser({ ...user, emailVerified: true });
+                          }
+                          setTimeout(() => { window.location.reload(); }, 1200);
+                        } else {
+                          setVerifyError(resp.message || 'Code invalide');
+                        }
+                      } catch (err: any) {
+                        setVerifyError(err.response?.data?.message || 'Code invalide ou expiré');
+                      } finally { setVerifying(false); }
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700 transition-colors"
+                  >
+                    {verifying ? '...' : 'Valider'}
+                  </button>
+                </div>
+                {verifyError && <p className="mt-2 text-sm text-red-600">{verifyError}</p>}
+              </div>
               <button
                 onClick={handleResendVerification}
                 disabled={isResending}

@@ -743,19 +743,28 @@ const sendEmailVerification = async (req, res) => {
   }
 };
 
-// Vérifier le code email et activer le compte
+// Vérifier le code email et activer le compte (accepte userId OU email)
 const verifyEmail = async (req, res) => {
   try {
-    const { userId, verificationCode } = req.body;
+    let { userId, verificationCode, email } = req.body;
 
-    if (!userId || !verificationCode) {
+    if ((!userId && !email) || !verificationCode) {
       return res.status(400).json({
         success: false,
-        message: 'ID utilisateur et code de vérification requis'
+        message: 'userId ou email + code requis'
       });
     }
 
-    // Chercher le code de vérification
+    // Récupérer userId à partir de l'email si nécessaire
+    if (!userId && email) {
+      const userByEmail = await User.findOne({ email: email.toLowerCase() });
+      if (!userByEmail) {
+        return res.status(400).json({ success: false, message: 'Utilisateur introuvable' });
+      }
+      userId = userByEmail._id.toString();
+    }
+
+    // Chercher le code de vérification (lié à ce userId)
     const verification = await EmailVerification.findOne({
       userId,
       code: verificationCode,
@@ -776,6 +785,9 @@ const verifyEmail = async (req, res) => {
 
     // Mettre à jour l'utilisateur pour marquer l'email comme vérifié
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Utilisateur introuvable' });
+    }
     user.emailVerified = true;
     await user.save();
 
