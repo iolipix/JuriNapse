@@ -942,7 +942,24 @@ const MainApp: React.FC = () => {
             {(() => { try { console.log('[App] About to render <SuggestedUsers /> activeTab=', activeTab, 'user?', !!user); if (typeof window !== 'undefined') { (window as any).__debugAppSuggestionsBlock = { time: Date.now(), activeTab, userPresent: !!user }; } } catch(_) {} return null; })()}
             <div className="text-xs text-purple-600 mb-2">[Debug] Bloc suggestions monté (activeTab={activeTab}, user={String(!!user)})</div>
             <div id="__suggestions_probe" className="mb-2 p-1 border border-dashed border-purple-400 text-[10px] text-purple-700">SUGG_PROBE</div>
-            <SuggestedUsers onViewUserProfile={handleViewUserProfile} />
+            
+            {/* TEMP: Inline simple suggestions */}
+            <div className="bg-white border border-red-500 rounded-lg p-4" style={{border: '3px solid red'}}>
+              <h3 className="text-lg font-semibold mb-3 text-red-600">[TEMP DEBUG] Suggestions d'utilisateurs</h3>
+              <div className="text-sm text-gray-600">
+                <p>✅ Composant monté</p>
+                <p>✅ Utilisateur connecté: {user ? 'OUI' : 'NON'}</p>
+                <p>✅ ActiveTab: {activeTab}</p>
+                <p>✅ Devrait s'afficher: {(!noSuggestionsPages.includes(activeTab) && !!user) ? 'OUI' : 'NON'}</p>
+              </div>
+              {user && (
+                <div className="mt-3">
+                  <p className="text-sm font-medium">Utilisateur connecté:</p>
+                  <p className="text-xs text-gray-500">{user.username || user.email}</p>
+                </div>
+              )}
+            </div>
+            
             {!user && (
               <div className="text-xs text-gray-400 mt-2">(Pas connecté – suggestions masquées)</div>
             )}
