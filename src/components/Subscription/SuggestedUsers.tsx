@@ -18,11 +18,13 @@ interface SuggestedUsersProps {
 const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) => {
   const { user } = useAuth();
   const { followUser, unfollowUser, isFollowingSync } = useSubscriptions();
-  
-  // Ne pas afficher les suggestions si l'utilisateur n'est pas connecté
-  if (!user) {
-    return null;
+
+  // DEBUG rendu initial à chaque render (legacy src version)
+  if (typeof window !== 'undefined') {
+    (window as any).__debugSuggestedUsersLegacyRenderCount = ((window as any).__debugSuggestedUsersLegacyRenderCount || 0) + 1;
   }
+  console.log('[SuggestedUsers-LEGACY] Render start user?', !!user, user ? Object.keys(user) : 'no-user');
+  // On retarde le early-return après instrumentation (plus bas)
   
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,11 +35,14 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   const [recentlyUnfollowed, setRecentlyUnfollowed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Recharger quand l'utilisateur change
     if (user) {
+      const displayId = (user as any).id || (user as any)._id || 'no-id';
+      console.log('[SuggestedUsers-LEGACY] useEffect load users for', user.username, 'id=', displayId);
       loadUsers();
+    } else {
+      console.log('[SuggestedUsers-LEGACY] useEffect: no user yet');
     }
-  }, [user]); // Seulement quand l'utilisateur change
+  }, [user]);
 
   const loadUsers = async () => {
     // Ne pas charger si l'utilisateur n'est pas connecté
@@ -49,20 +54,16 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     setError(null);
     
     try {
-      const response = await fetch('/api/users', {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-      
+      const response = await fetch('/api/users', { credentials: 'include' });
+      console.log('[SuggestedUsers-LEGACY] /api/users status', response.status);
+      if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
-      
-      // Vérifier si la réponse a une propriété 'data' ou si c'est directement un tableau
-      const users = Array.isArray(data) ? data : (data.data || []);
+      console.log('[SuggestedUsers-LEGACY] Raw users response', data);
+      const users = Array.isArray(data) ? data : (data?.data || []);
       setAllUsers(users);
+      console.log('[SuggestedUsers-LEGACY] Users loaded count=', users.length, 'first=', users[0]);
     } catch (error) {
+      console.error('[SuggestedUsers-LEGACY] Load error', error);
       setError('Erreur lors du chargement des utilisateurs');
       setAllUsers([]); // S'assurer qu'on a toujours un tableau
     } finally {
@@ -126,9 +127,17 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     });
   };
 
+  // Early return si utilisateur finalement absent (après instrumentation)
+  if (!user) {
+    if (typeof window !== 'undefined') {
+      (window as any).__debugSuggestedUsers = { reason: 'no-user-legacy' };
+    }
+    return null;
+  }
+
   if (isLoading) {
     return (
-      <div className="suggested-users">
+      <div className="suggested-users border border-yellow-300 rounded p-2">
         <h3>Suggestions pour vous</h3>
         <div className="suggestions-loading">
           <p>Chargement des suggestions...</p>
@@ -139,7 +148,7 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
 
   if (error) {
     return (
-      <div className="suggested-users">
+      <div className="suggested-users border border-red-300 rounded p-2">
         <h3>Suggestions pour vous</h3>
         <div className="suggestions-error">
           <p>{error}</p>
@@ -149,13 +158,24 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   }
 
   const suggestedUsers = getSuggestedUsers();
+  if (typeof window !== 'undefined') {
+    (window as any).__debugSuggestedUsers = {
+      legacy: true,
+      allUsers: allUsers.length,
+      suggested: suggestedUsers.length,
+      isLoading,
+      error,
+      user: user?.username,
+      renderCount: (window as any).__debugSuggestedUsersLegacyRenderCount
+    };
+  }
 
   return (
-    <div className="suggested-users">
+  <div className="suggested-users border border-blue-200 rounded-lg">
       <h3>Suggestions pour vous</h3>
       
       {suggestedUsers.length === 0 ? (
-        <p className="no-suggestions">Aucune suggestion disponible</p>
+    <p className="no-suggestions text-sm text-gray-500">Aucune suggestion disponible (debug: all={allUsers.length})</p>
       ) : (
         <div className="suggestions-list">
           {suggestedUsers.map(suggestedUser => {
