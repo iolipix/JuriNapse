@@ -1,7 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
-import App from './App.tsx';
+// Force usage of the canonical frontend App to avoid duplicate App bundles.
+import App from '../frontend/src/App.tsx';
+// Build marker
+if (typeof window !== 'undefined') {
+  (window as any).__buildVariant = 'unified-frontend-app';
+  console.log('[BuildMarker] Using unified frontend App via src/main.tsx');
+}
 import './index.css';
 
 const rootElement = document.getElementById('root')!;

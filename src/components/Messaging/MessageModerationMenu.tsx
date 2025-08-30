@@ -17,17 +17,17 @@ const MessageModerationMenu: React.FC<MessageModerationMenuProps> = ({
   const { user } = useAuth();
   const { 
     deleteMessage,
-    canDeleteMessage,
     isGroupAdmin,
     isGroupModerator 
   } = useMessaging();
   
   const [loading, setLoading] = useState(false);
 
-  const canDelete = canDeleteMessage(message.id, groupId);
+  // Logique simple de vérification des droits de suppression
   const isAdmin = isGroupAdmin(groupId);
   const isModerator = isGroupModerator(groupId);
   const isAuthor = message.authorId === user?.id;
+  const canDelete = isAuthor || isAdmin || isModerator;
 
   const handleDeleteMessage = async () => {
     if (!canDelete) return;
