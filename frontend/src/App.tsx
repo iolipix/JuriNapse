@@ -33,8 +33,7 @@ import CookieConsent from './components/Common/CookieConsent';
 // Frontend App identifier (distinct from legacy src/App.tsx)
 if (typeof window !== 'undefined') {
   (window as any).__debugWhichApp = 'frontend-App';
-  (window as any).__debugFrontendAppVersion = 'DEBUG-v3-2025-08-30';
-  console.log('[FrontendApp] Loaded frontend/src/App.tsx version DEBUG-v3-2025-08-30');
+  console.log('[FrontendApp] Loaded frontend/src/App.tsx version');
 }
 
 const MainApp: React.FC = () => {
@@ -889,86 +888,6 @@ const MainApp: React.FC = () => {
     }
   };
 
-  const renderMainContent = () => {
-    // Pour les pages qui n'ont vraiment pas besoin de suggestions (détail post, messages, etc.)
-    const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
-    
-    // DEBUG: Log détaillé de la décision
-    console.log('[MainApp DECISION]', {
-      activeTab,
-      userPresent: !!user,
-      isNoSuggestionsPage: noSuggestionsPages.includes(activeTab),
-      noSuggestionsPages,
-      shouldShowSuggestions: !noSuggestionsPages.includes(activeTab) && !!user,
-      currentPath: window.location.pathname
-    });
-    
-    // FORCE DEBUG: Ajouter un log dans le DOM visible
-    if (typeof document !== 'undefined') {
-      const debugDiv = document.getElementById('__main_debug');
-      if (!debugDiv) {
-        const div = document.createElement('div');
-        div.id = '__main_debug';
-        div.style.cssText = 'position: fixed; top: 10px; right: 10px; background: yellow; padding: 5px; z-index: 9999; font-size: 10px;';
-        div.innerText = `activeTab: ${activeTab}, user: ${!!user}, should show: ${!noSuggestionsPages.includes(activeTab) && !!user}`;
-        document.body.appendChild(div);
-      } else {
-        debugDiv.innerText = `activeTab: ${activeTab}, user: ${!!user}, should show: ${!noSuggestionsPages.includes(activeTab) && !!user}`;
-      }
-    }
-    
-    if (noSuggestionsPages.includes(activeTab) || !user) {
-      if (typeof window !== 'undefined') {
-        (window as any).__debugRenderMainContent = { branch: 'no-suggestions', activeTab, userPresent: !!user };
-      }
-      return (
-        <main className="flex-1 p-6">
-          {renderContent()}
-        </main>
-      );
-    }
-
-    // Pour les autres pages, afficher les suggestions à droite (seulement si l'utilisateur est connecté)
-    if (typeof window !== 'undefined') {
-      (window as any).__debugRenderMainContent = { branch: 'with-suggestions', activeTab, userPresent: !!user };
-    }
-    return (
-      <div className="flex-1 flex">
-        <main className="flex-1 p-6 pr-0">
-          {renderContent()}
-        </main>
-        <aside className="w-80 p-6" data-suggestions-visible={!!user}>
-          <div className="sticky top-36">
-            {(() => { try { console.log('[App] About to render <SuggestedUsers /> activeTab=', activeTab, 'user?', !!user); if (typeof window !== 'undefined') { (window as any).__debugAppSuggestionsBlock = { time: Date.now(), activeTab, userPresent: !!user }; } } catch(_) {} return null; })()}
-            <div className="text-xs text-purple-600 mb-2">[Debug] Bloc suggestions monté (activeTab={activeTab}, user={String(!!user)})</div>
-            <div id="__suggestions_probe" className="mb-2 p-1 border border-dashed border-purple-400 text-[10px] text-purple-700">SUGG_PROBE</div>
-            
-            {/* TEMP: Inline simple suggestions */}
-            <div className="bg-white border border-red-500 rounded-lg p-4" style={{border: '3px solid red'}}>
-              <h3 className="text-lg font-semibold mb-3 text-red-600">[TEMP DEBUG] Suggestions d'utilisateurs</h3>
-              <div className="text-sm text-gray-600">
-                <p>✅ Composant monté</p>
-                <p>✅ Utilisateur connecté: {user ? 'OUI' : 'NON'}</p>
-                <p>✅ ActiveTab: {activeTab}</p>
-                <p>✅ Devrait s'afficher: {(!noSuggestionsPages.includes(activeTab) && !!user) ? 'OUI' : 'NON'}</p>
-              </div>
-              {user && (
-                <div className="mt-3">
-                  <p className="text-sm font-medium">Utilisateur connecté:</p>
-                  <p className="text-xs text-gray-500">{user.username || user.email}</p>
-                </div>
-              )}
-            </div>
-            
-            {!user && (
-              <div className="text-xs text-gray-400 mt-2">(Pas connecté – suggestions masquées)</div>
-            )}
-          </div>
-        </aside>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
   {/* Expose global helper for triggering verification page without reload */}
@@ -1035,20 +954,12 @@ const MainApp: React.FC = () => {
             />
             
             <div className="lg:ml-64 min-h-full">
-              {/* FORCE DEBUG: Check if we should show suggestions */}
-              {(() => { 
-                const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
-                const shouldShowSuggestions = !noSuggestionsPages.includes(activeTab) && !!user;
-                console.log('[FORCE SUGGESTIONS DEBUG]', { activeTab, userPresent: !!user, shouldShowSuggestions, noSuggestionsPages });
-                return null; 
-              })()}
-              
               <div className="flex">
                 <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                   {renderContent()}
                 </div>
                 
-                {/* SUGGESTIONS SIDEBAR - FORCE DISPLAY */}
+                {/* SUGGESTIONS SIDEBAR - REAL COMPONENT */}
                 {(() => {
                   const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
                   const shouldShow = !noSuggestionsPages.includes(activeTab) && !!user;
@@ -1058,18 +969,7 @@ const MainApp: React.FC = () => {
                   return (
                     <aside className="w-80 p-6 hidden lg:block">
                       <div className="sticky top-36">
-                        <div className="bg-red-100 border-2 border-red-500 rounded-lg p-4">
-                          <h3 className="text-lg font-semibold mb-3 text-red-700">🔴 SUGGESTIONS DEBUG</h3>
-                          <div className="text-sm space-y-1">
-                            <p>✅ Sidebar monté</p>
-                            <p>✅ ActiveTab: <strong>{activeTab}</strong></p>
-                            <p>✅ User connecté: <strong>{user ? 'OUI' : 'NON'}</strong></p>
-                            <p>✅ Should show: <strong>{shouldShow ? 'OUI' : 'NON'}</strong></p>
-                            {user && (
-                              <p>👤 User: <strong>{user.username || user.email}</strong></p>
-                            )}
-                          </div>
-                        </div>
+                        <SuggestedUsers onViewUserProfile={handleViewUserProfile} />
                       </div>
                     </aside>
                   );
