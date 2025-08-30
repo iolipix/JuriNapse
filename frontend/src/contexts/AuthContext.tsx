@@ -194,13 +194,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const logout = React.useCallback(async () => {
+    console.log('🔐 AUTH DEBUG: Starting logout process');
     try {
       await authAPI.logout();
-    } catch (error) {    } finally {
+      console.log('🔐 AUTH DEBUG: API logout successful');
+    } catch (error) {
+      console.log('🔐 AUTH DEBUG: API logout error:', error);
+    } finally {
+      console.log('🔐 AUTH DEBUG: Setting user to null');
       setUser(null);
       // Appeler le callback de rechargement des posts si défini
       if (onLogoutCallbackRef.current) {
+        console.log('🔐 AUTH DEBUG: Calling post reload callback');
         onLogoutCallbackRef.current();
+      } else {
+        console.log('🔐 AUTH DEBUG: No post reload callback found');
       }
     }
   }, []);

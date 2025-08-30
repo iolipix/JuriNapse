@@ -485,11 +485,16 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
   }, [loadPosts]);
 
   const forceReloadPosts = useCallback(async () => {
+    console.log('📝 POST DEBUG: forceReloadPosts called - bypassing debounce');
     // Force reload without debounce restrictions for logout scenarios
     const originalTime = lastLoadTimeRef.current;
     lastLoadTimeRef.current = 0; // Reset debounce
     try {
+      console.log('📝 POST DEBUG: Calling loadPosts with reset=true');
       await loadPosts(1, true);
+      console.log('📝 POST DEBUG: loadPosts completed successfully');
+    } catch (error) {
+      console.log('📝 POST DEBUG: loadPosts error:', error);
     } finally {
       lastLoadTimeRef.current = originalTime;
     }
@@ -497,8 +502,10 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
 
   // Enregistrer le callback de forceReloadPosts auprès d'AuthContext
   useEffect(() => {
+    console.log('📝 POST DEBUG: Setting up logout callback, setOnLogoutCallback available:', !!setOnLogoutCallback);
     if (setOnLogoutCallback) {
       setOnLogoutCallback(forceReloadPosts);
+      console.log('📝 POST DEBUG: Logout callback registered successfully');
     }
   }, [setOnLogoutCallback, forceReloadPosts]);
 
