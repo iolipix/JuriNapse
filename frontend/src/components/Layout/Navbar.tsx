@@ -425,28 +425,49 @@ const Navbar: React.FC<NavbarProps> = ({
                         src={(() => {
                           const fixedUrl = fixProfilePictureUrl(user.profilePicture);
                           const imageSource = fixedUrl || user.profilePicture;
+                          
+                          // Debug temporaire
+                          console.log('🔍 DEBUG Profile Picture Navbar:', {
+                            originalUrl: user.profilePicture,
+                            fixedUrl: fixedUrl,
+                            finalImageSource: imageSource
+                          });
+                          
                           // Si c'est une URL d'API, l'utiliser directement avec cache-busting
                           if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
                             const separator = imageSource.includes('?') ? '&' : '?';
-                            return `${imageSource}${separator}t=${Date.now()}`;
+                            const finalUrl = `${imageSource}${separator}t=${Date.now()}`;
+                            console.log('🔍 Final URL (API):', finalUrl);
+                            return finalUrl;
                           }
                           // Si c'est déjà du base64 complet, l'utiliser directement
                           if (imageSource.startsWith('data:')) {
+                            console.log('🔍 Final URL (Base64):', imageSource.substring(0, 50) + '...');
                             return imageSource;
                           }
                           // Sinon, ajouter le préfixe base64
-                          return `data:image/jpeg;base64,${imageSource}`;
+                          const finalUrl = `data:image/jpeg;base64,${imageSource}`;
+                          console.log('🔍 Final URL (Added Base64):', finalUrl.substring(0, 50) + '...');
+                          return finalUrl;
                         })()} 
                         alt={user.username}
                         className="h-full w-full object-cover"
-                        onError={(e) => {                          e.currentTarget.style.display = 'none';
+                        onError={(e) => {
+                          console.error('❌ Image failed to load in navbar:', e.currentTarget.src);
+                          e.currentTarget.style.display = 'none';
                           const fallbackIcon = e.currentTarget.parentElement?.querySelector('.fallback-icon');
                           if (fallbackIcon) {
                             fallbackIcon.classList.remove('hidden');
                           }
                         }}
+                        onLoad={() => {
+                          console.log('✅ Image loaded successfully in navbar');
+                        }}
                       />
-                    ) : null}
+                    ) : (
+                      console.log('⚠️ No profile picture found for user'),
+                      null
+                    )}
                     <User className={`h-4 w-4 text-blue-600 fallback-icon ${user.profilePicture ? 'hidden' : ''}`} />
                   </div>
                   <span className="hidden sm:inline text-sm font-medium text-gray-900">

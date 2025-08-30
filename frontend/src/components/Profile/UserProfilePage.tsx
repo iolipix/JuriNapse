@@ -736,26 +736,43 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                         src={(() => {
                           const fixedUrl = fixProfilePictureUrl(userProfile.profilePicture);
                           const imageSource = fixedUrl || userProfile.profilePicture;
+                          
+                          // Debug temporaire
+                          console.log('🔍 DEBUG Profile Picture UserProfile:', {
+                            originalUrl: userProfile.profilePicture,
+                            fixedUrl: fixedUrl,
+                            finalImageSource: imageSource
+                          });
+                          
                           // Si c'est une URL d'API, l'utiliser directement avec cache-busting
                           if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
                             const separator = imageSource.includes('?') ? '&' : '?';
-                            return `${imageSource}${separator}t=${Date.now()}`;
+                            const finalUrl = `${imageSource}${separator}t=${Date.now()}`;
+                            console.log('🔍 Final URL (API):', finalUrl);
+                            return finalUrl;
                           }
                           // Si c'est déjà du base64 complet, l'utiliser directement
                           if (imageSource.startsWith('data:')) {
+                            console.log('🔍 Final URL (Base64):', imageSource.substring(0, 50) + '...');
                             return imageSource;
                           }
                           // Sinon, ajouter le préfixe base64
-                          return `data:image/jpeg;base64,${imageSource}`;
+                          const finalUrl = `data:image/jpeg;base64,${imageSource}`;
+                          console.log('🔍 Final URL (Added Base64):', finalUrl.substring(0, 50) + '...');
+                          return finalUrl;
                         })()} 
                         alt={userProfile.username}
                         className="h-full w-full object-cover"
                         onError={(e) => {
+                          console.error('❌ Image failed to load in UserProfile:', e.currentTarget.src);
                           e.currentTarget.style.display = 'none';
                           const fallbackIcon = e.currentTarget.parentElement?.querySelector('.fallback-icon');
                           if (fallbackIcon) {
                             fallbackIcon.classList.remove('hidden');
                           }
+                        }}
+                        onLoad={() => {
+                          console.log('✅ Image loaded successfully in UserProfile');
                         }}
                       />
                     ) : (
