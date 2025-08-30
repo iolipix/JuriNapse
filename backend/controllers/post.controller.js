@@ -802,7 +802,7 @@ const getUserPostsByUsername = async (req, res) => {
 
     // Transformer les données pour que authorId devienne author (comme dans les autres endpoints)
     const transformedPosts = posts.map(post => {
-      const postObj = post.toObject();
+      const postObj = post.toJSON();
       postObj.author = postObj.authorId;
       delete postObj.authorId;
       return postObj;
