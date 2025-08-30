@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const http = require('http');
 const { Server } = require('socket.io');
+const cron = require('node-cron');
 require('dotenv').config({ path: './config/.env' });
 
 // --- Log filtering avancé (LOG_LEVEL = silent|minimal|normal|debug) ---
@@ -57,7 +58,6 @@ const groupRoutes = require('./routes/group.routes');
 const messageRoutes = require('./routes/message.routes');
 const subscriptionRoutes = require('./routes/subscription.routes');
 const seoRoutes = require('./routes/seo.routes');
-const seoIndexationRoutes = require('./routes/seo-indexation.routes');
 const adminRoutes = require('./routes/admin.routes');
 const prerenderRoutes = require('./routes/prerender.routes');
 const diagnosticRoutes = require('./routes/diagnostic.routes');
@@ -167,15 +167,8 @@ app.use('/api/messages', middlewareMessagesOrphelins, socketMiddleware, messageR
 app.use('/api/subscriptions', socketMiddleware, subscriptionRoutes); // Socket.io pour les notifications d'abonnement
 app.use('/api/admin', adminRoutes); // Routes d'administration
 app.use('/api/diagnostic', diagnosticRoutes); // Routes de diagnostic
-app.use('/api/seo', seoIndexationRoutes); // Routes SEO pour indexation automatique
 app.use('/', seoRoutes); // Routes SEO (sitemap, robots.txt)
 app.use('/', require('./routes/sitemap.routes')); // Route pour le sitemap
-
-// Route pour servir la clé IndexNow à la racine
-app.get('/indexnow-key.txt', (req, res) => {
-  res.set('Content-Type', 'text/plain');
-  res.send(process.env.INDEX_NOW_KEY || 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6');
-});
 
 // 🤖 Routes de prérendu SEO pour les bots
 app.use('/seo', prerenderRoutes); // Routes pré-rendues pour SEO
@@ -244,3 +237,20 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Cron: nettoyage des groupes vides chaque jour à 00:01
+try {
+  cron.schedule('1 0 * * *', async () => {
+    try {
+      console.log('🕐 [CRON] Lancement nettoyage groupes vides (00:01)');
+      const { cleanupEmptyGroups } = require('./scripts/cleanupEmptyGroups');
+      await cleanupEmptyGroups({ dryRun: false });
+      console.log('✅ [CRON] Nettoyage groupes vides terminé');
+    } catch (err) {
+      console.error('❌ [CRON] Erreur nettoyage groupes vides:', err.message);
+    }
+  }, { timezone: 'Europe/Paris' });
+  console.log('⏲️  Tâche planifiée: cleanupEmptyGroups tous les jours à 00:01 (Europe/Paris)');
+} catch (e) {
+  console.error('⚠️ Impossible de programmer la tâche cleanupEmptyGroups:', e.message);
+}
