@@ -419,7 +419,12 @@ const Navbar: React.FC<NavbarProps> = ({
                   onClick={handleProfileClick}
                   className="flex items-center space-x-1 sm:space-x-2 hover:bg-gray-50 rounded-lg p-1 sm:p-2 transition-colors"
                 >
-                  <div className="h-8 w-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="h-8 w-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center overflow-hidden relative">
+                    {/* Indicateur de debug temporaire */}
+                    <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center z-10">
+                      {user.profilePicture ? '✓' : '✗'}
+                    </div>
+                    
                     {user.profilePicture ? (
                       <img 
                         src={(() => {
