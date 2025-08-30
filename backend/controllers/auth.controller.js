@@ -113,29 +113,29 @@ const register = async (req, res) => {
 
     await newUser.save();
 
-    // Créer un token de vérification
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    
-    // Sauvegarder le token de vérification
-    const emailVerification = new EmailVerification({
-      userId: newUser._id,
-      email: newUser.email,
-      code: verificationToken,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
-    });
-    
-    await emailVerification.save();
+    // Générer un code numérique 6 chiffres pour cohérence avec resend/verify
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Envoyer l'email de vérification
+    // Enregistrer (upsert) le code (valide 1h max pour rester < purge automatique 1h)
+    await EmailVerification.findOneAndUpdate(
+      { userId: newUser._id },
+      {
+        userId: newUser._id,
+        email: newUser.email,
+        code: verificationCode,
+        used: false,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1h
+      },
+      { upsert: true, new: true }
+    );
+
+    // Envoyer l'email réel (avec fallback interne au service)
     try {
-      // SIMULATION EMAIL POUR RAILWAY
-      console.log('🚀 [RAILWAY SIMULATION] Email de vérification simulé');
-      console.log('📧 Destinataire:', newUser.email);
-      console.log('🔗 Token de vérification:', verificationToken);
-      console.log('✅ Email de vérification simulé envoyé à:', newUser.email);
-    } catch (emailError) {
-      console.error('❌ Erreur lors de la simulation email:', emailError);
-      // Ne pas bloquer l'inscription si l'email échoue
+      const { sendVerificationEmail } = require('../services/email.service');
+      await sendVerificationEmail(newUser.email, verificationCode);
+      console.log('📨 Code de vérification initial envoyé à', newUser.email);
+    } catch (emailErr) {
+      console.error('❌ Échec envoi email vérification (inscription):', emailErr.message);
     }
 
     // Ne pas générer de token ni connecter l'utilisateur automatiquement
@@ -144,7 +144,7 @@ const register = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Compte créé avec succès. Vérifiez votre email pour l\'activer.',
-      needsVerification: true, // Flag pour le frontend
+      needsVerification: true,
       user: {
         id: newUser._id,
         email: newUser.email,
