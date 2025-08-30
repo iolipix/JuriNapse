@@ -892,6 +892,15 @@ const MainApp: React.FC = () => {
     // Pour les pages qui n'ont vraiment pas besoin de suggestions (détail post, messages, etc.)
     const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
     
+    // DEBUG: Log détaillé de la décision
+    console.log('[MainApp DECISION]', {
+      activeTab,
+      userPresent: !!user,
+      isNoSuggestionsPage: noSuggestionsPages.includes(activeTab),
+      noSuggestionsPages,
+      shouldShowSuggestions: !noSuggestionsPages.includes(activeTab) && !!user
+    });
+    
     if (noSuggestionsPages.includes(activeTab) || !user) {
       if (typeof window !== 'undefined') {
         (window as any).__debugRenderMainContent = { branch: 'no-suggestions', activeTab, userPresent: !!user };
