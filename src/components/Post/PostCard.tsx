@@ -699,9 +699,7 @@ const PostCard: React.FC<PostCardProps> = ({
         {!isEditing && post.tags && post.tags.length > 0 && (
           <div className="flex items-center space-x-1 mt-4">
             <Tag className="h-4 w-4 text-gray-400" />
-            {/* 🔥 FORCE DEPLOY v4.0 - Tags limités à 3 sur posts 🔥 */}
-            <div className="flex flex-wrap gap-1" style={{ border: '1px solid transparent' }}>
-              {/* DEPLOY TEST v4.0 - {post.tags.length} tags totaux → max 3 sur posts */}
+            <div className="flex flex-wrap gap-1">
               {post.tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
@@ -711,11 +709,6 @@ const PostCard: React.FC<PostCardProps> = ({
                   #{tag}
                 </span>
               ))}
-              {post.tags.length > 3 && (
-                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium">
-                  +{post.tags.length - 3} TAGS LIMITÉS v4.0
-                </span>
-              )}
             </div>
           </div>
         )}

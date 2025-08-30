@@ -433,11 +433,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
                 #{tag}
               </button>
             ))}
-            {popularTags.length > 5 && (
-              <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-500 bg-gray-50 rounded-full">
-                +{popularTags.length - 5} autres
-              </span>
-            )}
+            {/* Overflow indicator removed per request */}
           </div>
         </div>
       )}
