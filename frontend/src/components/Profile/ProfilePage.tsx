@@ -397,7 +397,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
 
   const uploadProfilePicture = async (imageData: string, originalName: string, mimeType: string, size: number) => {
     try {
-      const response = await fetch('/api/auth/profile-picture', {
+      const response = await fetch('https://www.jurinapse.com/api/auth/profile-picture', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -430,7 +430,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
 
   const handleRemoveProfilePicture = async () => {
     try {
-      const response = await fetch('/api/auth/profile-picture', {
+      const response = await fetch('https://www.jurinapse.com/api/auth/profile-picture', {
         method: 'DELETE',
         credentials: 'include', // Pour envoyer les cookies
       });
