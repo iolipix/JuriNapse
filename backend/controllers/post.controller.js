@@ -879,8 +879,8 @@ const getUserStatsByUsername = async (req, res) => {
   }
 };
 
-// Récupérer les utilisateurs qui ont liké un post (unifié avec collection ProfilePicture)
-const { hydrateUsersWithProfilePictures } = require('../utils/profilePictureService');
+// Récupérer les utilisateurs qui ont liké un post (méthode "Louis" : photo directement dans User.profilePicture)
+// NOTE: l'hydratation via collection externe est abandonnée pour réduire la latence.
 const getPostLikes = async (req, res) => {
   try {
     const { id } = req.params;
@@ -901,14 +901,13 @@ const getPostLikes = async (req, res) => {
       });
     }
 
-    // Récupérer les utilisateurs qui ont liké (champ profilePicture peut être vide si stocké dans collection)
+  // Récupérer les utilisateurs qui ont liké (profilePicture directement embarqué)
     const likedUsers = await User.find({
       _id: { $in: post.likedBy },
       isDeleted: { $ne: true }
     }).select('username firstName lastName university isStudent bio profilePicture');
 
-    let usersPlain = likedUsers.map(u => ({ ...u.toObject(), id: u._id }));
-    usersPlain = await hydrateUsersWithProfilePictures(usersPlain);
+  const usersPlain = likedUsers.map(u => ({ ...u.toObject(), id: u._id }));
 
     res.json({ success: true, users: usersPlain, count: usersPlain.length });
 
@@ -952,32 +951,14 @@ const getComments = async (req, res) => {
     const endIndex = startIndex + (limit * 1);
     const paginatedComments = sortedComments.slice(startIndex, endIndex);
 
-    // Peupler les auteurs des commentaires
+    // Peupler les auteurs des commentaires avec leur profilePicture embarquée
     await Post.populate(paginatedComments, {
       path: 'authorId',
-      select: 'username firstName lastName university isStudent bio isDeleted',
+      select: 'username firstName lastName university isStudent bio isDeleted profilePicture',
       match: { isDeleted: { $ne: true } }
     });
 
-    // Récupérer les photos de profil des auteurs
-    const authorIds = paginatedComments.map(comment => comment.authorId._id);
-    const profilePictures = await ProfilePicture.find({ 
-      userId: { $in: authorIds } 
-    }).select('userId imageData');
-
-    const profilePictureMap = {};
-    profilePictures.forEach(pp => {
-      if (pp.imageData && pp.imageData.length < 5000000) {
-        profilePictureMap[pp.userId.toString()] = pp.imageData;
-      }
-    });
-
-    // Ajouter les photos de profil aux commentaires
-    const commentsWithProfilePictures = paginatedComments.map(comment => {
-      const commentObj = comment.toObject();
-      commentObj.authorId.profilePicture = profilePictureMap[comment.authorId._id.toString()] || null;
-      return commentObj;
-    });
+    const commentsWithProfilePictures = paginatedComments.map(c => c.toObject());
 
     res.json({
       success: true,
