@@ -161,6 +161,26 @@ const MainApp: React.FC = () => {
     };
   }, []); // Supprimer les dépendances pour éviter les re-rendus
 
+  // Écoute globale pour forcer l'affichage de la vérification (déclenché depuis AuthForm via window.setGlobalVerificationFlag)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        // @ts-ignore - CustomEvent avec detail
+        const detail = e.detail || (e as any).detail;
+        if (detail?.v) {
+          // Forcer l'affichage immédiat
+            setShowVerificationRequired(true);
+          // Normaliser l'URL pour cohérence/navigation
+          if (window.location.pathname !== '/verification-required') {
+            window.history.pushState({}, '', '/verification-required');
+          }
+        }
+      } catch (_) {}
+    };
+    window.addEventListener('force-verification', handler as any);
+    return () => window.removeEventListener('force-verification', handler as any);
+  }, []);
+
   // Re-vérifier la route quand l'utilisateur se charge
   useEffect(() => {
     if (!isLoading && user) {
@@ -869,6 +889,8 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+  {/* Expose global helper for triggering verification page without reload */}
+  <script dangerouslySetInnerHTML={{ __html: `window.setGlobalVerificationFlag = function(v, uid, email){ try { window.dispatchEvent(new CustomEvent('force-verification',{ detail:{ v, uid, email }})); } catch(_) {} };` }} />
       {/* Pages de vérification d'email */}
       {showEmailVerification && (
         <EmailVerificationPage 

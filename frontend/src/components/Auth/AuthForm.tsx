@@ -17,6 +17,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
   const { login, register, completeEmailVerification, needsEmailVerification, pendingVerificationUserId } = useAuth();
+  // Communiquer à App qu'on veut afficher la page verification si disponible
+  const setGlobalVerificationFlag = (window as any).setGlobalVerificationFlag;
 
   // États pour la vérification du username
   const [usernameStatus, setUsernameStatus] = useState<{
@@ -231,6 +233,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
             lastName: formData.lastName
           });
           setShowEmailVerification(true);
+          // Signaler à l'application principale d'afficher la page de vérification globale si disponible
+          if (typeof setGlobalVerificationFlag === 'function') {
+            try { setGlobalVerificationFlag(true, result.user?.id, formData.email); } catch(_) {}
+          }
           setError(''); // Effacer les erreurs précédentes
           return; // Ne pas fermer le modal
         } else {
