@@ -225,31 +225,15 @@ const startServer = async () => {
     console.log('🚀 Démarrage du serveur...');
     await connectDB();
     console.log('✅ Base de données connectée');
-    // Nettoyage initial des groupes vides au démarrage
+    // Nettoyage global initial au démarrage
     (async () => {
       try {
-        console.log('🧹 [STARTUP] Nettoyage initial des groupes vides...');
-        const { cleanupEmptyGroups } = require('./scripts/cleanupEmptyGroups');
-        await cleanupEmptyGroups({ dryRun: false });
-        console.log('✅ [STARTUP] Nettoyage groupes vides terminé');
-  console.log('🧹 [STARTUP] Nettoyage initial des messages orphelins...');
-  const { cleanupOrphanMessages } = require('./scripts/cleanupOrphanMessages');
-  await cleanupOrphanMessages({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true });
-  console.log('✅ [STARTUP] Nettoyage messages orphelins terminé');
-  console.log('🧹 [STARTUP] Nettoyage initial des notifications orphelines...');
-  const { cleanupOrphanNotifications } = require('./scripts/cleanupOrphanNotifications');
-  await cleanupOrphanNotifications({ dryRun: false, forceAllIfNoUsers: true });
-  console.log('✅ [STARTUP] Nettoyage notifications orphelines terminé');
-  console.log('🧹 [STARTUP] Nettoyage initial des réactions orphelines...');
-  const { cleanupOrphanReactions } = require('./scripts/cleanupOrphanReactions');
-  await cleanupOrphanReactions({ dryRun: false, forceAllIfNoUsers: true });
-  console.log('✅ [STARTUP] Nettoyage réactions orphelines terminé');
-  console.log('🧹 [STARTUP] Nettoyage initial des photos de profil orphelines...');
-  const { cleanupOrphanProfilePictures } = require('./scripts/cleanupOrphanProfilePictures');
-  await cleanupOrphanProfilePictures({ dryRun: false, forceAllIfNoUsers: true });
-  console.log('✅ [STARTUP] Nettoyage photos de profil orphelines terminé');
+        console.log('🧹 [STARTUP] Maintenance cleanup ALL...');
+        const { maintenanceCleanupAll } = require('./scripts/maintenanceCleanupAll');
+        await maintenanceCleanupAll({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true });
+        console.log('✅ [STARTUP] Maintenance cleanup ALL terminé');
       } catch (e) {
-        console.error('⚠️ [STARTUP] Échec nettoyage groupes vides:', e.message);
+        console.error('⚠️ [STARTUP] Échec maintenance cleanup ALL:', e.message);
       }
     })();
     server.listen(PORT, '0.0.0.0', () => {
@@ -265,19 +249,19 @@ const startServer = async () => {
 
 startServer();
 
-// Cron: nettoyage des groupes vides chaque jour à 00:01
+// Cron: maintenance cleanup ALL chaque jour à 00:01
 try {
   cron.schedule('1 0 * * *', async () => {
     try {
-      console.log('🕐 [CRON] Lancement nettoyage groupes vides (00:01)');
-      const { cleanupEmptyGroups } = require('./scripts/cleanupEmptyGroups');
-      await cleanupEmptyGroups({ dryRun: false });
-      console.log('✅ [CRON] Nettoyage groupes vides terminé');
+    console.log('🕐 [CRON] Lancement maintenance cleanup ALL (00:01)');
+    const { maintenanceCleanupAll } = require('./scripts/maintenanceCleanupAll');
+    await maintenanceCleanupAll({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true });
+    console.log('✅ [CRON] Maintenance cleanup ALL terminé');
     } catch (err) {
-      console.error('❌ [CRON] Erreur nettoyage groupes vides:', err.message);
+    console.error('❌ [CRON] Erreur maintenance cleanup ALL:', err.message);
     }
   }, { timezone: 'Europe/Paris' });
-  console.log('⏲️  Tâche planifiée: cleanupEmptyGroups tous les jours à 00:01 (Europe/Paris)');
+  console.log('⏲️  Tâche planifiée: maintenance cleanup ALL tous les jours à 00:01 (Europe/Paris)');
 } catch (e) {
-  console.error('⚠️ Impossible de programmer la tâche cleanupEmptyGroups:', e.message);
+  console.error('⚠️ Impossible de programmer la tâche maintenance cleanup ALL:', e.message);
 }

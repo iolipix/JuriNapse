@@ -152,4 +152,23 @@ router.delete('/maintenance/cleanup-orphan-profile-pictures', async (req, res) =
   }
 });
 
+// Maintenance route: cleanup ALL (package)
+router.post('/maintenance/cleanup-all', async (req, res) => {
+  try {
+    const key = req.query.key || req.headers['x-maintenance-key'];
+    if (!process.env.MAINTENANCE_KEY || key !== process.env.MAINTENANCE_KEY) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const dryRun = req.query.dryRun === '1';
+    const includeSystem = req.query.includeSystem === '1';
+    const forceAllIfNoUsers = req.query.forceAll === '1';
+    const { maintenanceCleanupAll } = require('../scripts/maintenanceCleanupAll');
+    const results = await maintenanceCleanupAll({ dryRun, includeSystem, forceAllIfNoUsers });
+    return res.json({ success: true, dryRun, results });
+  } catch (err) {
+    console.error('Error cleanup ALL:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;
