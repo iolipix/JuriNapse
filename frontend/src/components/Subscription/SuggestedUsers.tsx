@@ -22,6 +22,10 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   
   // Ne pas afficher les suggestions si l'utilisateur n'est pas connecté
   if (!user) {
+    if (typeof window !== 'undefined') {
+      (window as any).__debugSuggestedUsers = { reason: 'no-user' };
+      console.log('[SuggestedUsers] Pas d\'utilisateur connecté – composant masqué');
+    }
     return null;
   }
   
@@ -34,11 +38,11 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   const [recentlyUnfollowed, setRecentlyUnfollowed] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Recharger quand l'utilisateur change
     if (user) {
+      console.log('[SuggestedUsers] Chargement des utilisateurs pour', user.username, user.id);
       loadUsers();
     }
-  }, [user?.id]); // Utiliser user.id spécifiquement pour éviter les re-renders inutiles
+  }, [user?.id]);
 
   const loadUsers = async () => {
     // Ne pas charger si l'utilisateur n'est pas connecté
@@ -51,14 +55,13 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     
     try {
       const data = await usersAPI.getAllUsers();
-      
-      // Vérifier si la réponse a une propriété 'data' ou si c'est directement un tableau
       const users = Array.isArray(data) ? data : (data.data || []);
       setAllUsers(users);
+      console.log('[SuggestedUsers] Utilisateurs chargés:', users.length);
     } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
+      console.error('[SuggestedUsers] Erreur lors du chargement des utilisateurs:', error);
       setError('Erreur lors du chargement des utilisateurs');
-      setAllUsers([]); // S'assurer qu'on a toujours un tableau
+      setAllUsers([]);
     } finally {
       setIsLoading(false);
     }
@@ -143,13 +146,22 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   }
 
   const suggestedUsers = getSuggestedUsers();
+  if (typeof window !== 'undefined') {
+    (window as any).__debugSuggestedUsers = {
+      allUsers: allUsers.length,
+      suggested: suggestedUsers.length,
+      isLoading,
+      error,
+      user: user?.username
+    };
+  }
 
   return (
-    <div className="suggested-users">
+  <div className="suggested-users border border-blue-200 rounded-lg">
       <h3>Suggestions pour vous</h3>
       
       {suggestedUsers.length === 0 ? (
-        <p className="no-suggestions">Aucune suggestion disponible</p>
+  <p className="no-suggestions text-sm text-gray-500">Aucune suggestion disponible (debug: all={allUsers.length})</p>
       ) : (
         <div className="suggestions-list">
           {suggestedUsers.map(suggestedUser => {
