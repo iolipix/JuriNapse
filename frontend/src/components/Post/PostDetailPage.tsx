@@ -728,7 +728,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
                           </div>
                         </div>
                       ) : (
-                        <p className="text-gray-700 leading-relaxed mb-3 text-sm sm:text-base">
+                        <p className="text-gray-700 leading-relaxed mb-3 text-sm sm:text-base" style={{ whiteSpace: 'pre-wrap' }}>
                           {comment.content}
                         </p>
                       )}

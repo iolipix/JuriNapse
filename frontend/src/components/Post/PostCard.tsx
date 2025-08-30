@@ -677,16 +677,18 @@ const PostCard: React.FC<PostCardProps> = ({
             {displayContent ? displayContent.split('\n').map((paragraph, index) => {
               if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
                 return (
-                  <p key={index} className="font-semibold text-gray-900 mt-4 mb-2">
+                  <p key={index} className="font-semibold text-gray-900 mt-4 mb-2" style={{ whiteSpace: 'pre-wrap' }}>
                     {paragraph.replace(/\*\*/g, '')}
                   </p>
                 );
               }
               return paragraph.trim() ? (
-                <p key={index} className="mb-2 leading-relaxed">
+                <p key={index} className="mb-2 leading-relaxed" style={{ whiteSpace: 'pre-wrap' }}>
                   {paragraph}
                 </p>
-              ) : null;
+              ) : (
+                <div key={index} className="mb-2"></div>
+              );
             }) : null}
             
             {/* Bouton "Voir plus" / "Voir moins" */}
