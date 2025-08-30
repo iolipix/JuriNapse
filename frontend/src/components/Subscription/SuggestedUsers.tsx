@@ -20,9 +20,18 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   const { user } = useAuth();
   const { followUser, unfollowUser, isFollowingSync } = useSubscriptions();
   
+  // Debug temporaire
+  console.log('[SuggestedUsers] Render - user:', !!user, user?.username);
+  
   // Ne pas afficher les suggestions si l'utilisateur n'est pas connecté
   if (!user) {
-    return null;
+    console.log('[SuggestedUsers] No user - returning null');
+    return (
+      <div className="suggested-users">
+        <h3>Suggestions pour vous</h3>
+        <p className="text-red-500">Non connecté - Debug temporaire</p>
+      </div>
+    );
   }
   
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -33,9 +42,13 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   const [recentlyFollowed, setRecentlyFollowed] = useState<Set<string>>(new Set());
   const [recentlyUnfollowed, setRecentlyUnfollowed] = useState<Set<string>>(new Set());
 
+  // Debug temporaire - vérifier si le composant se monte
+  console.log('[SuggestedUsers] Component mounting/rendering');
+
   useEffect(() => {
     // Recharger quand l'utilisateur change
     if (user) {
+      console.log('[SuggestedUsers] Loading users for:', user.username);
       loadUsers();
     }
   }, [user]); // Seulement quand l'utilisateur change
@@ -43,20 +56,24 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   const loadUsers = async () => {
     // Ne pas charger si l'utilisateur n'est pas connecté
     if (!user) {
+      console.log('[SuggestedUsers] loadUsers - no user, returning');
       return;
     }
     
+    console.log('[SuggestedUsers] loadUsers - starting for user:', user.username);
     setIsLoading(true);
     setError(null);
     
     try {
       const data = await usersAPI.getAllUsers();
+      console.log('[SuggestedUsers] loadUsers - API response:', data);
       
       // Vérifier si la réponse a une propriété 'data' ou si c'est directement un tableau
       const users = Array.isArray(data) ? data : (data.data || []);
+      console.log('[SuggestedUsers] loadUsers - processed users:', users.length, 'users');
       setAllUsers(users);
     } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
+      console.error('[SuggestedUsers] Erreur lors du chargement des utilisateurs:', error);
       setError('Erreur lors du chargement des utilisateurs');
       setAllUsers([]); // S'assurer qu'on a toujours un tableau
     } finally {
@@ -143,10 +160,14 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   }
 
   const suggestedUsers = getSuggestedUsers();
+  console.log('[SuggestedUsers] Render - suggestedUsers:', suggestedUsers.length, 'allUsers:', allUsers.length, 'isLoading:', isLoading, 'error:', error);
 
   return (
-    <div className="suggested-users">
-      <h3>Suggestions pour vous</h3>
+    <div className="suggested-users" style={{ border: '2px solid red', padding: '10px', margin: '10px' }}>
+      <h3>Suggestions pour vous [DEBUG]</h3>
+      <div style={{ fontSize: '12px', color: 'blue', marginBottom: '10px' }}>
+        Debug: {suggestedUsers.length} suggestions, {allUsers.length} total users, Loading: {isLoading ? 'Yes' : 'No'}
+      </div>
       
       {suggestedUsers.length === 0 ? (
         <p className="no-suggestions">Aucune suggestion disponible</p>
