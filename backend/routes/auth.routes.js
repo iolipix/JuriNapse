@@ -67,4 +67,20 @@ router.delete('/maintenance/cleanup-unverified', async (req, res) => {
   }
 });
 
+// Maintenance route: cleanup empty groups (no active members)
+router.delete('/maintenance/cleanup-empty-groups', async (req, res) => {
+  try {
+    const key = req.query.key || req.headers['x-maintenance-key'];
+    if (!process.env.MAINTENANCE_KEY || key !== process.env.MAINTENANCE_KEY) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const { cleanupEmptyGroups } = require('../scripts/cleanupEmptyGroups');
+    const stats = await cleanupEmptyGroups({ dryRun: false });
+    return res.json({ success: true, stats });
+  } catch (err) {
+    console.error('Error cleanup empty groups:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;
