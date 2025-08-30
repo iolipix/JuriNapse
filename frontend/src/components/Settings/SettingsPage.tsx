@@ -743,18 +743,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                       />
                     </div>
                     
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id="confirm-deletion"
-                        checked={deleteAgreed}
-                        onChange={(e) => setDeleteAgreed(e.target.checked)}
-                        className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                      />
-                      <label htmlFor="confirm-deletion" className="text-sm text-gray-700 dark:text-gray-300">
-                        Je comprends que cette action est irréversible
-                      </label>
-                    </div>
+                    {/* Checkbox retirée car doublon avec confirmation dans le modal */}
                     
                     <button 
                       onClick={() => setShowDeleteModal(true)}
