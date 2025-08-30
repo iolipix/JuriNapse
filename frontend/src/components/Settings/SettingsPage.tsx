@@ -56,6 +56,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   
   // État pour la suppression de compte
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const deleteKeyword = 'SUPPRIMER';
   const [deleteAgreed, setDeleteAgreed] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -737,7 +738,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                       <input
                         type="text"
                         value={deleteConfirmation}
-                        onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        onChange={(e) => setDeleteConfirmation(e.target.value.toUpperCase())}
                         placeholder="Tapez SUPPRIMER en majuscules"
                         className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
@@ -747,11 +748,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     
                     <button 
                       onClick={() => setShowDeleteModal(true)}
-                      disabled={isDeleting}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={isDeleting || deleteConfirmation.trim() !== deleteKeyword}
+                      className={`w-full font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${deleteConfirmation.trim() === deleteKeyword ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-300 text-gray-500'}`}
                     >
                       Supprimer définitivement mon compte
                     </button>
+                    {deleteConfirmation && deleteConfirmation.trim() !== deleteKeyword && (
+                      <p className="text-xs text-red-600">Tapez exactement {deleteKeyword} pour activer le bouton.</p>
+                    )}
                   </div>
                 </div>
               </div>
