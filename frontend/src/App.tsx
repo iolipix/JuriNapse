@@ -902,6 +902,8 @@ const MainApp: React.FC = () => {
         </main>
         <aside className="w-80 p-6" data-suggestions-visible={!!user}>
           <div className="sticky top-36">
+            {(() => { try { console.log('[App] About to render <SuggestedUsers /> activeTab=', activeTab, 'user?', !!user); if (typeof window !== 'undefined') { (window as any).__debugAppSuggestionsBlock = { time: Date.now(), activeTab, userPresent: !!user }; } } catch(_) {} return null; })()}
+            <div className="text-xs text-purple-600 mb-2">[Debug] Bloc suggestions monté (activeTab={activeTab}, user={String(!!user)})</div>
             <SuggestedUsers onViewUserProfile={handleViewUserProfile} />
             {!user && (
               <div className="text-xs text-gray-400 mt-2">(Pas connecté – suggestions masquées)</div>
