@@ -30,12 +30,6 @@ import DecisionPage from './components/Decision/DecisionPage';
 import TermsOfService from './components/Legal/TermsOfService';
 import CookieConsent from './components/Common/CookieConsent';
 
-// Frontend App identifier (distinct from legacy src/App.tsx)
-if (typeof window !== 'undefined') {
-  (window as any).__debugWhichApp = 'frontend-App';
-  console.log('[FrontendApp] Loaded frontend/src/App.tsx version');
-}
-
 const MainApp: React.FC = () => {
   const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
   const { posts, getPostBySlugOrId } = usePost();
@@ -60,30 +54,6 @@ const MainApp: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationRequired, setShowVerificationRequired] = useState(false);
-
-  // DEBUG instrumentation pour diagnostiquer l'absence de SuggestedUsers
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).__debugAuthState = {
-        userNull: !user,
-        user: user ? { id: user.id, username: user.username, email: user.email } : null,
-        isLoading,
-        needsEmailVerification,
-        pendingVerificationUserId,
-        activeTab,
-        showEmailVerification,
-        showVerificationRequired,
-      };
-      // Raison potentielle de masquage des suggestions
-      const noSuggestionsPages = ['profile', 'user-profile', 'post-detail', 'messages', 'notifications', 'settings', 'settings-menu', 'decision', 'terms'];
-      (window as any).__debugSuggestionsHiddenReason = (!user)
-        ? 'user-null'
-        : noSuggestionsPages.includes(activeTab)
-          ? `activeTab-blocked:${activeTab}`
-          : 'should-show';
-      console.log('[MainApp DEBUG] authState:', (window as any).__debugAuthState, 'hiddenReason:', (window as any).__debugSuggestionsHiddenReason);
-    }
-  }, [user, isLoading, needsEmailVerification, pendingVerificationUserId, activeTab, showEmailVerification, showVerificationRequired]);
 
   // Fonction pour gérer les changements d'URL
   const handlePopState = () => {
