@@ -101,4 +101,55 @@ router.delete('/maintenance/cleanup-orphan-messages', async (req, res) => {
   }
 });
 
+// Maintenance route: cleanup orphan notifications
+router.delete('/maintenance/cleanup-orphan-notifications', async (req, res) => {
+  try {
+    const key = req.query.key || req.headers['x-maintenance-key'];
+    if (!process.env.MAINTENANCE_KEY || key !== process.env.MAINTENANCE_KEY) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const { cleanupOrphanNotifications } = require('../scripts/cleanupOrphanNotifications');
+    const forceAllIfNoUsers = (req.query.forceAll === '1');
+    const stats = await cleanupOrphanNotifications({ dryRun: false, forceAllIfNoUsers });
+    return res.json({ success: true, stats });
+  } catch (err) {
+    console.error('Error cleanup orphan notifications:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Maintenance route: cleanup orphan reactions
+router.delete('/maintenance/cleanup-orphan-reactions', async (req, res) => {
+  try {
+    const key = req.query.key || req.headers['x-maintenance-key'];
+    if (!process.env.MAINTENANCE_KEY || key !== process.env.MAINTENANCE_KEY) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const { cleanupOrphanReactions } = require('../scripts/cleanupOrphanReactions');
+    const forceAllIfNoUsers = (req.query.forceAll === '1');
+    const stats = await cleanupOrphanReactions({ dryRun: false, forceAllIfNoUsers });
+    return res.json({ success: true, stats });
+  } catch (err) {
+    console.error('Error cleanup orphan reactions:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Maintenance route: cleanup orphan profile pictures
+router.delete('/maintenance/cleanup-orphan-profile-pictures', async (req, res) => {
+  try {
+    const key = req.query.key || req.headers['x-maintenance-key'];
+    if (!process.env.MAINTENANCE_KEY || key !== process.env.MAINTENANCE_KEY) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const { cleanupOrphanProfilePictures } = require('../scripts/cleanupOrphanProfilePictures');
+    const forceAllIfNoUsers = (req.query.forceAll === '1');
+    const stats = await cleanupOrphanProfilePictures({ dryRun: false, forceAllIfNoUsers });
+    return res.json({ success: true, stats });
+  } catch (err) {
+    console.error('Error cleanup orphan profile pictures:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;

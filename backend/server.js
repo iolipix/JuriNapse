@@ -236,6 +236,18 @@ const startServer = async () => {
   const { cleanupOrphanMessages } = require('./scripts/cleanupOrphanMessages');
   await cleanupOrphanMessages({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true });
   console.log('✅ [STARTUP] Nettoyage messages orphelins terminé');
+  console.log('🧹 [STARTUP] Nettoyage initial des notifications orphelines...');
+  const { cleanupOrphanNotifications } = require('./scripts/cleanupOrphanNotifications');
+  await cleanupOrphanNotifications({ dryRun: false, forceAllIfNoUsers: true });
+  console.log('✅ [STARTUP] Nettoyage notifications orphelines terminé');
+  console.log('🧹 [STARTUP] Nettoyage initial des réactions orphelines...');
+  const { cleanupOrphanReactions } = require('./scripts/cleanupOrphanReactions');
+  await cleanupOrphanReactions({ dryRun: false, forceAllIfNoUsers: true });
+  console.log('✅ [STARTUP] Nettoyage réactions orphelines terminé');
+  console.log('🧹 [STARTUP] Nettoyage initial des photos de profil orphelines...');
+  const { cleanupOrphanProfilePictures } = require('./scripts/cleanupOrphanProfilePictures');
+  await cleanupOrphanProfilePictures({ dryRun: false, forceAllIfNoUsers: true });
+  console.log('✅ [STARTUP] Nettoyage photos de profil orphelines terminé');
       } catch (e) {
         console.error('⚠️ [STARTUP] Échec nettoyage groupes vides:', e.message);
       }
