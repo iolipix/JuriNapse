@@ -686,11 +686,42 @@ const changePassword = async (req, res) => {
   }
 };
 
-// Fonction utilitaire pour envoyer un email de vérification
+// Fonction utilitaire pour envoyer un email de vérification (nodemailer)
+const nodemailer = require('nodemailer');
+let cachedTransport = null;
+const getMailTransport = () => {
+  if (cachedTransport) return cachedTransport;
+  // Utilise des variables d'environnement, sinon fallback console-only
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE } = process.env;
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
+    console.warn('⚠️ SMTP non configuré - emails loggés uniquement');
+    return null;
+  }
+  cachedTransport = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: parseInt(SMTP_PORT, 10),
+    secure: SMTP_SECURE === 'true',
+    auth: { user: SMTP_USER, pass: SMTP_PASS }
+  });
+  return cachedTransport;
+};
+
 const sendVerificationEmail = async (email, code) => {
-  // TODO: Implémenter l'envoi d'email avec votre service préféré (SendGrid, Nodemailer, etc.)
   console.log(`📧 Code de vérification pour ${email}: ${code}`);
-  // Pour le moment, on log juste le code en console pour le développement
+  const transport = getMailTransport();
+  if (!transport) return; // Pas de transport configuré
+  try {
+    await transport.sendMail({
+      from: process.env.MAIL_FROM || 'no-reply@jurinapse.com',
+      to: email,
+      subject: 'Votre code de vérification JuriNapse',
+      text: `Votre code de vérification est: ${code} (valide 10 minutes).`,
+      html: `<p>Bonjour,</p><p>Votre code de vérification est :</p><p style="font-size:24px;font-weight:bold;letter-spacing:3px;">${code}</p><p>Ce code expire dans 10 minutes.</p><p>Merci,<br/>L'équipe JuriNapse</p>`
+    });
+    console.log('✅ Email de vérification envoyé (SMTP)');
+  } catch (e) {
+    console.error('❌ Échec envoi email SMTP:', e);
+  }
 };
 
 // Envoyer un code de vérification par email
