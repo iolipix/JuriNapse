@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useSubscriptions } from '../../contexts/SubscriptionContext';
+import { useSubscription } from '../../contexts/SubscriptionContext';
 import { usersAPI } from '../../services/api';
 import '../Suggestions.css';
 
@@ -18,7 +18,7 @@ interface SuggestedUsersProps {
 
 const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) => {
   const { user } = useAuth();
-  const { followUser, unfollowUser, isFollowingSync } = useSubscriptions();
+  const { followUser, unfollowUser, isFollowingSync } = useSubscription();
   
   // Debug temporaire
   console.log('[SuggestedUsers] Render - user:', !!user, user?.username);
