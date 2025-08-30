@@ -315,7 +315,7 @@ const getPostById = async (req, res) => {
 const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, tags, isPrivate, decisionNumber } = req.body;
+    const { title, content, tags, isPrivate, decisionNumber, type } = req.body;
 
     const post = await Post.findById(id);
 
@@ -340,6 +340,7 @@ const updatePost = async (req, res) => {
     if (tags !== undefined) post.tags = tags;
     if (isPrivate !== undefined) post.isPrivate = isPrivate;
     if (decisionNumber !== undefined) post.decisionNumber = decisionNumber;
+    if (type !== undefined) post.type = type;
 
     // Marquer comme modifié par l'utilisateur
     post.lastUserEdit = new Date();

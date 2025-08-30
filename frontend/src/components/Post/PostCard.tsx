@@ -39,6 +39,9 @@ const PostCard: React.FC<PostCardProps> = ({
   const [editContent, setEditContent] = useState(post.content);
   const [editTitle, setEditTitle] = useState(post.title);
   const [editDecisionNumber, setEditDecisionNumber] = useState(post.decisionNumber || '');
+  const [editType, setEditType] = useState(post.type);
+  const [editTags, setEditTags] = useState<string[]>(post.tags || []);
+  const [editTagsInput, setEditTagsInput] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [showPdfViewer, setShowPdfViewer] = useState(false);
@@ -204,7 +207,9 @@ const PostCard: React.FC<PostCardProps> = ({
       await updatePost(post.id, {
         title: editTitle,
         content: editContent,
-        decisionNumber: editDecisionNumber || undefined
+        decisionNumber: editDecisionNumber || undefined,
+        type: editType,
+        tags: editTags
       });
     }
     setIsEditing(false);
@@ -215,6 +220,9 @@ const PostCard: React.FC<PostCardProps> = ({
     setEditContent(post.content);
     setEditTitle(post.title);
     setEditDecisionNumber(post.decisionNumber || '');
+    setEditType(post.type);
+    setEditTags(post.tags || []);
+    setEditTagsInput('');
     setIsEditing(false);
   };
 
@@ -239,6 +247,26 @@ const PostCard: React.FC<PostCardProps> = ({
   const handleTagClick = (tag: string, e: React.MouseEvent) => {
     e.stopPropagation();
     onTagClick(tag);
+  };
+
+  // Fonctions pour gérer les tags en mode édition
+  const handleAddTag = () => {
+    const tag = editTagsInput.trim();
+    if (tag && !editTags.includes(tag) && editTags.length < 10) {
+      setEditTags([...editTags, tag]);
+      setEditTagsInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setEditTags(editTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      handleAddTag();
+    }
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -659,6 +687,78 @@ const PostCard: React.FC<PostCardProps> = ({
               rows={8}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             />
+            
+            {/* Sélection de la catégorie */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Catégorie
+              </label>
+              <select
+                value={editType}
+                onChange={(e) => setEditType(e.target.value as 'fiche-arret' | 'conseil' | 'question' | 'discussion' | 'cours' | 'protocole')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="fiche-arret">Fiche d'arrêt</option>
+                <option value="conseil">Conseil</option>
+                <option value="question">Question</option>
+                <option value="discussion">Discussion</option>
+                <option value="cours">Cours</option>
+                <option value="protocole">Protocole</option>
+              </select>
+            </div>
+
+            {/* Gestion des tags */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tags
+              </label>
+              <div className="space-y-2">
+                {/* Tags actuels */}
+                {editTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {editTags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tag)}
+                          className="ml-1 text-blue-600 hover:text-blue-800"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Champ d'ajout de tag */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editTagsInput}
+                    onChange={(e) => setEditTagsInput(e.target.value)}
+                    onKeyPress={handleTagKeyPress}
+                    placeholder="Ajouter un tag (Entrée ou virgule pour valider)"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    maxLength={50}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTag}
+                    disabled={!editTagsInput.trim() || editTags.length >= 10}
+                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Maximum 10 tags. Utilisez Entrée ou virgule pour ajouter un tag.
+                </p>
+              </div>
+            </div>
+
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleSaveEdit}
