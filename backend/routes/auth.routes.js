@@ -44,4 +44,27 @@ router.post('/send-email-verification', sendEmailVerification);
 router.post('/verify-email', verifyEmail);
 router.post('/resend-verification-email', resendVerificationEmail);
 
+// Maintenance: suppression des comptes non vérifiés >1h (protégé par clé)
+router.delete('/maintenance/cleanup-unverified', async (req, res) => {
+  try {
+    const key = req.query.key;
+    if (!process.env.MAINTENANCE_KEY || key !== process.env.MAINTENANCE_KEY) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+    const User = require('../models/user.model');
+    const EmailVerification = require('../models/emailVerification.model');
+    const cutoff = new Date(Date.now() - 60 * 60 * 1000);
+    const users = await User.find({ emailVerified: false, createdAt: { $lt: cutoff } }, '_id');
+    const ids = users.map(u => u._id);
+    if (ids.length) {
+      await EmailVerification.deleteMany({ userId: { $in: ids } });
+    }
+    const delRes = ids.length ? await User.deleteMany({ _id: { $in: ids } }) : { deletedCount: 0 };
+    res.json({ success: true, deleted: delRes.deletedCount || 0 });
+  } catch (e) {
+    console.error('Cleanup error', e);
+    res.status(500).json({ success: false, message: 'Erreur cleanup' });
+  }
+});
+
 module.exports = router;

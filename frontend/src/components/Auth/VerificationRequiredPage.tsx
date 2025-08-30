@@ -208,6 +208,9 @@ const VerificationRequiredPage: React.FC<VerificationRequiredPageProps> = ({
                   Si vous ne trouvez pas l'email, utilisez le bouton "Renvoyer"
                 </li>
               </ul>
+              <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                Important: si vous ne validez pas votre email dans l'heure suivant la création du compte, celui-ci sera automatiquement supprimé.
+              </div>
             </div>
             
             {/* Info développement */}
