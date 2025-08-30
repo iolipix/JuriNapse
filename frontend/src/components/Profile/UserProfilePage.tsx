@@ -13,6 +13,7 @@ import DeletedUserPage from './DeletedUserPage';
 import { MediumRectangle, WideSkyscraper } from '../Ads';
 import useSEO from '../../hooks/useSEO';
 import api, { postsAPI } from '../../services/api';
+import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
 
 interface UserProfilePageProps {
   userId: string;
@@ -732,9 +733,30 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                   <div className="h-24 w-24 sm:h-28 sm:w-28 lg:h-32 lg:w-32 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 rounded-full flex items-center justify-center overflow-hidden shadow-xl ring-2 sm:ring-4 ring-white">
                     {userProfile.profilePicture ? (
                       <img 
-                        src={userProfile.profilePicture} 
+                        src={(() => {
+                          const fixedUrl = fixProfilePictureUrl(userProfile.profilePicture);
+                          const imageSource = fixedUrl || userProfile.profilePicture;
+                          // Si c'est une URL d'API, l'utiliser directement avec cache-busting
+                          if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
+                            const separator = imageSource.includes('?') ? '&' : '?';
+                            return `${imageSource}${separator}t=${Date.now()}`;
+                          }
+                          // Si c'est déjà du base64 complet, l'utiliser directement
+                          if (imageSource.startsWith('data:')) {
+                            return imageSource;
+                          }
+                          // Sinon, ajouter le préfixe base64
+                          return `data:image/jpeg;base64,${imageSource}`;
+                        })()} 
                         alt={userProfile.username}
                         className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallbackIcon = e.currentTarget.parentElement?.querySelector('.fallback-icon');
+                          if (fallbackIcon) {
+                            fallbackIcon.classList.remove('hidden');
+                          }
+                        }}
                       />
                     ) : (
                       <User className="h-16 w-16 text-white" />
