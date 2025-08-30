@@ -55,6 +55,30 @@ const MainApp: React.FC = () => {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationRequired, setShowVerificationRequired] = useState(false);
 
+  // DEBUG instrumentation pour diagnostiquer l'absence de SuggestedUsers
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).__debugAuthState = {
+        userNull: !user,
+        user: user ? { id: user.id, username: user.username, email: user.email } : null,
+        isLoading,
+        needsEmailVerification,
+        pendingVerificationUserId,
+        activeTab,
+        showEmailVerification,
+        showVerificationRequired,
+      };
+      // Raison potentielle de masquage des suggestions
+      const noSuggestionsPages = ['profile', 'user-profile', 'post-detail', 'messages', 'notifications', 'settings', 'settings-menu', 'decision', 'terms'];
+      (window as any).__debugSuggestionsHiddenReason = (!user)
+        ? 'user-null'
+        : noSuggestionsPages.includes(activeTab)
+          ? `activeTab-blocked:${activeTab}`
+          : 'should-show';
+      console.log('[MainApp DEBUG] authState:', (window as any).__debugAuthState, 'hiddenReason:', (window as any).__debugSuggestionsHiddenReason);
+    }
+  }, [user, isLoading, needsEmailVerification, pendingVerificationUserId, activeTab, showEmailVerification, showVerificationRequired]);
+
   // Fonction pour gérer les changements d'URL
   const handlePopState = () => {
     const path = window.location.pathname;
