@@ -657,6 +657,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                     onTagClick={onTagClick}
                     onViewPost={onViewPost}
                     onViewDecision={onViewDecision}
+                    tagsClickable={false}
                   />
                   {/* Ajouter une pub tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (

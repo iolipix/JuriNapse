@@ -17,6 +17,7 @@ interface PostCardProps {
   onViewPost?: (postId: string) => void;
   isDetailView?: boolean;
   onViewDecision?: (decisionNumber: string) => void;
+  tagsClickable?: boolean; // Nouvelle prop pour contrôler si les tags sont cliquables
 }
 
 const PostCard: React.FC<PostCardProps> = ({ 
@@ -26,7 +27,8 @@ const PostCard: React.FC<PostCardProps> = ({
   onTagClick, 
   onViewPost, 
   isDetailView = false,
-  onViewDecision 
+  onViewDecision,
+  tagsClickable = true // Par défaut, les tags sont cliquables
 }) => {
   const { user } = useAuth();
   const { toggleLike, deletePost, updatePost } = usePost();
@@ -718,15 +720,24 @@ const PostCard: React.FC<PostCardProps> = ({
           <div className="flex items-center space-x-1 mt-3 sm:mt-4">
             <Tag className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
             <div className="flex flex-wrap gap-1">
-              {post.tags.map((tag, index) => (
+              {post.tags.slice(0, 5).map((tag, index) => (
                 <span
                   key={index}
-                  onClick={(e) => handleTagClick(tag, e)}
-                  className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium hover:bg-blue-100 transition-colors cursor-pointer"
+                  onClick={tagsClickable ? (e) => handleTagClick(tag, e) : undefined}
+                  className={`px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium transition-colors ${
+                    tagsClickable 
+                      ? 'hover:bg-blue-100 cursor-pointer' 
+                      : 'cursor-default'
+                  }`}
                 >
                   #{tag}
                 </span>
               ))}
+              {post.tags.length > 5 && (
+                <span className="px-2 py-1 bg-gray-50 text-gray-500 rounded-md text-xs font-medium">
+                  +{post.tags.length - 5}
+                </span>
+              )}
             </div>
           </div>
         )}

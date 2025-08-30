@@ -503,6 +503,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
                     onTagClick={onTagClick}
                     onViewPost={onViewPost}
                     onViewDecision={onViewDecision}
+                    tagsClickable={false}
                   />
                   {/* Publicité tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < savedPosts.length - 1 && (
@@ -552,6 +553,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
                   onTagClick={onTagClick}
                   onViewPost={onViewPost}
                   onViewDecision={onViewDecision}
+                  tagsClickable={false}
                 />
                 {/* Publicité tous les 4 posts */}
                 {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (

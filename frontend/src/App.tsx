@@ -646,12 +646,7 @@ const MainApp: React.FC = () => {
       const username = path.substring(1); // Enlever le "/" initial
       // Vérifier si c'est un username valide (pas une autre route)
       if (username && !username.includes('/') && username !== 'auth' && username !== 'login' && username !== 'messages' && username !== 'fiches' && username !== 'publications' && username !== 'cours' && username !== 'protocole' && username !== 'trending' && username !== 'notifications' && username !== 'post' && username !== 'settings' && username !== 'conditions-utilisation') {
-        // Si l'utilisateur n'est pas encore chargé, attendre
-        if (isLoading) {
-          return; // Attendre que l'utilisateur soit chargé
-        }
-        
-        // Vérifier si c'est son propre profil
+        // Vérifier si c'est son propre profil (seulement si l'utilisateur est connecté)
         if (user && (username === user.username || username === user.id)) {
           // C'est son propre profil, aller vers l'onglet profile
           setActiveTab('profile');
@@ -663,7 +658,7 @@ const MainApp: React.FC = () => {
           // Garder l'URL du profil pour maintenir la cohérence
           // Ne pas rediriger vers '/', garder l'URL actuelle
         } else {
-          // C'est le profil d'un autre utilisateur
+          // C'est le profil d'un autre utilisateur (ou l'utilisateur n'est pas connecté)
           setViewingUserId(username);
           setActiveTab('user-profile');
           setViewingPostId(null);
@@ -727,25 +722,27 @@ const MainApp: React.FC = () => {
 
   // Re-exécuter le routage quand l'utilisateur change ou que le chargement se termine
   useEffect(() => {
-    if (user && !isLoading) {
-      // Vérifier spécifiquement si on est sur le profil de l'utilisateur connecté
-      const path = window.location.pathname;
-      if (path.length > 1 && path.startsWith('/')) {
-        const username = path.substring(1);
-        // Si l'URL correspond au nom d'utilisateur ou ID de l'utilisateur connecté
-        if (username === user.username || username === user.id) {
-          // S'assurer qu'on est sur l'onglet profile
-          setActiveTab('profile');
-          setViewingUserId(null);
-          setViewingPostId(null);
-          setViewingDecision(null);
-          setSelectedTag(null);
-          
-          return;
+    if (!isLoading) {
+      if (user) {
+        // Vérifier spécifiquement si on est sur le profil de l'utilisateur connecté
+        const path = window.location.pathname;
+        if (path.length > 1 && path.startsWith('/')) {
+          const username = path.substring(1);
+          // Si l'URL correspond au nom d'utilisateur ou ID de l'utilisateur connecté
+          if (username === user.username || username === user.id) {
+            // S'assurer qu'on est sur l'onglet profile
+            setActiveTab('profile');
+            setViewingUserId(null);
+            setViewingPostId(null);
+            setViewingDecision(null);
+            setSelectedTag(null);
+            
+            return;
+          }
         }
       }
       
-      // Pour les autres cas, exécuter le routage normal
+      // Pour tous les autres cas (utilisateur connecté ou non), exécuter le routage normal
       handleRouting();
     }
   }, [user, isLoading]);
