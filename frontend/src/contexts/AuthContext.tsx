@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { User } from '../types';
 import { authAPI } from '../services/api';
-import { usePost } from './PostContext';
 import { fixProfilePictureUrl } from '../utils/apiUrlFixer';
 
 interface AuthContextType {
@@ -18,6 +17,8 @@ interface AuthContextType {
   isLoading: boolean;
   needsEmailVerification: boolean;
   pendingVerificationUserId: string | null;
+  // Callback pour notifier du logout
+  setOnLogoutCallback?: (callback: () => void) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,8 +42,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [pendingVerificationUserId, setPendingVerificationUserId] = useState<string | null>(null);
   const hasInitialized = useRef(false);
   
-  // Hook pour forcer le rechargement des posts après logout
-  const { forceReloadPosts } = usePost();
+  // Callback pour le rechargement des posts après logout
+  const onLogoutCallbackRef = useRef<(() => void) | null>(null);
 
   // Fonction utilitaire pour créer un objet utilisateur
   const createUserData = React.useCallback((userData: any) => ({
@@ -188,15 +189,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setPendingVerificationUserId(null);
   }, [createUserData]);
 
+  const setOnLogoutCallback = React.useCallback((callback: () => void) => {
+    onLogoutCallbackRef.current = callback;
+  }, []);
+
   const logout = React.useCallback(async () => {
     try {
       await authAPI.logout();
     } catch (error) {    } finally {
       setUser(null);
-      // Force le rechargement des posts pour les utilisateurs anonymes
-      forceReloadPosts();
+      // Appeler le callback de rechargement des posts si défini
+      if (onLogoutCallbackRef.current) {
+        onLogoutCallbackRef.current();
+      }
     }
-  }, [forceReloadPosts]);
+  }, []);
 
   const updateProfile = React.useCallback(async (userData: Partial<User>): Promise<boolean> => {
     if (!user) return false;
@@ -257,6 +264,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     needsEmailVerification,
     pendingVerificationUserId,
+    setOnLogoutCallback,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

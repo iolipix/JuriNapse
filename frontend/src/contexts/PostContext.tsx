@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { Post } from '../types';
 import api, { postsAPI } from '../services/api';
+import { useAuth } from './AuthContext';
 
 // Supprimer la configuration d'axios car elle est maintenant dans api.ts
 
@@ -45,6 +46,9 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const hasInitializedRef = useRef(false);
   const lastLoadTimeRef = useRef(0);
+  
+  // Récupérer le contexte auth pour s'enregistrer au callback de logout
+  const { setOnLogoutCallback } = useAuth();
 
   const loadPosts = useCallback(async (page = 1, reset = false) => {
     // Éviter les appels trop rapprochés (debounce)
@@ -490,6 +494,13 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
       lastLoadTimeRef.current = originalTime;
     }
   }, [loadPosts]);
+
+  // Enregistrer le callback de forceReloadPosts auprès d'AuthContext
+  useEffect(() => {
+    if (setOnLogoutCallback) {
+      setOnLogoutCallback(forceReloadPosts);
+    }
+  }, [setOnLogoutCallback, forceReloadPosts]);
 
   const loadMorePosts = useCallback(async () => {
     if (hasMore && !loading) {
