@@ -420,53 +420,32 @@ const Navbar: React.FC<NavbarProps> = ({
                   className="flex items-center space-x-1 sm:space-x-2 hover:bg-gray-50 rounded-lg p-1 sm:p-2 transition-colors"
                 >
                   <div className="h-8 w-8 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center overflow-hidden relative">
-                    {/* Indicateur de debug temporaire - mieux positionné */}
-                    <div className="absolute -top-1 -left-1 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center z-20 border border-white font-bold">
-                      {user.profilePicture ? '✓' : '✗'}
-                    </div>
-                    
                     {user.profilePicture ? (
                       <img 
                         src={(() => {
                           const fixedUrl = fixProfilePictureUrl(user.profilePicture);
                           const imageSource = fixedUrl || user.profilePicture;
                           
-                          // Debug temporaire
-                          console.log('🔍 DEBUG Profile Picture Navbar:', {
-                            originalUrl: user.profilePicture,
-                            fixedUrl: fixedUrl,
-                            finalImageSource: imageSource
-                          });
-                          
                           // Si c'est une URL d'API, l'utiliser directement avec cache-busting
                           if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
                             const separator = imageSource.includes('?') ? '&' : '?';
-                            const finalUrl = `${imageSource}${separator}t=${Date.now()}`;
-                            console.log('🔍 Final URL (API):', finalUrl);
-                            return finalUrl;
+                            return `${imageSource}${separator}t=${Date.now()}`;
                           }
                           // Si c'est déjà du base64 complet, l'utiliser directement
                           if (imageSource.startsWith('data:')) {
-                            console.log('🔍 Final URL (Base64):', imageSource.substring(0, 50) + '...');
                             return imageSource;
                           }
                           // Sinon, ajouter le préfixe base64
-                          const finalUrl = `data:image/jpeg;base64,${imageSource}`;
-                          console.log('🔍 Final URL (Added Base64):', finalUrl.substring(0, 50) + '...');
-                          return finalUrl;
+                          return `data:image/jpeg;base64,${imageSource}`;
                         })()} 
                         alt={user.username}
                         className="h-full w-full object-cover"
                         onError={(e) => {
-                          console.error('❌ Image failed to load in navbar:', e.currentTarget.src);
                           e.currentTarget.style.display = 'none';
                           const fallbackIcon = e.currentTarget.parentElement?.querySelector('.fallback-icon');
                           if (fallbackIcon) {
                             fallbackIcon.classList.remove('hidden');
                           }
-                        }}
-                        onLoad={() => {
-                          console.log('✅ Image loaded successfully in navbar');
                         }}
                       />
                     ) : (
