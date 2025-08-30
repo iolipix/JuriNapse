@@ -83,4 +83,22 @@ router.delete('/maintenance/cleanup-empty-groups', async (req, res) => {
   }
 });
 
+// Maintenance route: cleanup orphan messages
+router.delete('/maintenance/cleanup-orphan-messages', async (req, res) => {
+  try {
+    const key = req.query.key || req.headers['x-maintenance-key'];
+    if (!process.env.MAINTENANCE_KEY || key !== process.env.MAINTENANCE_KEY) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    const { cleanupOrphanMessages } = require('../scripts/cleanupOrphanMessages');
+    const includeSystem = (req.query.includeSystem === '1');
+    const forceAllIfNoUsers = (req.query.forceAll === '1');
+    const stats = await cleanupOrphanMessages({ dryRun: false, includeSystem, forceAllIfNoUsers });
+    return res.json({ success: true, stats });
+  } catch (err) {
+    console.error('Error cleanup orphan messages:', err);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;

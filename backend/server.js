@@ -232,6 +232,10 @@ const startServer = async () => {
         const { cleanupEmptyGroups } = require('./scripts/cleanupEmptyGroups');
         await cleanupEmptyGroups({ dryRun: false });
         console.log('✅ [STARTUP] Nettoyage groupes vides terminé');
+  console.log('🧹 [STARTUP] Nettoyage initial des messages orphelins...');
+  const { cleanupOrphanMessages } = require('./scripts/cleanupOrphanMessages');
+  await cleanupOrphanMessages({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true });
+  console.log('✅ [STARTUP] Nettoyage messages orphelins terminé');
       } catch (e) {
         console.error('⚠️ [STARTUP] Échec nettoyage groupes vides:', e.message);
       }
