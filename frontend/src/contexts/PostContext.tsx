@@ -19,6 +19,7 @@ interface PostContextType {
   getPostBySlugOrId: (slugOrId: string) => Promise<Post | null>;
   getTrendingPosts: () => Promise<Post[]>;
   refreshPosts: () => Promise<void>;
+  forceReloadPosts: () => Promise<void>; // New method for logout scenarios
   updateSavesCount: (postId: string, increment: number) => void; // Nouvelle méthode pour mettre à jour le compteur
 }
 
@@ -479,6 +480,17 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     await loadPosts(1, true);
   }, [loadPosts]);
 
+  const forceReloadPosts = useCallback(async () => {
+    // Force reload without debounce restrictions for logout scenarios
+    const originalTime = lastLoadTimeRef.current;
+    lastLoadTimeRef.current = 0; // Reset debounce
+    try {
+      await loadPosts(1, true);
+    } finally {
+      lastLoadTimeRef.current = originalTime;
+    }
+  }, [loadPosts]);
+
   const loadMorePosts = useCallback(async () => {
     if (hasMore && !loading) {
       await loadPosts(currentPage + 1, false);
@@ -502,6 +514,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
         getPostBySlugOrId,
         getTrendingPosts,
         refreshPosts,
+        forceReloadPosts,
         updateSavesCount,
       }}
     >

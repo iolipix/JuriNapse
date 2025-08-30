@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { User } from '../types';
 import { authAPI } from '../services/api';
+import { usePost } from './PostContext';
 import { fixProfilePictureUrl } from '../utils/apiUrlFixer';
 
 interface AuthContextType {
@@ -39,6 +40,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
   const [pendingVerificationUserId, setPendingVerificationUserId] = useState<string | null>(null);
   const hasInitialized = useRef(false);
+  
+  // Hook pour forcer le rechargement des posts après logout
+  const { forceReloadPosts } = usePost();
 
   // Fonction utilitaire pour créer un objet utilisateur
   const createUserData = React.useCallback((userData: any) => ({
@@ -189,8 +193,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authAPI.logout();
     } catch (error) {    } finally {
       setUser(null);
+      // Force le rechargement des posts pour les utilisateurs anonymes
+      forceReloadPosts();
     }
-  }, []);
+  }, [forceReloadPosts]);
 
   const updateProfile = React.useCallback(async (userData: Partial<User>): Promise<boolean> => {
     if (!user) return false;
