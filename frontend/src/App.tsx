@@ -889,8 +889,8 @@ const MainApp: React.FC = () => {
   };
 
   const renderMainContent = () => {
-    // Pour les pages qui n'ont pas besoin de suggestions (profil utilisateur, détail post, etc.)
-    const noSuggestionsPages = ['profile', 'user-profile', 'post-detail', 'messages', 'notifications', 'settings', 'settings-menu', 'decision', 'terms'];
+    // Pour les pages qui n'ont vraiment pas besoin de suggestions (détail post, messages, etc.)
+    const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
     
     if (noSuggestionsPages.includes(activeTab) || !user) {
       if (typeof window !== 'undefined') {
