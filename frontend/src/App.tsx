@@ -1035,8 +1035,45 @@ const MainApp: React.FC = () => {
             />
             
             <div className="lg:ml-64 min-h-full">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                {renderContent()}
+              {/* FORCE DEBUG: Check if we should show suggestions */}
+              {(() => { 
+                const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
+                const shouldShowSuggestions = !noSuggestionsPages.includes(activeTab) && !!user;
+                console.log('[FORCE SUGGESTIONS DEBUG]', { activeTab, userPresent: !!user, shouldShowSuggestions, noSuggestionsPages });
+                return null; 
+              })()}
+              
+              <div className="flex">
+                <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                  {renderContent()}
+                </div>
+                
+                {/* SUGGESTIONS SIDEBAR - FORCE DISPLAY */}
+                {(() => {
+                  const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
+                  const shouldShow = !noSuggestionsPages.includes(activeTab) && !!user;
+                  
+                  if (!shouldShow) return null;
+                  
+                  return (
+                    <aside className="w-80 p-6 hidden lg:block">
+                      <div className="sticky top-36">
+                        <div className="bg-red-100 border-2 border-red-500 rounded-lg p-4">
+                          <h3 className="text-lg font-semibold mb-3 text-red-700">🔴 SUGGESTIONS DEBUG</h3>
+                          <div className="text-sm space-y-1">
+                            <p>✅ Sidebar monté</p>
+                            <p>✅ ActiveTab: <strong>{activeTab}</strong></p>
+                            <p>✅ User connecté: <strong>{user ? 'OUI' : 'NON'}</strong></p>
+                            <p>✅ Should show: <strong>{shouldShow ? 'OUI' : 'NON'}</strong></p>
+                            {user && (
+                              <p>👤 User: <strong>{user.username || user.email}</strong></p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </aside>
+                  );
+                })()}
               </div>
             </div>
           </div>
