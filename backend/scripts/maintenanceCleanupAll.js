@@ -30,7 +30,8 @@ async function connectIfNeeded() {
 async function maintenanceCleanupAll({
   dryRun = true,
   includeSystem = true,
-  forceAllIfNoUsers = true
+  forceAllIfNoUsers = true,
+  ignoreSystemAccounts = true
 } = {}) {
   const started = Date.now();
   console.log('🧹 Lancement maintenanceCleanupAll', dryRun ? '(DRY RUN)' : '');
@@ -39,16 +40,16 @@ async function maintenanceCleanupAll({
     results.groups = await cleanupEmptyGroups({ dryRun });
   } catch (e) { results.groups = { error: e.message }; console.error('❌ groups:', e.message); }
   try {
-    results.messages = await cleanupOrphanMessages({ dryRun, includeSystem, forceAllIfNoUsers });
+  results.messages = await cleanupOrphanMessages({ dryRun, includeSystem, forceAllIfNoUsers, ignoreSystemAccounts });
   } catch (e) { results.messages = { error: e.message }; console.error('❌ messages:', e.message); }
   try {
-    results.notifications = await cleanupOrphanNotifications({ dryRun, forceAllIfNoUsers });
+  results.notifications = await cleanupOrphanNotifications({ dryRun, forceAllIfNoUsers, ignoreSystemAccounts });
   } catch (e) { results.notifications = { error: e.message }; console.error('❌ notifications:', e.message); }
   try {
-    results.reactions = await cleanupOrphanReactions({ dryRun, forceAllIfNoUsers });
+  results.reactions = await cleanupOrphanReactions({ dryRun, forceAllIfNoUsers, ignoreSystemAccounts });
   } catch (e) { results.reactions = { error: e.message }; console.error('❌ reactions:', e.message); }
   try {
-    results.profilePictures = await cleanupOrphanProfilePictures({ dryRun, forceAllIfNoUsers });
+  results.profilePictures = await cleanupOrphanProfilePictures({ dryRun, forceAllIfNoUsers, ignoreSystemAccounts });
   } catch (e) { results.profilePictures = { error: e.message }; console.error('❌ profilePictures:', e.message); }
   results.durationMs = Date.now() - started;
   console.log('✅ maintenanceCleanupAll terminé en', results.durationMs + 'ms');
@@ -60,9 +61,10 @@ if (require.main === module) {
     try {
       const dryRun = !process.argv.includes('--apply');
       const includeSystem = process.argv.includes('--include-system');
-      const forceAllIfNoUsers = process.argv.includes('--force-all-if-no-users');
+  const forceAllIfNoUsers = process.argv.includes('--force-all-if-no-users');
+  const ignoreSystemAccounts = process.argv.includes('--ignore-system-accounts');
       await connectIfNeeded();
-      const res = await maintenanceCleanupAll({ dryRun, includeSystem, forceAllIfNoUsers });
+  const res = await maintenanceCleanupAll({ dryRun, includeSystem, forceAllIfNoUsers, ignoreSystemAccounts });
       if (dryRun) console.log('\nUtilisez --apply pour appliquer réellement les suppressions');
       console.log(JSON.stringify(res, null, 2));
       await mongoose.disconnect();

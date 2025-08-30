@@ -17,11 +17,12 @@ async function connect() {
   await mongoose.connect(uri, { autoIndex: false });
 }
 
-async function cleanupOrphanProfilePictures({ dryRun = true, forceAllIfNoUsers = false } = {}) {
+async function cleanupOrphanProfilePictures({ dryRun = true, forceAllIfNoUsers = false, ignoreSystemAccounts = false } = {}) {
   const stats = {
     total: 0,
     totalUsers: 0,
     activeUsers: 0,
+  systemUsers: 0,
     orphanUserMissing: 0,
     orphanUserDeleted: 0,
     deleted: 0,
@@ -31,9 +32,10 @@ async function cleanupOrphanProfilePictures({ dryRun = true, forceAllIfNoUsers =
   stats.total = await ProfilePicture.estimatedDocumentCount();
   const users = await User.find({}, '_id isDeleted').lean();
   stats.totalUsers = users.length;
-  stats.activeUsers = users.filter(u => !u.isDeleted).length;
+  stats.systemUsers = users.filter(u => u.isSystemAccount).length;
+  stats.activeUsers = users.filter(u => !u.isDeleted && (!ignoreSystemAccounts || !u.isSystemAccount)).length;
   const userIds = new Set(users.map(u => u._id.toString()));
-  const activeUserIds = new Set(users.filter(u => !u.isDeleted).map(u => u._id.toString()));
+  const activeUserIds = new Set(users.filter(u => !u.isDeleted && (!ignoreSystemAccounts || !u.isSystemAccount)).map(u => u._id.toString()));
 
   if (forceAllIfNoUsers && stats.activeUsers === 0) {
     stats.forceAllPurge = true;
@@ -67,7 +69,7 @@ async function cleanupOrphanProfilePictures({ dryRun = true, forceAllIfNoUsers =
   }
   console.log('\n📊 Résumé photos orphelines:');
   console.log('  Total:               ', stats.total);
-  console.log('  Utilisateurs actifs: ', stats.activeUsers, '/', stats.totalUsers);
+  console.log('  Utilisateurs actifs: ', stats.activeUsers, '/', stats.totalUsers, ignoreSystemAccounts ? `(system ignorés: ${stats.systemUsers})` : '');
   console.log('  User inexistant:     ', stats.orphanUserMissing);
   console.log('  User supprimé:       ', stats.orphanUserDeleted);
   console.log('  Supprimées:          ', stats.deleted, dryRun ? '(simulation)' : '');
@@ -79,9 +81,10 @@ if (require.main === module) {
   (async () => {
     try {
       const dryRun = !process.argv.includes('--apply');
-      const forceAllIfNoUsers = process.argv.includes('--force-all-if-no-users');
+  const forceAllIfNoUsers = process.argv.includes('--force-all-if-no-users');
+  const ignoreSystemAccounts = process.argv.includes('--ignore-system-accounts');
       await connect();
-      await cleanupOrphanProfilePictures({ dryRun, forceAllIfNoUsers });
+  await cleanupOrphanProfilePictures({ dryRun, forceAllIfNoUsers, ignoreSystemAccounts });
       if (dryRun) console.log('\nUtilisez --apply pour appliquer réellement les suppressions');
       await mongoose.disconnect();
       process.exit(0);

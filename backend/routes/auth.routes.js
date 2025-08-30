@@ -93,7 +93,8 @@ router.delete('/maintenance/cleanup-orphan-messages', async (req, res) => {
     const { cleanupOrphanMessages } = require('../scripts/cleanupOrphanMessages');
     const includeSystem = (req.query.includeSystem === '1');
     const forceAllIfNoUsers = (req.query.forceAll === '1');
-    const stats = await cleanupOrphanMessages({ dryRun: false, includeSystem, forceAllIfNoUsers });
+  const ignoreSystemAccounts = (req.query.ignoreSystem === '1');
+  const stats = await cleanupOrphanMessages({ dryRun: false, includeSystem, forceAllIfNoUsers, ignoreSystemAccounts });
     return res.json({ success: true, stats });
   } catch (err) {
     console.error('Error cleanup orphan messages:', err);
@@ -110,7 +111,8 @@ router.delete('/maintenance/cleanup-orphan-notifications', async (req, res) => {
     }
     const { cleanupOrphanNotifications } = require('../scripts/cleanupOrphanNotifications');
     const forceAllIfNoUsers = (req.query.forceAll === '1');
-    const stats = await cleanupOrphanNotifications({ dryRun: false, forceAllIfNoUsers });
+  const ignoreSystemAccounts = (req.query.ignoreSystem === '1');
+  const stats = await cleanupOrphanNotifications({ dryRun: false, forceAllIfNoUsers, ignoreSystemAccounts });
     return res.json({ success: true, stats });
   } catch (err) {
     console.error('Error cleanup orphan notifications:', err);
@@ -127,7 +129,8 @@ router.delete('/maintenance/cleanup-orphan-reactions', async (req, res) => {
     }
     const { cleanupOrphanReactions } = require('../scripts/cleanupOrphanReactions');
     const forceAllIfNoUsers = (req.query.forceAll === '1');
-    const stats = await cleanupOrphanReactions({ dryRun: false, forceAllIfNoUsers });
+  const ignoreSystemAccounts = (req.query.ignoreSystem === '1');
+  const stats = await cleanupOrphanReactions({ dryRun: false, forceAllIfNoUsers, ignoreSystemAccounts });
     return res.json({ success: true, stats });
   } catch (err) {
     console.error('Error cleanup orphan reactions:', err);
@@ -144,7 +147,8 @@ router.delete('/maintenance/cleanup-orphan-profile-pictures', async (req, res) =
     }
     const { cleanupOrphanProfilePictures } = require('../scripts/cleanupOrphanProfilePictures');
     const forceAllIfNoUsers = (req.query.forceAll === '1');
-    const stats = await cleanupOrphanProfilePictures({ dryRun: false, forceAllIfNoUsers });
+  const ignoreSystemAccounts = (req.query.ignoreSystem === '1');
+  const stats = await cleanupOrphanProfilePictures({ dryRun: false, forceAllIfNoUsers, ignoreSystemAccounts });
     return res.json({ success: true, stats });
   } catch (err) {
     console.error('Error cleanup orphan profile pictures:', err);
@@ -162,8 +166,9 @@ router.post('/maintenance/cleanup-all', async (req, res) => {
     const dryRun = req.query.dryRun === '1';
     const includeSystem = req.query.includeSystem === '1';
     const forceAllIfNoUsers = req.query.forceAll === '1';
-    const { maintenanceCleanupAll } = require('../scripts/maintenanceCleanupAll');
-    const results = await maintenanceCleanupAll({ dryRun, includeSystem, forceAllIfNoUsers });
+  const ignoreSystemAccounts = req.query.ignoreSystem === '1';
+  const { maintenanceCleanupAll } = require('../scripts/maintenanceCleanupAll');
+  const results = await maintenanceCleanupAll({ dryRun, includeSystem, forceAllIfNoUsers, ignoreSystemAccounts });
     return res.json({ success: true, dryRun, results });
   } catch (err) {
     console.error('Error cleanup ALL:', err);

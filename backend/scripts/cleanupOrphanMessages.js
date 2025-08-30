@@ -31,12 +31,14 @@ async function connect() {
 async function cleanupOrphanMessages({
   dryRun = true,
   includeSystem = false,
-  forceAllIfNoUsers = false
+  forceAllIfNoUsers = false,
+  ignoreSystemAccounts = false
 } = {}) {
   const stats = {
     totalMessages: 0,
     totalUsers: 0,
     activeUsers: 0,
+    systemUsers: 0,
     totalGroups: 0,
     orphanAuthorMissing: 0,
     orphanAuthorDeleted: 0,
@@ -53,10 +55,11 @@ async function cleanupOrphanMessages({
   const users = await User.find({}, '_id isDeleted').lean();
   const groups = await Group.find({}, '_id').lean();
   stats.totalUsers = users.length;
-  stats.activeUsers = users.filter(u => !u.isDeleted).length;
+  stats.systemUsers = users.filter(u => u.isSystemAccount).length;
+  stats.activeUsers = users.filter(u => !u.isDeleted && (!ignoreSystemAccounts || !u.isSystemAccount)).length;
   stats.totalGroups = groups.length;
 
-  const activeUserIds = new Set(users.filter(u => !u.isDeleted).map(u => u._id.toString()));
+  const activeUserIds = new Set(users.filter(u => !u.isDeleted && (!ignoreSystemAccounts || !u.isSystemAccount)).map(u => u._id.toString()));
   const allUserIds = new Set(users.map(u => u._id.toString()));
   const groupIds = new Set(groups.map(g => g._id.toString()));
 
@@ -143,7 +146,7 @@ async function cleanupOrphanMessages({
 
   console.log('\n📊 Résumé messages orphelins:');
   console.log('  Messages totaux:            ', stats.totalMessages);
-  console.log('  Utilisateurs (actifs/total):', stats.activeUsers, '/', stats.totalUsers);
+  console.log('  Utilisateurs (actifs/total):', stats.activeUsers, '/', stats.totalUsers, ignoreSystemAccounts ? `(system ignorés: ${stats.systemUsers})` : '');
   console.log('  Groupes:                    ', stats.totalGroups);
   console.log('  Auteur inexistant:          ', stats.orphanAuthorMissing);
   console.log('  Auteur supprimé:            ', stats.orphanAuthorDeleted);
@@ -160,10 +163,11 @@ if (require.main === module) {
   (async () => {
     try {
       const dryRun = !process.argv.includes('--apply');
-      const includeSystem = process.argv.includes('--include-system');
-      const forceAllIfNoUsers = process.argv.includes('--force-all-if-no-users');
+  const includeSystem = process.argv.includes('--include-system');
+  const forceAllIfNoUsers = process.argv.includes('--force-all-if-no-users');
+  const ignoreSystemAccounts = process.argv.includes('--ignore-system-accounts');
       await connect();
-      const stats = await cleanupOrphanMessages({ dryRun, includeSystem, forceAllIfNoUsers });
+  const stats = await cleanupOrphanMessages({ dryRun, includeSystem, forceAllIfNoUsers, ignoreSystemAccounts });
       if (dryRun) console.log('\nUtilisez --apply pour appliquer réellement les suppressions');
       await mongoose.disconnect();
       process.exit(0);
