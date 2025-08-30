@@ -585,7 +585,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
       {/* Layout avec sidebar publicitaire */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Contenu principal */}

@@ -155,7 +155,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
 
   if (!post) {
     return (
-      <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
           onClick={onBack}
           className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 mb-4 sm:mb-6 transition-colors touch-manipulation"
@@ -449,7 +449,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
   }, [post?.id, posts]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* SEO Meta tags pour le post */}
       {post && <PostSEO post={post} />}
       
