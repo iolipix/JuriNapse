@@ -252,7 +252,7 @@ const PostCard: React.FC<PostCardProps> = ({
   // Fonctions pour gérer les tags en mode édition
   const handleAddTag = () => {
     const tag = editTagsInput.trim();
-    if (tag && !editTags.includes(tag) && editTags.length < 10) {
+  if (tag && !editTags.includes(tag) && editTags.length < 3) {
       setEditTags([...editTags, tag]);
       setEditTagsInput('');
     }
@@ -747,14 +747,14 @@ const PostCard: React.FC<PostCardProps> = ({
                   <button
                     type="button"
                     onClick={handleAddTag}
-                    disabled={!editTagsInput.trim() || editTags.length >= 10}
+                    disabled={!editTagsInput.trim() || editTags.length >= 3}
                     className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm"
                   >
                     +
                   </button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Maximum 10 tags. Utilisez Entrée ou virgule pour ajouter un tag.
+                  Maximum 3 tags. Utilisez Entrée ou virgule pour ajouter un tag.
                 </p>
               </div>
             </div>
