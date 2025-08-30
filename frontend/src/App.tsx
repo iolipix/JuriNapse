@@ -931,7 +931,7 @@ const MainApp: React.FC = () => {
                 
                 {/* SUGGESTIONS SIDEBAR - REAL COMPONENT */}
                 {(() => {
-                  const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu'];
+                  const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu', 'profile', 'user-profile'];
                   const shouldShow = !noSuggestionsPages.includes(activeTab) && !!user;
                   
                   if (!shouldShow) return null;
