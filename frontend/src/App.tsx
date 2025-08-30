@@ -898,8 +898,23 @@ const MainApp: React.FC = () => {
       userPresent: !!user,
       isNoSuggestionsPage: noSuggestionsPages.includes(activeTab),
       noSuggestionsPages,
-      shouldShowSuggestions: !noSuggestionsPages.includes(activeTab) && !!user
+      shouldShowSuggestions: !noSuggestionsPages.includes(activeTab) && !!user,
+      currentPath: window.location.pathname
     });
+    
+    // FORCE DEBUG: Ajouter un log dans le DOM visible
+    if (typeof document !== 'undefined') {
+      const debugDiv = document.getElementById('__main_debug');
+      if (!debugDiv) {
+        const div = document.createElement('div');
+        div.id = '__main_debug';
+        div.style.cssText = 'position: fixed; top: 10px; right: 10px; background: yellow; padding: 5px; z-index: 9999; font-size: 10px;';
+        div.innerText = `activeTab: ${activeTab}, user: ${!!user}, should show: ${!noSuggestionsPages.includes(activeTab) && !!user}`;
+        document.body.appendChild(div);
+      } else {
+        debugDiv.innerText = `activeTab: ${activeTab}, user: ${!!user}, should show: ${!noSuggestionsPages.includes(activeTab) && !!user}`;
+      }
+    }
     
     if (noSuggestionsPages.includes(activeTab) || !user) {
       if (typeof window !== 'undefined') {
