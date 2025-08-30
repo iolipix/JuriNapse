@@ -54,14 +54,17 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     // Éviter les appels trop rapprochés (debounce)
     const now = Date.now();
     if (now - lastLoadTimeRef.current < 2000) { // 2 secondes minimum entre les appels
+      console.log('📝 LOAD DEBUG: Debounce active, skipping load');
       return;
     }
     lastLoadTimeRef.current = now;
     
+    console.log('📝 LOAD DEBUG: Starting loadPosts, page:', page, 'reset:', reset);
     setLoading(true);
     setError(null);
     try {
       const response = await api.get(`/posts?page=${page}&limit=12`); // 12 posts par page pour pagination claire
+      console.log('📝 LOAD DEBUG: API response:', response.data?.posts?.length, 'posts received');
       
       if (response.data.success && response.data.posts) {
         // Mapper les données avec tous les champs nécessaires
@@ -485,11 +488,16 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
   }, [loadPosts]);
 
   const forceReloadPosts = useCallback(async () => {
+    console.log('📝 POST DEBUG: forceReloadPosts called - bypassing debounce');
     // Force reload without debounce restrictions for logout scenarios
     const originalTime = lastLoadTimeRef.current;
     lastLoadTimeRef.current = 0; // Reset debounce
     try {
+      console.log('📝 POST DEBUG: Calling loadPosts with reset=true');
       await loadPosts(1, true);
+      console.log('📝 POST DEBUG: loadPosts completed successfully');
+    } catch (error) {
+      console.log('📝 POST DEBUG: loadPosts error:', error);
     } finally {
       lastLoadTimeRef.current = originalTime;
     }

@@ -75,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const handleLogout = () => {
     logout();
     setIsBurgerMenuOpen(false);
-    onTabChange('publications'); // Rediriger vers le fil d'actualité après déconnexion
+    onTabChange('home'); // Rediriger vers le fil d'actualité après déconnexion
   };
 
   const handleSettings = () => {
