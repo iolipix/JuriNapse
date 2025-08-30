@@ -31,7 +31,4 @@ const profilePictureSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// L'index sur userId est déjà créé par unique: true, pas besoin de le redéfinir
-// profilePictureSchema.index({ userId: 1 });
-
 module.exports = mongoose.model('ProfilePicture', profilePictureSchema);
