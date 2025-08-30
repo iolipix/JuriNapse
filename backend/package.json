@@ -16,9 +16,11 @@
     "dotenv": "^17.0.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
+    "jurinapse": "file:..",
     "mongoose": "^8.16.1",
     "node-cache": "^5.1.2",
     "nodemailer": "^6.10.1",
+    "resend": "^3.4.0",
     "sharp": "^0.34.3",
     "socket.io": "^4.8.1"
   },

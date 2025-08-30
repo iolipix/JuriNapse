@@ -686,43 +686,8 @@ const changePassword = async (req, res) => {
   }
 };
 
-// Fonction utilitaire pour envoyer un email de vérification (nodemailer)
-const nodemailer = require('nodemailer');
-let cachedTransport = null;
-const getMailTransport = () => {
-  if (cachedTransport) return cachedTransport;
-  // Utilise des variables d'environnement, sinon fallback console-only
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE } = process.env;
-  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
-    console.warn('⚠️ SMTP non configuré - emails loggés uniquement');
-    return null;
-  }
-  cachedTransport = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: parseInt(SMTP_PORT, 10),
-    secure: SMTP_SECURE === 'true',
-    auth: { user: SMTP_USER, pass: SMTP_PASS }
-  });
-  return cachedTransport;
-};
-
-const sendVerificationEmail = async (email, code) => {
-  console.log(`📧 Code de vérification pour ${email}: ${code}`);
-  const transport = getMailTransport();
-  if (!transport) return; // Pas de transport configuré
-  try {
-    await transport.sendMail({
-      from: process.env.MAIL_FROM || 'no-reply@jurinapse.com',
-      to: email,
-      subject: 'Votre code de vérification JuriNapse',
-      text: `Votre code de vérification est: ${code} (valide 10 minutes).`,
-      html: `<p>Bonjour,</p><p>Votre code de vérification est :</p><p style="font-size:24px;font-weight:bold;letter-spacing:3px;">${code}</p><p>Ce code expire dans 10 minutes.</p><p>Merci,<br/>L'équipe JuriNapse</p>`
-    });
-    console.log('✅ Email de vérification envoyé (SMTP)');
-  } catch (e) {
-    console.error('❌ Échec envoi email SMTP:', e);
-  }
-};
+// Service email (Resend > SMTP > log)
+const { sendVerificationEmail } = require('../services/email.service');
 
 // Envoyer un code de vérification par email
 const sendEmailVerification = async (req, res) => {
@@ -884,8 +849,8 @@ const resendVerificationEmail = async (req, res) => {
     // Supprimer l'ancien enregistrement s'il existe
     await EmailVerification.deleteOne({ userId: user._id });
 
-    // Générer un nouveau code (compatible avec le schéma actuel qui exige 'code')
-    const verificationCode = crypto.randomBytes(3).toString('hex'); // 6 hex chars (~24 bits)
+  // Générer un nouveau code NUMÉRIQUE 6 chiffres (aligné sur sendEmailVerification)
+  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Créer une nouvelle entrée (réutilise le schéma existant basé sur 'code')
     const emailVerification = new EmailVerification({
@@ -898,24 +863,13 @@ const resendVerificationEmail = async (req, res) => {
 
     await emailVerification.save();
 
-    // Simuler l'envoi de l'email pour Railway
-    try {
-      console.log('🚀 [RAILWAY SIMULATION] Nouveau email de vérification simulé');
-      console.log('📧 Destinataire:', user.email);
-  console.log('🔗 Nouveau code (resend):', verificationCode);
-      console.log('📅 Expire le:', emailVerification.expiresAt);
-      console.log('✅ Email de re-vérification simulé envoyé');
-    } catch (emailError) {
-      console.error('❌ Erreur lors de la simulation email:', emailError);
-    }
+  // Envoi réel (avec fallback)
+  await sendVerificationEmail(user.email, verificationCode);
 
     res.json({
-      success: true,
-      message: 'Un nouveau lien de vérification a été envoyé à votre email',
-      // En mode développement, on peut retourner le token pour test
-      ...(process.env.NODE_ENV !== 'production' && { 
-        devCode: verificationCode
-      })
+  success: true,
+  message: 'Un nouveau code de vérification a été envoyé à votre email',
+  ...(process.env.NODE_ENV !== 'production' && { devCode: verificationCode })
     });
 
   } catch (error) {
