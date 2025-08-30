@@ -699,8 +699,8 @@ const PostCard: React.FC<PostCardProps> = ({
         {!isEditing && post.tags && post.tags.length > 0 && (
           <div className="flex items-center space-x-1 mt-4">
             <Tag className="h-4 w-4 text-gray-400" />
-            {/* DEBUG: Tags limités à 5 - Version 2.0 */}
-            <div className="flex flex-wrap gap-1">
+            {/* 🔥 FORCE DEPLOY v3.0 - Tags limités à 5 🔥 */}
+            <div className="flex flex-wrap gap-1" style={{ border: '1px solid transparent' }}>
               {post.tags.slice(0, 5).map((tag, index) => (
                 <span
                   key={index}
