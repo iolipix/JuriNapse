@@ -353,7 +353,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between">

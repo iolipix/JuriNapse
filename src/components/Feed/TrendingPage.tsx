@@ -99,7 +99,7 @@ const TrendingPage: React.FC<TrendingPageProps> = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center space-x-3 mb-2">

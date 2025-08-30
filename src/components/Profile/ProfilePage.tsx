@@ -404,7 +404,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-3xl mx-auto">
       {/* Profile Header */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
         <div className="flex items-start justify-between">

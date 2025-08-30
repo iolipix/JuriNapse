@@ -166,7 +166,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
   // Afficher un état de chargement
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-3xl mx-auto p-6">
         <div className="flex items-center justify-center h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           <span className="ml-2">Chargement...</span>
@@ -177,7 +177,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
 
   if (!userProfile) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-3xl mx-auto p-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
           <AlertTriangle className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 mb-2">Utilisateur introuvable</h2>
@@ -301,7 +301,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
 
   if (blocked) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
           <div className="text-red-400 mb-4">
             <Shield className="h-16 w-16 mx-auto" />
@@ -455,7 +455,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
         totalLikes={totalLikes}
       />
       
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         {/* Profile Header */}
         <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 p-10 mb-8">
           <div className="flex items-start justify-between mb-8">
