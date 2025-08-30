@@ -1,9 +1,17 @@
 [build]
 builder = "nixpacks"
 
-[build.nixpacks]
-packages = ["nodejs", "npm"]
-startCommand = "npm start"
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm"]
 
-[build.environment]
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
+
+[env]
 NODE_ENV = "production"

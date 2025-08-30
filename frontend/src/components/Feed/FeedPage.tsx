@@ -419,7 +419,8 @@ const FeedPage: React.FC<FeedPageProps> = ({
         <div className="mb-4 sm:mb-6">
           <h3 className="text-sm font-medium text-gray-700 mb-2 sm:mb-3">Tags populaires</h3>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {popularTags.map(tag => (
+            {/* LIMITATION: Max 5 tags populaires */}
+            {popularTags.slice(0, 5).map(tag => (
               <button
                 key={tag}
                 onClick={() => handleTagClick(tag)}
@@ -432,6 +433,11 @@ const FeedPage: React.FC<FeedPageProps> = ({
                 #{tag}
               </button>
             ))}
+            {popularTags.length > 5 && (
+              <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-500 bg-gray-50 rounded-full">
+                +{popularTags.length - 5} autres
+              </span>
+            )}
           </div>
         </div>
       )}

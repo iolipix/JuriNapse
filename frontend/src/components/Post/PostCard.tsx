@@ -822,9 +822,9 @@ const PostCard: React.FC<PostCardProps> = ({
             {/* DEPLOY TEST v4.0 FRONTEND - {post.tags.length} tags totaux */}
             <div className="flex flex-wrap gap-1">
               <span className="text-xs text-orange-600 font-bold mr-2">
-                [v4.0: {post.tags.length} tags → max 5]
+                [v4.0: {post.tags.length} tags → max 3 sur posts]
               </span>
-              {post.tags.slice(0, 5).map((tag, index) => (
+              {post.tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}
                   onClick={tagsClickable ? (e) => handleTagClick(tag, e) : undefined}
@@ -837,9 +837,9 @@ const PostCard: React.FC<PostCardProps> = ({
                   #{tag}
                 </span>
               ))}
-              {post.tags.length > 5 && (
+              {post.tags.length > 3 && (
                 <span className="px-2 py-1 bg-red-200 text-red-800 rounded-md text-xs font-bold border-2 border-red-400">
-                  🔥 +{post.tags.length - 5} TAGS LIMITÉS v4.0 🔥
+                  🔥 +{post.tags.length - 3} TAGS LIMITÉS v4.0 🔥
                 </span>
               )}
             </div>
