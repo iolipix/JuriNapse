@@ -225,6 +225,17 @@ const startServer = async () => {
     console.log('🚀 Démarrage du serveur...');
     await connectDB();
     console.log('✅ Base de données connectée');
+    // Nettoyage initial des groupes vides au démarrage
+    (async () => {
+      try {
+        console.log('🧹 [STARTUP] Nettoyage initial des groupes vides...');
+        const { cleanupEmptyGroups } = require('./scripts/cleanupEmptyGroups');
+        await cleanupEmptyGroups({ dryRun: false });
+        console.log('✅ [STARTUP] Nettoyage groupes vides terminé');
+      } catch (e) {
+        console.error('⚠️ [STARTUP] Échec nettoyage groupes vides:', e.message);
+      }
+    })();
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`🌟 Serveur démarré sur le port ${PORT}`);
       console.log(`📡 API disponible sur http://localhost:${PORT}`);
