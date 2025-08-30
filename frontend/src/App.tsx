@@ -33,7 +33,8 @@ import CookieConsent from './components/Common/CookieConsent';
 // Frontend App identifier (distinct from legacy src/App.tsx)
 if (typeof window !== 'undefined') {
   (window as any).__debugWhichApp = 'frontend-App';
-  console.log('[FrontendApp] Loaded frontend/src/App.tsx version');
+  (window as any).__debugFrontendAppVersion = 'DEBUG-v3-2025-08-30';
+  console.log('[FrontendApp] Loaded frontend/src/App.tsx version DEBUG-v3-2025-08-30');
 }
 
 const MainApp: React.FC = () => {
