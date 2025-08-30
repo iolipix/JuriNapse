@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacks]
+packages = ["nodejs", "npm"]
+startCommand = "npm start"
+
+[build.environment]
+NODE_ENV = "production"

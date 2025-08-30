@@ -817,10 +817,13 @@ const PostCard: React.FC<PostCardProps> = ({
 
                 {/* Tags - Cliquables */}
         {!isEditing && post.tags && post.tags.length > 0 && (
-          <div className="flex items-center space-x-1 mt-3 sm:mt-4">
+          <div className="flex items-center space-x-1 mt-3 sm:mt-4" style={{ backgroundColor: '#fef3c7', padding: '4px', borderRadius: '4px' }}>
             <Tag className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-            {/* DEPLOY TEST v3.0 FRONTEND - {post.tags.length} tags totaux */}
+            {/* DEPLOY TEST v4.0 FRONTEND - {post.tags.length} tags totaux */}
             <div className="flex flex-wrap gap-1">
+              <span className="text-xs text-orange-600 font-bold mr-2">
+                [v4.0: {post.tags.length} tags → max 5]
+              </span>
               {post.tags.slice(0, 5).map((tag, index) => (
                 <span
                   key={index}
@@ -835,8 +838,8 @@ const PostCard: React.FC<PostCardProps> = ({
                 </span>
               ))}
               {post.tags.length > 5 && (
-                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-medium">
-                  +{post.tags.length - 5} TAGS LIMITÉS v3.0
+                <span className="px-2 py-1 bg-red-200 text-red-800 rounded-md text-xs font-bold border-2 border-red-400">
+                  🔥 +{post.tags.length - 5} TAGS LIMITÉS v4.0 🔥
                 </span>
               )}
             </div>
