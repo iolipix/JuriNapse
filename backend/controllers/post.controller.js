@@ -879,7 +879,8 @@ const getUserStatsByUsername = async (req, res) => {
   }
 };
 
-// Récupérer les utilisateurs qui ont liké un post
+// Récupérer les utilisateurs qui ont liké un post (unifié avec collection ProfilePicture)
+const { hydrateUsersWithProfilePictures } = require('../utils/profilePictureService');
 const getPostLikes = async (req, res) => {
   try {
     const { id } = req.params;
@@ -900,27 +901,16 @@ const getPostLikes = async (req, res) => {
       });
     }
 
-    // Récupérer les utilisateurs qui ont liké
-    const likedUsers = await User.find({ 
+    // Récupérer les utilisateurs qui ont liké (champ profilePicture peut être vide si stocké dans collection)
+    const likedUsers = await User.find({
       _id: { $in: post.likedBy },
-      isDeleted: { $ne: true } // Exclure les utilisateurs supprimés
+      isDeleted: { $ne: true }
     }).select('username firstName lastName university isStudent bio profilePicture');
 
-    // 🚀 Photos déjà récupérées avec select profilePicture !
-    
-    // Formater les utilisateurs
-    const usersWithProfilePictures = likedUsers.map(user => {
-      const userObj = user.toObject();
-      userObj.id = user._id;
-      // profilePicture déjà incluse grâce au select
-      return userObj;
-    });
+    let usersPlain = likedUsers.map(u => ({ ...u.toObject(), id: u._id }));
+    usersPlain = await hydrateUsersWithProfilePictures(usersPlain);
 
-    res.json({
-      success: true,
-      users: usersWithProfilePictures,
-      count: usersWithProfilePictures.length
-    });
+    res.json({ success: true, users: usersPlain, count: usersPlain.length });
 
   } catch (error) {
     res.status(500).json({
