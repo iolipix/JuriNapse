@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { X, Users, User, UserCheck, Crown, UserPlus } from 'lucide-react';
 import { useSubscriptions } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -39,7 +39,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
   // Déterminer si on regarde son propre profil
   const isOwnProfile = currentUser && (
-    currentUser.id === userId || 
+    currentUser.id === userId ||
     currentUser.username === userId
   );
 
@@ -51,19 +51,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   useEffect(() => {
     const loadData = async () => {
       if (!isOpen || !userId) return;
-      
+
       try {
         setLoading(true);
         setUnfollowedUsers(new Set());
-        
+
         const [followersData, followingData] = await Promise.all([
           getFollowers(userId),
           getFollowing(userId)
         ]);
-        
+
         setFollowers(Array.isArray(followersData) ? followersData : []);
         setInitialFollowing(Array.isArray(followingData) ? followingData : []);
-        
+
         // Calculer les connexions côté frontend (abonnements mutuels)
         // Une connexion = quelqu'un qui suit ce profil ET que ce profil suit en retour
         const connectionsData = followersData.filter(follower => {
@@ -74,9 +74,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                    (follower.username && following.username && follower.username === following.username);
           });
         });
-        
+
         setConnections(Array.isArray(connectionsData) ? connectionsData : []);
-        
+
       } catch (error) {
         secureLogger.error('Erreur lors du chargement des données:', error);
         setFollowers([]);
@@ -86,15 +86,15 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, [isOpen, userId, getFollowers, getFollowing]);
 
   if (!isOpen) return null;
-  
+
   if (loading) {
     return (
-      <div 
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) {
@@ -143,7 +143,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     try {
       // Seulement ajouter à la liste des utilisateurs "unfollowed" localement
       setUnfollowedUsers(prev => new Set([...prev, targetUserId]));
-      
+
       // L'appel API sera fait à la fermeture de la modal
     } catch (error) {
       // Gestion d'erreur silencieuse
@@ -162,7 +162,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         });
         return;
       }
-      
+
       // Sinon, appliquer un vrai réabonnement
       await followUser(targetUserId);
     } catch (error) {
@@ -177,12 +177,12 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       // Mettre à jour la liste locale des following pour la cohérence UI
       setInitialFollowing(prev => {
         // Vérifier si l'utilisateur n'est pas déjà dans la liste
-        const isAlreadyFollowing = prev.some(user => 
+        const isAlreadyFollowing = prev.some(user =>
           (user.id || user.username) === targetUserId
         );
         if (!isAlreadyFollowing) {
           // Trouver l'utilisateur dans la liste des followers pour l'ajouter aux following
-          const userToAdd = followers.find(user => 
+          const userToAdd = followers.find(user =>
             (user.id || user.username) === targetUserId
           );
           if (userToAdd) {
@@ -206,7 +206,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         // Gestion d'erreur silencieuse
       }
     }
-    
+
     // Recharger les données depuis le serveur pour avoir les dernières informations
     if (unfollowedUsers.size > 0) {
       try {
@@ -214,7 +214,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         setInitialFollowing(Array.isArray(followingData) ? [...followingData] : []);
       } catch (error) {
         // En cas d'erreur, filtrer manuellement les utilisateurs désabonnés
-        setInitialFollowing(prev => 
+        setInitialFollowing(prev =>
           prev.filter(user => {
             const userIdToCheck = user.id || user.username;
             return !unfollowedUsers.has(userIdToCheck);
@@ -222,7 +222,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         );
       }
     }
-    
+
     // Réinitialiser les changements en attente
     setUnfollowedUsers(new Set());
   };
@@ -235,63 +235,70 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
   const getUserStatus = (user: UserType) => {
     const currentUserId = user.id || user.username;
-    
+
     // Si l'utilisateur a été "unfollowed" temporairement
     if (unfollowedUsers.has(currentUserId)) {
-      return { 
-        label: 'Suivre', 
-        color: 'text-blue-600', 
+      return {
+        label: 'Suivre',
+        color: 'text-blue-600',
         icon: UserPlus,
         action: () => handleRefollow(currentUserId)
       };
     }
-    
+
     // Si on regarde son propre profil, comportement de gestion des abonnements
     if (isOwnProfile) {
       // Priorité à l'onglet actuel - si on est dans "following", afficher "Suivi" même si c'est une connexion
       if (activeTab === 'following') {
-        return { 
-          label: 'Suivi', 
-          color: 'text-green-600', 
+        return {
+          label: 'Suivi',
+          color: 'text-green-600',
           icon: UserCheck,
           action: () => handleUnfollow(currentUserId)
         };
       }
-      
+
       // Pour l'onglet "followers", vérifier si on suit déjà cette personne en retour
       if (activeTab === 'followers') {
-        // Si c'est une connexion, afficher "Connexion"
-        if (isConnection(currentUserId)) {
-          return { label: 'Connexion', color: 'text-purple-600', icon: Crown, action: null };
-        }
-        
         // Vérifier si on suit déjà cette personne
-        const isFollowing = initialFollowing.some(user => 
-          (user.id || user.username) === currentUserId
+        const isFollowing = initialFollowing.some(followedUser =>
+          (followedUser.id && followedUser.id === currentUserId) ||
+          (followedUser.username && followedUser.username === currentUserId)
         );
-        
+
         if (isFollowing) {
-          return { 
-            label: 'Suivi', 
-            color: 'text-green-600', 
-            icon: UserCheck,
-            action: () => handleUnfollow(currentUserId)
-          };
+          // Si on suit déjà cette personne, vérifier si c'est une connexion mutuelle
+          const isMutualConnection = connections.some(connection =>
+            (connection.id && connection.id === currentUserId) ||
+            (connection.username && connection.username === currentUserId)
+          );
+
+          if (isMutualConnection) {
+            return { label: 'Connexion', color: 'text-purple-600', icon: Crown, action: null };
+          } else {
+            return {
+              label: 'Suivi',
+              color: 'text-green-600',
+              icon: UserCheck,
+              action: () => handleUnfollow(currentUserId)
+            };
+          }
         } else {
-          return { 
-            label: 'Suivre', 
-            color: 'text-blue-600', 
+          // Personne qui nous suit mais qu'on ne suit pas = "Suivre en retour"
+          return {
+            label: 'Suivre en retour',
+            color: 'text-blue-600',
             icon: UserPlus,
             action: () => handleFollow(currentUserId)
           };
         }
       }
-      
+
       // Pour l'onglet "connections" de son propre profil, afficher "Connexion"
       if (activeTab === 'connections' && isConnection(currentUserId)) {
         return { label: 'Connexion', color: 'text-purple-600', icon: Crown, action: null };
       }
-    } 
+    }
     // Si on regarde le profil de quelqu'un d'autre, pas de boutons d'action
     else {
       // Sur le profil d'un autre, on affiche seulement le statut sans possibilité de modifier
@@ -302,7 +309,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       onMouseDown={(e) => {
         // Sauvegarder si le mousedown est sur le backdrop
@@ -319,7 +326,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         (e.currentTarget as any)._mouseDownOnBackdrop = false;
       }}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
@@ -384,7 +391,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
             <div className="space-y-3">
               {currentUsers.map((user, index) => {
                 const status = getUserStatus(user);
-                
+
                 return (
                   <div
                     key={user.id || user.username || `user-${index}`}
@@ -399,8 +406,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     >
                       <div className="h-10 w-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                         {user.profilePicture ? (
-                          <img 
-                            src={user.profilePicture} 
+                          <img
+                            src={user.profilePicture}
                             alt={user.username}
                             className="h-full w-full object-cover"
                           />
@@ -408,7 +415,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                           <User className="h-5 w-5 text-blue-600" />
                         )}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-900 truncate">
                           {user.firstName} {user.lastName}
@@ -423,7 +430,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                         )}
                       </div>
                     </button>
-                    
+
                     {status && status.action && (
                       <button
                         onClick={(e) => {
@@ -431,8 +438,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                           status.action();
                         }}
                         className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          status.label === 'Suivre' 
-                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+                          status.label === 'Suivre en retour'
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 shadow-md'
+                            : status.label === 'Suivre'
+                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -440,7 +449,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                         <span>{status.label}</span>
                       </button>
                     )}
-                    
+
                     {status && !status.action && (
                       <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${
                         status.color === 'text-purple-600' ? 'bg-purple-100' : 'bg-gray-100'
