@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Users, Send, Search, MoreVertical, UserPlus, X, User, Edit, Trash2, ExternalLink, Check, EyeOff, Folder, FileText, Reply, Smile, Camera, Bell, BellOff, ArrowLeft } from 'lucide-react';
+import { subscriptionsAPI } from '../../services/api';
+import { User as UserType } from '../../types';
+import { Plus, Users, Send, Search, MoreVertical, UserPlus, X, User as UserIcon, Edit, Trash2, ExternalLink, Check, EyeOff, Folder, FileText, Reply, Smile, Camera, Bell, BellOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usersAPI } from '../../services/api';
 import { useMessaging } from '../../contexts';
@@ -1218,6 +1220,38 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   // Récupérer les connexions de l'utilisateur pour les chats privés
   const myConnections = getConnections(user.id);
+  // Liste stricte recalculée à l'ouverture du modal pour éviter les incohérences locales
+  const [strictConnections, setStrictConnections] = useState<UserType[] | null>(null);
+  const [loadingStrictConnections, setLoadingStrictConnections] = useState(false);
+
+  const refreshStrictConnections = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      setLoadingStrictConnections(true);
+      const [followersResp, followingResp] = await Promise.all([
+        subscriptionsAPI.getUserFollowers(user.id),
+        subscriptionsAPI.getUserFollowing(user.id)
+      ]);
+  const followersList: any[] = followersResp.data || followersResp.users || followersResp || [];
+  const followingList: any[] = followingResp.data || followingResp.users || followingResp || [];
+      // Intersection sur id || _id
+      const followerIds = new Set(followersList.map(u => u.id || u._id));
+      const mutual = followingList.filter(u => followerIds.has(u.id || u._id));
+      setStrictConnections(mutual);
+    } catch (_) {
+      // En cas d'erreur, fallback aux connexions locales
+      setStrictConnections(null);
+    } finally {
+      setLoadingStrictConnections(false);
+    }
+  }, [user?.id]);
+
+  // Quand on ouvre le modal, forcer un recalcul depuis l'API
+  useEffect(() => {
+    if (showNewChat) {
+      refreshStrictConnections();
+    }
+  }, [showNewChat, refreshStrictConnections]);
 
   // Récupérer les utilisateurs disponibles pour ajouter au groupe
   const availableUsers = activeGroupId ? getAvailableUsersForGroup(activeGroupId) : [];
@@ -1244,15 +1278,16 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                   </button>
                   <button
                     onClick={() => {
-                      if (myConnections.length === 0) {
+                      const baseList = strictConnections ?? myConnections;
+                      if (baseList.length === 0) {
                         setShowErrorMessage('Aucune connexion mutuelle – ajoutez des connexions pour envoyer un message privé.');
                         return;
                       }
                       setShowNewChat(true);
                     }}
-                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${myConnections.length === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-100'}`}
-                    title={myConnections.length === 0 ? 'Aucune connexion mutuelle disponible' : 'Envoyer un message'}
-                    disabled={myConnections.length === 0}
+                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${(strictConnections ?? myConnections).length === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-100'}`}
+                    title={(strictConnections ?? myConnections).length === 0 ? 'Aucune connexion mutuelle disponible' : 'Envoyer un message'}
+                    disabled={(strictConnections ?? myConnections).length === 0}
                   >
                     <Plus className="h-4 w-4" />
                   </button>
@@ -1359,7 +1394,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                             className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover object-center"
                           />
                         ) : (
-                          <User className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                          <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                         )}
                       </button>
                     ) : (
@@ -1499,7 +1534,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                       <div className="text-center text-gray-500">
                         <div className="w-8 h-8 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
                           {activeChat.isPrivate ? (
-                            <User className="h-4 w-4 text-gray-400" />
+                            <UserIcon className="h-4 w-4 text-gray-400" />
                           ) : (
                             <Users className="h-4 w-4 text-gray-400" />
                           )}
@@ -1516,7 +1551,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                 {groupMessages.length === 0 ? (
                   <div className="text-center text-gray-500 mt-8">
                     {activeChat.isPrivate ? (
-                      <User className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                      <UserIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
                     ) : (
                       <Users className="h-12 w-12 mx-auto mb-3 text-gray-400" />
                     )}
@@ -2172,9 +2207,9 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                   Vous ne pouvez contacter que vos connexions en privé :
                 </p>
                 
-                {myConnections.length === 0 ? (
+                {(strictConnections ?? myConnections).length === 0 ? (
                   <div className="text-center py-8">
-                    <User className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                    <UserIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
                     <p className="text-gray-500 mb-2">Aucune connexion disponible</p>
                     <p className="text-sm text-gray-400">
                       Vous devez avoir des connexions mutuelles pour envoyer un message privé.
@@ -2182,6 +2217,9 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                   </div>
                 ) : (
                   <>
+                    {loadingStrictConnections && (
+                      <p className="text-xs text-gray-400 mb-2">Actualisation...</p>
+                    )}
                     {/* Barre de recherche pour les connexions */}
                     <div className="relative mb-4">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -2196,7 +2234,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                     
                     {/* Liste filtrée des connexions */}
                     <div className="max-h-64 overflow-y-auto space-y-2">
-                      {myConnections
+                      {(strictConnections ?? myConnections)
                         .filter((connection: any) => {
                           if (!connectionSearchQuery.trim()) return true;
                           const searchLower = connectionSearchQuery.toLowerCase();
@@ -2234,7 +2272,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                             className="w-10 h-10 rounded-full object-cover object-center"
                           />
                         ) : (
-                          <User className="h-5 w-5 text-blue-600" />
+                          <UserIcon className="h-5 w-5 text-blue-600" />
                         )}
                       </div>
                       <div>
@@ -2244,7 +2282,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                     </button>
                         ))
                       }
-                      {myConnections
+                      {(strictConnections ?? myConnections)
                         .filter((connection: any) => {
                           if (!connectionSearchQuery.trim()) return true;
                           const searchLower = connectionSearchQuery.toLowerCase();
@@ -2587,7 +2625,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                                 className="h-8 w-8 object-cover rounded-full"
                               />
                             ) : (
-                              <User className="h-4 w-4 text-blue-600" />
+                              <UserIcon className="h-4 w-4 text-blue-600" />
                             )}
                           </div>
                           <div>
@@ -2741,7 +2779,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
-                            <User className="h-4 w-4 text-blue-600" />
+                            <UserIcon className="h-4 w-4 text-blue-600" />
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">{availableUser.username}</p>
