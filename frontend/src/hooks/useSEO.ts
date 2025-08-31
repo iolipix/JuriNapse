@@ -71,25 +71,25 @@ export const useSEO = (data: SEOData) => {
       updatePropertyTag('twitter:image', data.image);
     }
 
-    // Indexation automatique pour les profils (inline pour éviter les dépendances)
-    if (data.type === 'profile' && data.shouldSubmitToGoogle && data.username && data.fullName) {
-      const profileKey = `${data.username}-${data.fullName}`;
+    // Indexation automatique pour les profils - TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG
+    // if (data.type === 'profile' && data.shouldSubmitToGoogle && data.username && data.fullName) {
+    //   const profileKey = `${data.username}-${data.fullName}`;
       
-      // Ne soumettre qu'une seule fois par session pour éviter le spam
-      if (!submittedProfiles.current.has(profileKey)) {
-        submittedProfiles.current.add(profileKey);
+    //   // Ne soumettre qu'une seule fois par session pour éviter le spam
+    //   if (!submittedProfiles.current.has(profileKey)) {
+    //     submittedProfiles.current.add(profileKey);
         
-        const submitProfile = async () => {
-          try {
-            console.log(`🚀 Soumission du profil pour indexation: ${data.fullName} (@${data.username})`);
-            await seoService.submitUserProfile(data.username!, data.fullName!);
-          } catch (error) {
-            console.warn('⚠️ Erreur lors de la soumission SEO:', error);
-          }
-        };
-        submitProfile();
-      }
-    }
+    //     const submitProfile = async () => {
+    //       try {
+    //         console.log(`🚀 Soumission du profil pour indexation: ${data.fullName} (@${data.username})`);
+    //         await seoService.submitUserProfile(data.username!, data.fullName!);
+    //       } catch (error) {
+    //         console.warn('⚠️ Erreur lors de la soumission SEO:', error);
+    //       }
+    //     };
+    //     submitProfile();
+    //   }
+    // }
   }, [data.title, data.description, data.keywords, data.image, data.url, data.type, data.username, data.fullName, data.shouldSubmitToGoogle]); // Ajouter les dépendances pour éviter les boucles
 
   return {};

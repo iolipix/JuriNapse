@@ -68,7 +68,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     if (userId) {
       loadFollowStatus();
     }
-  }, [userId, isFollowing, isConnection, subscriptions, followers, invalidateCache]); // Ajouter followers comme déclencheur
+  }, [userId, subscriptions, followers]); // Enlever les fonctions qui causent des boucles infinies
 
   // Auto-hide success message
   useEffect(() => {
