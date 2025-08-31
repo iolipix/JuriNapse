@@ -77,6 +77,7 @@ const MainApp: React.FC = () => {
     
     // Route en fonction du path et réinitialiser seulement les états non pertinents
     if (path === '/' || path === '') {
+      console.log('🔍 [DEBUG] handlePopState - route racine, activeTab actuel:', activeTab);
       // Réinitialiser tous les états
       setViewingUserId(null);
       setViewingPostId(null);
@@ -86,7 +87,10 @@ const MainApp: React.FC = () => {
       setSelectedTag(null);
       // Ne pas forcer 'feed' si on est déjà sur 'profile' pour permettre la navigation vers le profil
       if (activeTab !== 'profile') {
+        console.log('🔍 [DEBUG] handlePopState - changement vers feed');
         setActiveTab('feed');
+      } else {
+        console.log('🔍 [DEBUG] handlePopState - GARDE profile');
       }
     } else if (path === '/messages') {
       // Réinitialiser les états non liés aux messages
@@ -255,6 +259,7 @@ const MainApp: React.FC = () => {
   };
 
   const handleProfileClick = () => {
+    console.log('🔍 [DEBUG] handleProfileClick appelé');
     if (!user) {
       openAuthModal();
       return;
@@ -266,11 +271,14 @@ const MainApp: React.FC = () => {
     setViewingDecision(null);
     setSelectedTag(null);
     
+    console.log('🔍 [DEBUG] Avant setActiveTab - activeTab actuel:', activeTab);
     // Forcer l'onglet profile et naviguer vers la racine
     setActiveTab('profile');
+    console.log('🔍 [DEBUG] Après setActiveTab - activeTab défini à: profile');
     
     // Utiliser setTimeout pour s'assurer que l'état est défini avant la navigation
     setTimeout(() => {
+      console.log('🔍 [DEBUG] Navigation vers / avec activeTab:', activeTab);
       navigateTo('/');
       scrollToTop(); // Défiler vers le haut
     }, 10);
@@ -506,9 +514,13 @@ const MainApp: React.FC = () => {
     
     // Route racine - retour à l'accueil
     if (path === '/' || path === '') {
+      console.log('🔍 [DEBUG] handleRouting - route racine, activeTab actuel:', activeTab);
       // Ne pas forcer 'feed' si on est déjà sur 'profile' pour permettre la navigation vers le profil
       if (activeTab !== 'profile') {
+        console.log('🔍 [DEBUG] handleRouting - changement vers feed');
         setActiveTab('feed');
+      } else {
+        console.log('🔍 [DEBUG] handleRouting - GARDE profile');
       }
       setViewingUserId(null);
       setViewingPostId(null);
@@ -823,11 +835,14 @@ const MainApp: React.FC = () => {
       case 'messages':
         return <MessagingPage onViewPost={handleViewPost} onViewUserProfile={handleViewUserProfile} targetUserId={targetMessageUserId || undefined} />;
       case 'profile':
+        console.log('🔍 [DEBUG] Rendu case profile, user:', !!user);
         if (!user) {
+          console.log('🔍 [DEBUG] Pas d\'utilisateur, retour au feed');
           setIsAuthOpen(true);
           setActiveTab('feed');
           return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
         }
+        console.log('🔍 [DEBUG] Rendu ProfilePage');
         return <ProfilePage onLogin={handleLogin} onViewUserProfile={handleViewUserProfile} onTagClick={handleTagClick} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
       case 'settings':
         if (settingsTab) {
