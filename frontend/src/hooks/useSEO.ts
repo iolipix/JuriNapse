@@ -80,7 +80,7 @@ export const useSEO = (data: SEOData) => {
       };
       submitProfile();
     }
-  }, [data.title, data.description, data.keywords, data.image, data.url, data.type, data.username, data.fullName, data.shouldSubmitToGoogle]); // Ajouter les dépendances
+  }); // Pas de dépendances - le useEffect se déclenche à chaque changement de props
 
   return {};
 };

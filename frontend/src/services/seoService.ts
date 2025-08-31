@@ -21,22 +21,9 @@ class SEOService {
 
   /**
    * Soumettre une URL à IndexNow (Bing, Yahoo)
-   * Note: Cette fonction est désactivée côté client pour éviter CORS
-   * L'indexation doit être faite côté serveur
    */
   async submitToIndexNow(url: string): Promise<SEOSubmissionResponse> {
     try {
-      console.log(`🔍 [CLIENT] Demande d'indexation pour: ${url}`);
-      
-      // En production, cet appel devrait être fait via l'API backend
-      // pour éviter les problèmes CORS
-      
-      // Simuler le succès côté client
-      console.log(`ℹ️ Indexation différée vers le backend pour: ${url}`);
-      return { success: true, message: 'Demande d\'indexation enregistrée (à traiter côté serveur)' };
-      
-      // Code original désactivé pour éviter CORS:
-      /*
       const indexNowUrl = 'https://api.indexnow.org/indexnow';
       const key = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6'; // Clé IndexNow (à remplacer par la vraie)
       
@@ -60,7 +47,6 @@ class SEOService {
         console.warn(`⚠️ Échec soumission IndexNow: ${response.status}`);
         return { success: false, message: `Échec IndexNow: ${response.status}` };
       }
-      */
     } catch (error) {
       console.error('❌ Erreur IndexNow:', error);
       return { success: false, message: 'Erreur lors de la soumission IndexNow' };
@@ -69,26 +55,17 @@ class SEOService {
 
   /**
    * Ping Google pour notifier une nouvelle URL
-   * Note: Cette fonction est désactivée côté client pour éviter CORS
-   * Le ping Google doit être fait côté serveur
    */
   async pingGoogle(url: string): Promise<SEOSubmissionResponse> {
     try {
-      console.log(`🔔 [CLIENT] Demande de ping Google pour: ${url}`);
-      
-      // En production, cet appel devrait être fait via l'API backend
-      // car Google ping ne peut pas être appelé depuis le client (CORS)
-      
-      console.log(`ℹ️ Ping Google différé vers le backend pour: ${url}`);
-      return { success: true, message: 'Demande de ping Google enregistrée (à traiter côté serveur)' };
-      
-      // Code original désactivé pour éviter CORS:
-      /*
       const pingUrl = `https://www.google.com/ping?sitemap=${this.baseURL}/sitemap.xml`;
+      
+      // Note: fetch vers Google ping peut être bloqué par CORS
+      // En production, cela devrait être fait côté serveur
       const response = await fetch(pingUrl, { method: 'GET' });
+      
       console.log(`🔔 Ping Google pour: ${url}`);
       return { success: true, message: 'Google notifié du nouveau contenu' };
-      */
     } catch (error) {
       console.warn('⚠️ Ping Google impossible depuis le client:', error);
       return { success: false, message: 'Ping Google doit être fait côté serveur' };
@@ -97,47 +74,22 @@ class SEOService {
 
   /**
    * Soumettre un profil utilisateur pour indexation
-   * Utilise l'API backend pour éviter les problèmes CORS
    */
   async submitUserProfile(username: string, fullName: string): Promise<SEOSubmissionResponse> {
     const profileUrl = `${this.baseURL}/profile/${username}`;
     
-    console.log(`🔍 [CLIENT] Demande d'indexation profil: ${fullName} (${profileUrl})`);
+    console.log(`🔍 Soumission profil pour indexation: ${fullName} (${profileUrl})`);
     
-    try {
-      // Utiliser l'API backend pour l'indexation réelle
-      const response = await fetch('/api/seo/submit-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          fullName
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log(`✅ Profil soumis via backend: ${fullName}`);
-        return result;
-      } else {
-        console.warn(`⚠️ Échec soumission backend: ${response.status}`);
-        // Continuer même si l'indexation échoue
-        this.updatePageMeta(fullName, profileUrl);
-        return { success: false, message: 'Échec indexation backend, SEO local appliqué' };
-      }
-    } catch (error) {
-      console.warn('⚠️ Backend SEO indisponible, application SEO local uniquement:', error);
-      
-      // Appliquer au moins les optimisations locales
-      this.updatePageMeta(fullName, profileUrl);
-      
-      return { 
-        success: false, 
-        message: 'Backend indisponible, optimisations locales appliquées' 
-      };
-    }
+    // Soumettre à IndexNow
+    await this.submitToIndexNow(profileUrl);
+    
+    // Notifier Google (si possible)
+    await this.pingGoogle(profileUrl);
+    
+    // Mettre à jour les meta tags si c'est le profil actuel
+    this.updatePageMeta(fullName, profileUrl);
+    
+    return { success: true, message: `Profil ${fullName} soumis pour indexation` };
   }
 
   /**

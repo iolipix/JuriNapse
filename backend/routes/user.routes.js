@@ -32,7 +32,7 @@ router.get('/username/:username', getUserByUsername);
 router.get('/:id/stats', optionalAuthenticateToken, getUserStats);
 
 // GET /api/users/:id - Récupérer un utilisateur spécifique
-router.get('/:id', optionalAuthenticateToken, getUserById);
+router.get('/:id', authenticateToken, getUserById);
 
 // DELETE /api/users/delete-account - Supprimer le compte utilisateur (suppression douce)
 router.delete('/delete-account', authenticateToken, deleteUser);
