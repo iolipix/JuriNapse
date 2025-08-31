@@ -1243,9 +1243,16 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                     <Users className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => setShowNewChat(true)}
-                    className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                    title="Envoyer un message"
+                    onClick={() => {
+                      if (myConnections.length === 0) {
+                        setShowErrorMessage('Aucune connexion mutuelle – ajoutez des connexions pour envoyer un message privé.');
+                        return;
+                      }
+                      setShowNewChat(true);
+                    }}
+                    className={`p-1.5 sm:p-2 rounded-lg transition-colors ${myConnections.length === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-100'}`}
+                    title={myConnections.length === 0 ? 'Aucune connexion mutuelle disponible' : 'Envoyer un message'}
+                    disabled={myConnections.length === 0}
                   >
                     <Plus className="h-4 w-4" />
                   </button>
