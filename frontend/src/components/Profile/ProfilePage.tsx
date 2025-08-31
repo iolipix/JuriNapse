@@ -57,7 +57,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
 
   // États pour les statistiques indépendantes
   const [userStats, setUserStats] = useState<{totalPosts: number, totalLikes: number} | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true); // Pour les compteurs abonnés/abonnements/connexions
+  const [postsLoading, setPostsLoading] = useState(true); // Pour les stats des posts
 
   // États pour le scroll infini
   const [scrollListenerReady, setScrollListenerReady] = useState(false);
@@ -255,6 +256,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
     const loadUserStats = async () => {
       if (!user?.id) return;
       
+      setStatsLoading(true);
       try {
         const [followers, following, followersData, followingData] = await Promise.all([
           getFollowersCount(user.id),
@@ -277,11 +279,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
         });
         
         setConnectionsCount(connectionsData.length);
-      } catch (error) {      }
+      } catch (error) {      } finally {
+        setStatsLoading(false);
+      }
     };
 
     loadUserStats();
-  }, [user?.id]); // Supprimer les fonctions des dépendances
+  }, [user?.id, getFollowersCount, getFollowingCount, getFollowers, getFollowing]); // Ajouter toutes les dépendances
 
   // Charger les statistiques de posts de l'utilisateur de façon indépendante
   useEffect(() => {
@@ -289,7 +293,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
       if (!user?.username) return;
       
       try {
-        setStatsLoading(true);
+        setPostsLoading(true);
         
         const result = await postsAPI.getUserStats(user.username);
         if (result.success && result.stats) {
@@ -301,7 +305,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
         console.error('Erreur lors du chargement des statistiques:', error);
         setUserStats({ totalPosts: 0, totalLikes: 0 });
       } finally {
-        setStatsLoading(false);
+        setPostsLoading(false);
       }
     };
 
@@ -827,21 +831,21 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
               onClick={() => setShowSubscriptionModal({ isOpen: true, type: 'followers' })}
               className="text-center hover:bg-gray-50 rounded-lg p-2 sm:p-3 transition-colors touch-manipulation"
             >
-              <div className="text-lg sm:text-2xl font-bold text-green-600">{followersCount}</div>
+              <div className="text-lg sm:text-2xl font-bold text-green-600">{statsLoading ? "-" : followersCount}</div>
               <div className="text-xs sm:text-sm text-gray-500">Abonnés</div>
             </button>
             <button
               onClick={() => setShowSubscriptionModal({ isOpen: true, type: 'following' })}
               className="text-center hover:bg-gray-50 rounded-lg p-2 sm:p-3 transition-colors touch-manipulation"
             >
-              <div className="text-lg sm:text-2xl font-bold text-purple-600">{followingCount}</div>
+              <div className="text-lg sm:text-2xl font-bold text-purple-600">{statsLoading ? "-" : followingCount}</div>
               <div className="text-xs sm:text-sm text-gray-500">Abonnements</div>
             </button>
             <button
               onClick={() => setShowSubscriptionModal({ isOpen: true, type: 'connections' })}
               className="text-center hover:bg-gray-50 rounded-lg p-2 sm:p-3 transition-colors touch-manipulation"
             >
-              <div className="text-lg sm:text-2xl font-bold text-orange-600">{connectionsCount}</div>
+              <div className="text-lg sm:text-2xl font-bold text-orange-600">{statsLoading ? "-" : connectionsCount}</div>
               <div className="text-xs sm:text-sm text-gray-500">Connexions</div>
             </button>
             <div className="text-center p-2 sm:p-3">
