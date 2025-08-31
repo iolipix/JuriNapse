@@ -943,7 +943,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   const confirmDeleteHistory = async () => {
     if (showDeleteHistoryConfirm) {
-      await deleteHistory();
+      await deleteHistory(showDeleteHistoryConfirm);
       setShowDeleteHistoryConfirm(null);
       setShowSuccessMessage('Historique de conversation supprimé pour vous !');
       

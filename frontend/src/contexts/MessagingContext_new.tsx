@@ -157,7 +157,7 @@ interface MessagingContextType {
   getBlockedMembersInGroup: (groupId: string) => User[];
   isUserMemberOfGroup: (groupId: string) => boolean;
   getStorageUsage: () => Promise<{ used: number; total: number }>;
-  deleteHistory: () => Promise<void>;
+  deleteHistory: (groupId: string) => Promise<void>;
   markGroupAsRead: (groupId: string) => void;
   getUnreadMessagesCount: (groupId: string) => number;
   getTotalUnreadMessagesCount: () => number;
@@ -1217,8 +1217,31 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
   };
 
   // Méthodes ajoutées pour corriger les erreurs de compilation
-  const deleteHistory = async (): Promise<void> => {
-    // Implémentation vide pour l'instant
+  const deleteHistory = async (groupId: string): Promise<void> => {
+    if (!groupId) return;
+    
+    try {
+      const response = await fetch(`http://localhost:5000/api/groups/${groupId}/delete-history`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la suppression de l\'historique');
+      }
+
+      // Recharger les messages pour refléter la suppression de l'historique
+      await loadMessages(groupId);
+      // Recharger aussi les conversations pour mettre à jour le dernier message affiché
+      await loadGroups();
+      
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'historique:', error);
+      throw error;
+    }
   };
 
   const markGroupAsRead = (groupId: string): void => {
