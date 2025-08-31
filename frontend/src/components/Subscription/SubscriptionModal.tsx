@@ -236,6 +236,15 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
   const getUserStatus = (user: UserType) => {
     const currentUserId = user.id || user.username;
+    
+    console.log('🔍 getUserStatus Debug:', {
+      currentUserId,
+      isOwnProfile,
+      activeTab,
+      profileOwnerId: userId,
+      myUserId: currentUser?.id,
+      subscriptionsLength: subscriptions.length
+    });
 
     // Si l'utilisateur a été "unfollowed" temporairement
     if (unfollowedUsers.has(currentUserId)) {
