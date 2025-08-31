@@ -23,6 +23,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const { user: currentUser } = useAuth();
   const {
     followers,
+    subscriptions,
     followUser,
     unfollowUser,
     getFollowing,
@@ -299,10 +300,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         return { label: 'Connexion', color: 'text-purple-600', icon: Crown, action: null };
       }
     }
-    // Si on regarde le profil de quelqu'un d'autre, permettre les actions de suivi
+    // Si on regarde le profil de quelqu'un d'autre, utiliser nos données d'abonnement
     else {
-      // Sur le profil d'un autre utilisateur, vérifier si on suit déjà cette personne
-      const isFollowing = initialFollowing.some(followedUser =>
+      // Vérifier si on suit déjà cette personne (utiliser nos propres données)
+      const isFollowing = subscriptions.some((followedUser: UserType) =>
         (followedUser.id && followedUser.id === currentUserId) ||
         (followedUser.username && followedUser.username === currentUserId)
       );
