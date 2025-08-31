@@ -26,6 +26,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     isConnection,
     blockUser,
     subscriptions,
+    followers,
     invalidateCache
   } = useSubscription();
   const { user } = useAuth();
@@ -34,6 +35,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [following, setFollowing] = useState(false);
   const [connection, setConnection] = useState(false);
+  const [isFollowBack, setIsFollowBack] = useState(false);
 
   // Charger le statut de suivi au montage et à chaque changement des abonnements
   useEffect(() => {
@@ -48,6 +50,14 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         setFollowing(isFollowingSyncValue);
         setConnection(isConnection(userId));
         
+        // Vérifier si c'est un cas de "Suivre en retour"
+        // L'utilisateur nous suit (il est dans nos followers) mais on ne le suit pas
+        const userFollowsMe = followers.some(follower => 
+          (follower.id && follower.id === userId) ||
+          (follower.username && follower.username === userId)
+        );
+        setIsFollowBack(userFollowsMe && !isFollowingSyncValue);
+        
         // Double-vérification asynchrone seulement si nécessaire
         const isFollowingUser = await isFollowing(userId);
         if (isFollowingUser !== isFollowingSyncValue) {          setFollowing(isFollowingUser);
@@ -58,7 +68,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     if (userId) {
       loadFollowStatus();
     }
-  }, [userId, isFollowing, isConnection, subscriptions, invalidateCache]); // Ajouter invalidateCache comme déclencheur
+  }, [userId, isFollowing, isConnection, subscriptions, followers, invalidateCache]); // Ajouter followers comme déclencheur
 
   // Auto-hide success message
   useEffect(() => {
@@ -167,6 +177,16 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       );
     }
     
+    // Si c'est un cas de "Suivre en retour" (l'utilisateur nous suit mais on ne le suit pas)
+    if (isFollowBack) {
+      return (
+        <>
+          <UserPlus className="h-4 w-4" />
+          <span>Suivre en retour</span>
+        </>
+      );
+    }
+    
     return (
       <>
         <UserPlus className="h-4 w-4" />
@@ -187,6 +207,11 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     
     if (following) {
       return `${baseClasses} bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700`;
+    }
+    
+    // Style spécial pour "Suivre en retour" - gradient orange/bleu
+    if (isFollowBack) {
+      return `${baseClasses} bg-gradient-to-r from-orange-500 to-blue-600 text-white hover:from-orange-600 hover:to-blue-700 shadow-lg`;
     }
     
     return `${baseClasses} bg-blue-600 text-white hover:bg-blue-700`;
