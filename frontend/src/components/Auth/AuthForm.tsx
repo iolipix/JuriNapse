@@ -268,7 +268,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
       {/* Header avec fermeture */}
       <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
         {onClose && (
@@ -496,24 +496,24 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
             
             {/* Validation du mot de passe pour l'inscription */}
             {!isLogin && formData.password && (
-              <div className="mt-2 space-y-1">
-                <p className="text-xs font-medium text-gray-700">Critères de sécurité :</p>
-                <div className="grid grid-cols-2 gap-1 text-xs">
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs font-medium text-gray-700 mb-2">Critères de sécurité :</p>
+                <div className="space-y-1 text-xs">
                   <div className={`flex items-center ${passwordValidation.length ? 'text-green-600' : 'text-gray-400'}`}>
                     <span className="mr-1">{passwordValidation.length ? '✓' : '○'}</span>
                     8 caractères min.
                   </div>
                   <div className={`flex items-center ${passwordValidation.uppercase ? 'text-green-600' : 'text-gray-400'}`}>
                     <span className="mr-1">{passwordValidation.uppercase ? '✓' : '○'}</span>
-                    1 majuscule
+                    Une lettre majuscule (A-Z)
                   </div>
                   <div className={`flex items-center ${passwordValidation.lowercase ? 'text-green-600' : 'text-gray-400'}`}>
                     <span className="mr-1">{passwordValidation.lowercase ? '✓' : '○'}</span>
-                    1 minuscule
+                    Une lettre minuscule (a-z)
                   </div>
                   <div className={`flex items-center ${passwordValidation.number ? 'text-green-600' : 'text-gray-400'}`}>
                     <span className="mr-1">{passwordValidation.number ? '✓' : '○'}</span>
-                    1 chiffre
+                    Un chiffre (0-9)
                   </div>
                   <div className={`flex items-center ${passwordValidation.special ? 'text-green-600' : 'text-gray-400'}`}>
                     <span className="mr-1">{passwordValidation.special ? '✓' : '○'}</span>
