@@ -475,16 +475,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                     <button
                       onClick={() => {
                         // Si c'est l'utilisateur connecté, rediriger vers son vrai profil
+                        const userId = user.id || user.username;
                         if (currentUser && (
-                          currentUser.id === (user.id || user.username) ||
-                          currentUser.username === (user.id || user.username)
+                          currentUser.id === userId ||
+                          currentUser.username === userId ||
+                          currentUser.id === user.username ||
+                          currentUser.username === user.id
                         )) {
                           if (onProfileClick) {
                             onProfileClick();
                           }
                         } else {
                           // Sinon, utiliser la navigation normale
-                          onViewUserProfile(user.id || user.username);
+                          onViewUserProfile(userId);
                         }
                         handleClose();
                       }}
