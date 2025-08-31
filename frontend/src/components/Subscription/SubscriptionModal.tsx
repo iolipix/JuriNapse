@@ -299,10 +299,74 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         return { label: 'Connexion', color: 'text-purple-600', icon: Crown, action: null };
       }
     }
-    // Si on regarde le profil de quelqu'un d'autre, pas de boutons d'action
+    // Si on regarde le profil de quelqu'un d'autre, permettre les actions de suivi
     else {
-      // Sur le profil d'un autre, on affiche seulement le statut sans possibilité de modifier
-      return null; // Pas de bouton sur les profils d'autres utilisateurs
+      // Sur le profil d'un autre utilisateur, vérifier si on suit déjà cette personne
+      const isFollowing = initialFollowing.some(followedUser =>
+        (followedUser.id && followedUser.id === currentUserId) ||
+        (followedUser.username && followedUser.username === currentUserId)
+      );
+
+      // Dans l'onglet "followers" d'un autre profil
+      if (activeTab === 'followers') {
+        if (isFollowing) {
+          // Si on suit déjà cette personne, vérifier si c'est une connexion mutuelle
+          const isMutualConnection = connections.some(connection =>
+            (connection.id && connection.id === currentUserId) ||
+            (connection.username && connection.username === currentUserId)
+          );
+
+          if (isMutualConnection) {
+            return { label: 'Connexion', color: 'text-purple-600', icon: Crown, action: null };
+          } else {
+            return {
+              label: 'Suivi',
+              color: 'text-green-600',
+              icon: UserCheck,
+              action: () => handleUnfollow(currentUserId)
+            };
+          }
+        } else {
+          // Cette personne suit le profil qu'on regarde, mais on ne la suit pas = "Suivre en retour"
+          return {
+            label: 'Suivre en retour',
+            color: 'text-blue-600',
+            icon: UserPlus,
+            action: () => handleFollow(currentUserId)
+          };
+        }
+      }
+
+      // Dans l'onglet "following" d'un autre profil
+      if (activeTab === 'following') {
+        if (isFollowing) {
+          return {
+            label: 'Suivi',
+            color: 'text-green-600',
+            icon: UserCheck,
+            action: () => handleUnfollow(currentUserId)
+          };
+        } else {
+          return {
+            label: 'Suivre',
+            color: 'text-blue-600',
+            icon: UserPlus,
+            action: () => handleFollow(currentUserId)
+          };
+        }
+      }
+
+      // Dans l'onglet "connections" d'un autre profil
+      if (activeTab === 'connections') {
+        const isMutualConnection = connections.some(connection =>
+          (connection.id && connection.id === currentUserId) ||
+          (connection.username && connection.username === currentUserId)
+        );
+
+        if (isMutualConnection) {
+          return { label: 'Connexion', color: 'text-purple-600', icon: Crown, action: null };
+        }
+      }
     }
 
     return null;
