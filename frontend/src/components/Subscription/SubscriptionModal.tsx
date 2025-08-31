@@ -91,7 +91,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     };
 
     loadData();
-  }, [isOpen, userId, getFollowers, getFollowing]);
+  }, [isOpen, userId]); // Enlever les fonctions qui causent des boucles infinies
 
   if (!isOpen) return null;
 

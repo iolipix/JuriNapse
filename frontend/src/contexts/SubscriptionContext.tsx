@@ -115,7 +115,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       setFollowingCount(0);
       setFollowersCount(0);
     }
-  }, [user, refreshSubscriptions, loadBlockedUsers]);
+  }, [user]); // Enlever les fonctions qui causent des boucles infinies
 
   const followUser = React.useCallback(async (userId: string): Promise<boolean> => {
     if (!user) return false; // Vérifier si l'utilisateur est connecté
@@ -149,7 +149,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       
       return false;
     }
-  }, [user, subscriptions, refreshSubscriptions]);
+  }, [user, subscriptions]); // Enlever refreshSubscriptions pour éviter les boucles
 
   const unfollowUser = React.useCallback(async (userId: string): Promise<boolean> => {
     if (!user) return false; // Vérifier si l'utilisateur est connecté
@@ -183,7 +183,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       await refreshSubscriptions();
       return false;
     }
-  }, [user, subscriptions, refreshSubscriptions]);
+  }, [user, subscriptions]); // Enlever refreshSubscriptions pour éviter les boucles
 
   const blockUser = React.useCallback(async (userId: string): Promise<boolean> => {
     if (!user) return false; // Vérifier si l'utilisateur est connecté
@@ -449,7 +449,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         refreshSubscriptions(),
         loadBlockedUsers()
       ]);    }
-  }, [user, refreshSubscriptions, loadBlockedUsers]);
+  }, [user]); // Enlever les fonctions pour éviter les boucles
 
   const value: SubscriptionContextType = {
     subscriptions,
