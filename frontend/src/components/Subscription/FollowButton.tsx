@@ -209,9 +209,9 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       return `${baseClasses} bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700`;
     }
     
-    // Style spécial pour "Suivre en retour" - gradient orange/bleu
+    // Style spécial pour "Suivre en retour" - gradient bleu vers violet
     if (isFollowBack) {
-      return `${baseClasses} bg-gradient-to-r from-orange-500 to-blue-600 text-white hover:from-orange-600 hover:to-blue-700 shadow-lg`;
+      return `${baseClasses} bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg`;
     }
     
     return `${baseClasses} bg-blue-600 text-white hover:bg-blue-700`;

@@ -18,7 +18,7 @@ interface SuggestedUsersProps {
 
 const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) => {
   const { user } = useAuth();
-  const { followUser, unfollowUser, isFollowingSync } = useSubscriptions();
+  const { followUser, unfollowUser, isFollowingSync, followers } = useSubscriptions();
   
   // Ne pas afficher les suggestions si l'utilisateur n'est pas connecté
   if (!user) {
@@ -156,6 +156,12 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
             const userIdentifier = suggestedUser.username;
             const isCurrentlyFollowing = (isFollowingSync(userIdentifier) || recentlyFollowed.has(userIdentifier)) && !recentlyUnfollowed.has(userIdentifier);
             
+            // Détection du follow-back - l'utilisateur nous suit mais on ne le suit pas
+            const isFollowBack = followers.some(follower => 
+              (follower.id === suggestedUser._id) || 
+              ((follower as any)._id === suggestedUser._id)
+            ) && !isCurrentlyFollowing;
+            
             return (
               <div key={suggestedUser._id} className="suggestion-item">
                 <div className="user-info">
@@ -180,10 +186,10 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
                 
                 <button
                   onClick={() => isCurrentlyFollowing ? handleUnfollow(suggestedUser) : handleFollow(suggestedUser)}
-                  className={`follow-btn ${isCurrentlyFollowing ? 'following' : 'not-following'}`}
+                  className={`follow-btn ${isCurrentlyFollowing ? 'following' : (isFollowBack ? 'follow-back' : 'not-following')}`}
                   disabled={false}
                 >
-                  {isCurrentlyFollowing ? 'Se désabonner' : 'Suivre'}
+                  {isCurrentlyFollowing ? 'Se désabonner' : (isFollowBack ? 'Suivre en retour' : 'Suivre')}
                 </button>
               </div>
             );
