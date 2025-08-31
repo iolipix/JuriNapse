@@ -24,7 +24,7 @@ interface ProfilePageProps {
 const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, onTagClick, onViewPost, onViewDecision }) => {
   const { user, updateProfile, refreshUserData } = useAuth();
   const { savedPosts } = useSavedPosts();
-  const { getFollowersCount, getFollowingCount, getConnections } = useSubscription();
+  const { getFollowersCount, getFollowingCount, getConnections, getFollowers, getFollowing } = useSubscription();
   
   // États pour les posts avec pagination (indépendant du contexte global)
   const [userPosts, setUserPosts] = useState<any[]>([]);
@@ -256,14 +256,27 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
       if (!user?.id) return;
       
       try {
-        const [followers, following, connections] = await Promise.all([
+        const [followers, following, followersData, followingData] = await Promise.all([
           getFollowersCount(user.id),
           getFollowingCount(user.id),
-          Promise.resolve(getConnections(user.id))
+          getFollowers(user.id),
+          getFollowing(user.id)
         ]);
+        
         setFollowersCount(followers);
         setFollowingCount(following);
-        setConnectionsCount(connections.length);
+        
+        // Calculer les connexions comme dans le modal (logique robuste)
+        const connectionsData = followersData.filter((follower: any) => {
+          return followingData.some((following: any) => {
+            // Comparaison par ID ou username pour plus de robustesse
+            return (follower.id && following.id && follower.id === following.id) ||
+                   (follower._id && following._id && follower._id === following._id) ||
+                   (follower.username && following.username && follower.username === following.username);
+          });
+        });
+        
+        setConnectionsCount(connectionsData.length);
       } catch (error) {      }
     };
 
