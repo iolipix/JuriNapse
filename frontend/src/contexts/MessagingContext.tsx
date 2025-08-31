@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
 import { User } from '../types';
+import { useSubscription } from './SubscriptionContext';
 import { groupsAPI, messagesAPI } from '../services/api';
 
 export interface Group {
@@ -672,7 +673,14 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
   };
 
   // Fonctions utilitaires
+  const { isConnection } = useSubscription();
+
   const createPrivateChat = async (otherUserId: string) => {
+    if (!user) throw new Error('Utilisateur non connecté');
+    // Vérifier connexion mutuelle
+    if (!isConnection(otherUserId)) {
+      throw new Error('Vous devez être connectés mutuellement pour démarrer une conversation');
+    }
     await createGroup('Chat privé', 'Conversation privée', true, [otherUserId]);
   };
 
@@ -695,6 +703,9 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     
     // Pour l'instant, on créé encore un groupe privé (transition progressive)
     // TODO: Créer une vraie conversation privée via une nouvelle API
+    if (!isConnection(otherUserId)) {
+      throw new Error('Vous devez être connectés mutuellement pour démarrer une conversation');
+    }
     await createGroup('Chat privé', 'Conversation privée', true, [otherUserId]);
     
     // Retourner l'ID du nouveau groupe créé

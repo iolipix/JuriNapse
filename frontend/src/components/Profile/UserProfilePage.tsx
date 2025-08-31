@@ -452,6 +452,10 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
     (currentUser.id === userProfile.id)
   );
   
+  // Vérifier si l'utilisateur affiché est une connexion mutuelle
+  const { isConnection } = useSubscription();
+  const canMessage = !isOwnProfile && currentUser && userProfile && isConnection(userProfile.id || userProfile._id || userId);
+  
   // Fonction appelée quand le statut de suivi change
   const handleFollowChange = async (_isFollowing: boolean) => {
     try {
@@ -490,6 +494,10 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
 
   const handleSendMessage = async () => {
     try {
+      if (!canMessage) {
+        setShowSuccessMessage('Vous devez être connectés mutuellement pour envoyer un message.');
+        return;
+      }
       if (onSendMessage) {
         // Utiliser le callback personnalisé si fourni
         onSendMessage(userId);
@@ -865,13 +873,21 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                       showBlockButton={false}
                       onFollowChange={handleFollowChange}
                     />
-                    <button
-                      onClick={handleSendMessage}
-                      className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap"
-                    >
-                      <MessageCircle className="h-5 w-5" />
-                      <span>Message</span>
-                    </button>
+                    {canMessage && (
+                      <button
+                        onClick={handleSendMessage}
+                        className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap"
+                      >
+                        <MessageCircle className="h-5 w-5" />
+                        <span>Message</span>
+                      </button>
+                    )}
+                    {!canMessage && (
+                      <div className="px-4 py-3 bg-gray-100 text-gray-500 rounded-xl text-sm font-medium flex items-center">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Connexion requise
+                      </div>
+                    )}
                   </div>
                   {blocked ? (
                     <button
