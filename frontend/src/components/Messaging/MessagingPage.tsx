@@ -943,9 +943,16 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   const confirmDeleteHistory = async () => {
     if (showDeleteHistoryConfirm) {
-      await deleteHistory(showDeleteHistoryConfirm);
-      setShowDeleteHistoryConfirm(null);
-      setShowSuccessMessage('Historique de conversation supprimé pour vous !');
+      try {
+        await deleteHistory(showDeleteHistoryConfirm);
+        setShowSuccessMessage('Historique de conversation supprimé pour vous !');
+      } catch (error) {
+        console.error('Erreur lors de la suppression de l\'historique:', error);
+        // On peut afficher un message d'erreur à l'utilisateur si besoin
+      } finally {
+        // Toujours fermer le modal, même en cas d'erreur
+        setShowDeleteHistoryConfirm(null);
+      }
       
       // NE PAS fermer la conversation - l'utilisateur doit rester dedans
       // mais ne plus voir les anciens messages
