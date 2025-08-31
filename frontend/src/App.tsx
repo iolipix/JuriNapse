@@ -262,12 +262,9 @@ const MainApp: React.FC = () => {
     setViewingDecision(null);
     setSelectedTag(null);
     
-    // Utiliser le username dans l'URL si disponible
-    if (user.username) {
-      navigateTo(`/${user.username}`);
-    } else {
-      navigateTo('/');
-    }
+    // Rediriger vers la page d'accueil avec l'onglet profile actif
+    // pour accéder au profil éditable au lieu du profil public
+    navigateTo('/');
     
     scrollToTop(); // Défiler vers le haut
   };
