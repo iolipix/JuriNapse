@@ -77,14 +77,17 @@ const MainApp: React.FC = () => {
     
     // Route en fonction du path et réinitialiser seulement les états non pertinents
     if (path === '/' || path === '') {
-      // Réinitialiser tous les états sauf activeTab
+      // Réinitialiser tous les états
       setViewingUserId(null);
       setViewingPostId(null);
       setViewingDecision(null);
       setTargetMessageUserId(null);
       setSettingsTab(null);
       setSelectedTag(null);
-      setActiveTab('feed');
+      // Ne pas forcer 'feed' si on est déjà sur 'profile' pour permettre la navigation vers le profil
+      if (activeTab !== 'profile') {
+        setActiveTab('feed');
+      }
     } else if (path === '/messages') {
       // Réinitialiser les états non liés aux messages
       setViewingUserId(null);
