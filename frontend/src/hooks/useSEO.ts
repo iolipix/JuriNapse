@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import seoService from '../services/seoService';
 
 interface SEOData {
@@ -15,6 +15,9 @@ interface SEOData {
 }
 
 export const useSEO = (data: SEOData) => {
+  // Cache pour éviter les soumissions répétées
+  const submittedProfiles = useRef<Set<string>>(new Set());
+  
   useEffect(() => {
     // Mettre à jour le titre de la page
     document.title = data.title;
@@ -70,17 +73,24 @@ export const useSEO = (data: SEOData) => {
 
     // Indexation automatique pour les profils (inline pour éviter les dépendances)
     if (data.type === 'profile' && data.shouldSubmitToGoogle && data.username && data.fullName) {
-      const submitProfile = async () => {
-        try {
-          console.log(`🚀 Soumission du profil pour indexation: ${data.fullName} (@${data.username})`);
-          await seoService.submitUserProfile(data.username!, data.fullName!);
-        } catch (error) {
-          console.warn('⚠️ Erreur lors de la soumission SEO:', error);
-        }
-      };
-      submitProfile();
+      const profileKey = `${data.username}-${data.fullName}`;
+      
+      // Ne soumettre qu'une seule fois par session pour éviter le spam
+      if (!submittedProfiles.current.has(profileKey)) {
+        submittedProfiles.current.add(profileKey);
+        
+        const submitProfile = async () => {
+          try {
+            console.log(`🚀 Soumission du profil pour indexation: ${data.fullName} (@${data.username})`);
+            await seoService.submitUserProfile(data.username!, data.fullName!);
+          } catch (error) {
+            console.warn('⚠️ Erreur lors de la soumission SEO:', error);
+          }
+        };
+        submitProfile();
+      }
     }
-  }); // Pas de dépendances - le useEffect se déclenche à chaque changement de props
+  }, [data.title, data.description, data.keywords, data.image, data.url, data.type, data.username, data.fullName, data.shouldSubmitToGoogle]); // Ajouter les dépendances pour éviter les boucles
 
   return {};
 };
