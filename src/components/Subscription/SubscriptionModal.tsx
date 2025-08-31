@@ -235,6 +235,14 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   const getUserStatus = (user: UserType) => {
     const currentUserId = user.id || user.username;
     
+    // *** NOUVELLE VÉRIFICATION: Ne jamais afficher de bouton pour son propre compte ***
+    if (currentUser && (
+      currentUser.id === currentUserId ||
+      currentUser.username === currentUserId
+    )) {
+      return null; // Pas de bouton pour soi-même
+    }
+    
     // Si l'utilisateur a été "unfollowed" temporairement
     if (unfollowedUsers.has(currentUserId)) {
       return { 
