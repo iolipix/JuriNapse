@@ -689,6 +689,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
         userId={userId}
         type={showSubscriptionModal.type}
         onViewUserProfile={handleViewUserProfile}
+        onProfileClick={onProfileClick} // Permet de rediriger vers le vrai profil de l'utilisateur connecté
       />
 
       {/* Modal de confirmation de blocage */}

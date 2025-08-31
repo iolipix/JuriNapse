@@ -10,6 +10,7 @@ interface SubscriptionModalProps {
   userId: string;
   type: 'followers' | 'following' | 'connections';
   onViewUserProfile: (userId: string) => void;
+  onProfileClick?: () => void; // Nouvelle prop pour rediriger vers le profil de l'utilisateur connecté
 }
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
@@ -17,7 +18,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   onClose,
   userId,
   type,
-  onViewUserProfile
+  onViewUserProfile,
+  onProfileClick // Nouvelle prop
 }) => {
   const { user: currentUser } = useAuth();
   const {
@@ -399,7 +401,18 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   >
                     <button
                       onClick={() => {
-                        onViewUserProfile(user.id || user.username);
+                        // Si c'est l'utilisateur connecté, rediriger vers son vrai profil
+                        if (currentUser && (
+                          currentUser.id === (user.id || user.username) ||
+                          currentUser.username === (user.id || user.username)
+                        )) {
+                          if (onProfileClick) {
+                            onProfileClick();
+                          }
+                        } else {
+                          // Sinon, utiliser la navigation normale
+                          onViewUserProfile(user.id || user.username);
+                        }
                         handleClose();
                       }}
                       className="flex items-center space-x-3 flex-1 text-left"
