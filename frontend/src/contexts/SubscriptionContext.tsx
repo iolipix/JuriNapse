@@ -325,7 +325,9 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       if (userFollowers.success && userFollowing.success) {
         // Trouver les connexions mutuelles
         const connections = userFollowing.data.filter((following: User) => 
-          userFollowers.data.some((follower: User) => follower.id === following.id)
+          userFollowers.data.some((follower: User) => 
+            (follower.id || (follower as any)._id) === (following.id || (following as any)._id)
+          )
         );
         return connections;
       }
