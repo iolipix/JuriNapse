@@ -506,7 +506,10 @@ const MainApp: React.FC = () => {
     
     // Route racine - retour à l'accueil
     if (path === '/' || path === '') {
-      setActiveTab('feed');
+      // Ne pas forcer 'feed' si on est déjà sur 'profile' pour permettre la navigation vers le profil
+      if (activeTab !== 'profile') {
+        setActiveTab('feed');
+      }
       setViewingUserId(null);
       setViewingPostId(null);
       setViewingDecision(null);
