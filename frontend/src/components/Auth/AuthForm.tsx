@@ -268,9 +268,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="w-full max-w-lg max-h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
       {/* Header avec fermeture */}
-      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
+      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white flex-shrink-0">
         {onClose && (
           <button
             type="button"
@@ -293,7 +293,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onClose }) => {
       </div>
 
       {/* Form */}
-      <div className="p-6">
+      <div className="p-6 overflow-y-auto flex-1">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
