@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { PostProvider, usePost } from './contexts/PostContext';
 import { MessagingProvider, useMessaging } from './contexts';
@@ -258,7 +258,7 @@ const MainApp: React.FC = () => {
     scrollToTop(); // Défiler vers le haut
   };
 
-  const handleProfileClick = () => {
+  const handleProfileClick = useCallback(() => {
     console.log('🔍 [DEBUG] handleProfileClick appelé');
     if (!user) {
       openAuthModal();
@@ -276,13 +276,11 @@ const MainApp: React.FC = () => {
     setActiveTab('profile');
     console.log('🔍 [DEBUG] Après setActiveTab - activeTab défini à: profile');
     
-    // Utiliser setTimeout pour s'assurer que l'état est défini avant la navigation
-    setTimeout(() => {
-      console.log('🔍 [DEBUG] Navigation vers / avec activeTab:', activeTab);
-      navigateTo('/');
-      scrollToTop(); // Défiler vers le haut
-    }, 10);
-  };
+    // Navigation immédiate sans setTimeout
+    console.log('🔍 [DEBUG] Navigation vers / immédiatement');
+    navigateTo('/');
+    scrollToTop(); // Défiler vers le haut
+  }, [user, activeTab, openAuthModal, navigateTo, scrollToTop]);
 
   const handleMessagesClick = () => {
     if (!user) {
