@@ -567,8 +567,22 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
       };
 
       const handleMessageDeleted = (data: { messageId: string; groupId: string }) => {
-        // Supprimer le message de la liste
-        setMessages(prev => prev.filter(msg => msg.id !== data.messageId));
+        setMessages(prev => {
+          const updated = prev.filter(msg => msg.id !== data.messageId);
+          setLastMessages(prevLast => {
+            const remaining = updated.filter(m => m.groupId === data.groupId);
+            if (remaining.length === 0) {
+              if (prevLast[data.groupId]) {
+                const { [data.groupId]: _removed, ...rest } = prevLast as any;
+                return rest;
+              }
+              return prevLast;
+            }
+            const latest = remaining.reduce((acc, cur) => cur.createdAt > acc.createdAt ? cur : acc, remaining[0]);
+            return { ...prevLast, [data.groupId]: latest };
+          });
+          return updated;
+        });
       };
 
       const handleMessagesUpdated = (data: { groupId: string; messages: any[] }) => {
@@ -594,7 +608,7 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
           ...formattedMessages
         ]);
         
-        // Mettre à jour le dernier message pour ce groupe
+        // Mettre à jour ou supprimer le lastMessage pour ce groupe
         if (formattedMessages.length > 0) {
           const latestMessage = formattedMessages.reduce((latest: Message, current: Message) => 
             current.createdAt > latest.createdAt ? current : latest
@@ -603,6 +617,12 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
             ...prev,
             [data.groupId]: latestMessage
           }));
+        } else {
+          setLastMessages(prev => {
+            if (!prev[data.groupId]) return prev;
+            const { [data.groupId]: _removed, ...rest } = prev as any;
+            return rest;
+          });
         }
       };
 
@@ -816,9 +836,28 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
 
   const deleteMessage = async (messageId: string) => {
     try {
+      const target = messages.find(m => m.id === messageId);
+      const targetGroupId = target?.groupId;
       const response = await messagesAPI.deleteMessage(messageId);
       if (response.success) {
-        setMessages(prev => prev.filter(msg => msg.id !== messageId));
+        setMessages(prev => {
+          const updated = prev.filter(msg => msg.id !== messageId);
+          if (targetGroupId) {
+            setLastMessages(prevLast => {
+              const remaining = updated.filter(m => m.groupId === targetGroupId);
+              if (remaining.length === 0) {
+                if (prevLast[targetGroupId]) {
+                  const { [targetGroupId]: _removed, ...rest } = prevLast as any;
+                  return rest;
+                }
+                return prevLast;
+              }
+              const latest = remaining.reduce((acc, cur) => cur.createdAt > acc.createdAt ? cur : acc, remaining[0]);
+              return { ...prevLast, [targetGroupId]: latest };
+            });
+          }
+          return updated;
+        });
       }
     } catch (err) {
       setError('Erreur lors de la suppression du message');
