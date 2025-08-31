@@ -256,17 +256,21 @@ const MainApp: React.FC = () => {
       openAuthModal();
       return;
     }
-    setActiveTab('profile');
+    
+    // Réinitialiser tous les états de vue
     setViewingUserId(null);
     setViewingPostId(null);
     setViewingDecision(null);
     setSelectedTag(null);
     
-    // Rediriger vers la page d'accueil avec l'onglet profile actif
-    // pour accéder au profil éditable au lieu du profil public
-    navigateTo('/');
+    // Forcer l'onglet profile et naviguer vers la racine
+    setActiveTab('profile');
     
-    scrollToTop(); // Défiler vers le haut
+    // Utiliser setTimeout pour s'assurer que l'état est défini avant la navigation
+    setTimeout(() => {
+      navigateTo('/');
+      scrollToTop(); // Défiler vers le haut
+    }, 10);
   };
 
   const handleMessagesClick = () => {
