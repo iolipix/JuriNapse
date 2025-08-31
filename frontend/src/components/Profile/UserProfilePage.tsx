@@ -98,6 +98,25 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
 
   useSEO(seoData);
 
+  // Calculer l'URL de l'image de profil une seule fois pour éviter les re-renders
+  const profileImageUrl = useMemo(() => {
+    if (!userProfile?.profilePicture) return null;
+    
+    const fixedUrl = fixProfilePictureUrl(userProfile.profilePicture);
+    const imageSource = fixedUrl || userProfile.profilePicture;
+    
+    // Si c'est une URL d'API, l'utiliser directement
+    if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
+      return imageSource;
+    }
+    // Si c'est déjà du base64 complet, l'utiliser directement
+    if (imageSource.startsWith('data:')) {
+      return imageSource;
+    }
+    // Sinon, ajouter le préfixe base64
+    return `data:image/jpeg;base64,${imageSource}`;
+  }, [userProfile?.profilePicture]);
+
   // Charger les posts de l'utilisateur avec pagination
   useEffect(() => {
     const loadUserPosts = async (pageToLoad = 1, resetPosts = true) => {
@@ -230,7 +249,6 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
 
     // Ajouter l'écouteur de scroll
     window.addEventListener('scroll', handleScroll, { passive: true });
-    console.log('👂 [SCROLL] Event listener ajouté avec options passive:true');
     
     // Test immédiat pour vérifier si on est déjà proche du bas
     const initialScrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -734,46 +752,16 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                   <div className="h-24 w-24 sm:h-28 sm:w-28 lg:h-32 lg:w-32 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 rounded-full flex items-center justify-center overflow-hidden shadow-xl ring-2 sm:ring-4 ring-white">
                     {userProfile.profilePicture ? (
                       <img 
-                        src={(() => {
-                          const fixedUrl = fixProfilePictureUrl(userProfile.profilePicture);
-                          const imageSource = fixedUrl || userProfile.profilePicture;
-                          
-                          // Debug temporaire
-                          console.log('🔍 DEBUG Profile Picture UserProfile:', {
-                            originalUrl: userProfile.profilePicture,
-                            fixedUrl: fixedUrl,
-                            finalImageSource: imageSource
-                          });
-                          
-                          // Si c'est une URL d'API, l'utiliser directement avec cache-busting
-                          if (imageSource.startsWith('/api/') || imageSource.startsWith('http')) {
-                            const separator = imageSource.includes('?') ? '&' : '?';
-                            const finalUrl = `${imageSource}${separator}t=${Date.now()}`;
-                            console.log('🔍 Final URL (API):', finalUrl);
-                            return finalUrl;
-                          }
-                          // Si c'est déjà du base64 complet, l'utiliser directement
-                          if (imageSource.startsWith('data:')) {
-                            console.log('🔍 Final URL (Base64):', imageSource.substring(0, 50) + '...');
-                            return imageSource;
-                          }
-                          // Sinon, ajouter le préfixe base64
-                          const finalUrl = `data:image/jpeg;base64,${imageSource}`;
-                          console.log('🔍 Final URL (Added Base64):', finalUrl.substring(0, 50) + '...');
-                          return finalUrl;
-                        })()} 
+                        src={profileImageUrl || undefined}
                         alt={userProfile.username}
                         className="h-full w-full object-cover"
                         onError={(e) => {
-                          console.error('❌ Image failed to load in UserProfile:', e.currentTarget.src);
+                          console.error('❌ Image failed to load in UserProfile');
                           e.currentTarget.style.display = 'none';
                           const fallbackIcon = e.currentTarget.parentElement?.querySelector('.fallback-icon');
                           if (fallbackIcon) {
                             fallbackIcon.classList.remove('hidden');
                           }
-                        }}
-                        onLoad={() => {
-                          console.log('✅ Image loaded successfully in UserProfile');
                         }}
                       />
                     ) : (
