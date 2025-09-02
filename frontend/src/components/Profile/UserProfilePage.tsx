@@ -864,11 +864,11 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                 </button>
               )}
               
-              {!isOwnProfile && currentUser && (
+              {!isOwnProfile && currentUser && userProfile && (
                 <div className="flex flex-col space-y-3">
                   <div className="flex space-x-3">
                     <FollowButton 
-                      userId={userId} 
+                      userId={userProfile.id || userId} 
                       size="lg" 
                       showBlockButton={false}
                       onFollowChange={handleFollowChange}
