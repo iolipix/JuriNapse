@@ -124,32 +124,29 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     const isAlreadyFollowing = subscriptions.some(sub => 
       sub.id === userId || sub.username === userId
     );
-    if (isAlreadyFollowing) {      return false; // Retourner false car ce n'est pas cohérent avec l'état affiché
+    if (isAlreadyFollowing) {
+      return true; // Retourner true car l'utilisateur est déjà suivi
     }
     
     try {
       const response = await subscriptionsAPI.followUser(userId);
       if (response.success) {
-        // Mettre à jour l'état local pour que les boutons se mettent à jour correctement
+        // Mettre à jour l'état local SEULEMENT - pas de refresh pour éviter le clignotement
         setSubscriptions(prev => [...prev, response.user]);
         setFollowingCount(prev => prev + 1);
         
-        // NE PAS forcer l'invalidation des suggestions pour permettre le changement d'avis
-        // setSuggestionsCacheKey(Date.now());
-        
-        // Forcer le rafraîchissement des données pour synchroniser
-        await refreshSubscriptions();
         return true;
       }
       return false;
     } catch (error: any) {      
-      // Si l'utilisateur est déjà suivi (erreur 400), forcer le rafraîchissement
-      if (error?.response?.status === 400) {        await refreshSubscriptions();
+      // Si l'utilisateur est déjà suivi (erreur 400), c'est considéré comme un succès
+      if (error?.response?.status === 400) {
+        return true;
       }
       
       return false;
     }
-  }, [user, subscriptions]); // Enlever refreshSubscriptions pour éviter les boucles
+  }, [user, subscriptions]);
 
   const unfollowUser = React.useCallback(async (userId: string): Promise<boolean> => {
     if (!user) return false; // Vérifier si l'utilisateur est connecté
@@ -158,13 +155,14 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     const isFollowing = subscriptions.some(sub => 
       sub.id === userId || sub.username === userId
     );
-    if (!isFollowing) {      return false; // Retourner false car ce n'est pas cohérent avec l'état affiché
+    if (!isFollowing) {
+      return true; // Retourner true car l'utilisateur n'est déjà plus suivi
     }
     
     try {
       const response = await subscriptionsAPI.unfollowUser(userId);
       if (response.success) {
-        // Mettre à jour l'état local (par ID et username)
+        // Mettre à jour l'état local SEULEMENT - pas de refresh pour éviter le clignotement
         setSubscriptions(prev => prev.filter(sub => 
           sub.id !== userId && sub.username !== userId
         ));
@@ -173,17 +171,13 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         // Forcer l'invalidation des suggestions pour que la personne réapparaisse dans les suggestions
         setSuggestionsCacheKey(Date.now());
         
-        // Forcer le rafraîchissement des données pour synchroniser
-        await refreshSubscriptions();
         return true;
       }
       return false;
     } catch (error: any) {      
-      // En cas d'erreur, forcer le rafraîchissement
-      await refreshSubscriptions();
       return false;
     }
-  }, [user, subscriptions]); // Enlever refreshSubscriptions pour éviter les boucles
+  }, [user, subscriptions]);
 
   const blockUser = React.useCallback(async (userId: string): Promise<boolean> => {
     if (!user) return false; // Vérifier si l'utilisateur est connecté
@@ -439,17 +433,16 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     }
   }, [user, subscriptions, blockedUsers, suggestionsCacheKey]);
 
-  // Méthode pour invalider le cache et forcer une mise à jour
-  const invalidateCache = React.useCallback(async () => {    if (user) {
-      loadedForUser.current = null; // Forcer un rechargement
-      // Forcer la régénération des suggestions
+  // Méthode pour invalider le cache et forcer une mise à jour SEULEMENT si nécessaire
+  const invalidateCache = React.useCallback(async () => {
+    if (user) {
+      // Forcer la régénération des suggestions seulement
       setSuggestionsCacheKey(Date.now());
-      // Attendre que les données soient rechargées
-      await Promise.all([
-        refreshSubscriptions(),
-        loadBlockedUsers()
-      ]);    }
-  }, [user]); // Enlever les fonctions pour éviter les boucles
+      
+      // NE PAS recharger les abonnements automatiquement pour éviter le clignotement
+      // Le rechargement se fera au prochain mount de composant si nécessaire
+    }
+  }, [user]);
 
   const value: SubscriptionContextType = {
     subscriptions,

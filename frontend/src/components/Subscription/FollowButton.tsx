@@ -58,11 +58,11 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         );
         setIsFollowBack(userFollowsMe && !isFollowingSyncValue);
         
-        // Double-vérification asynchrone seulement si nécessaire
-        const isFollowingUser = await isFollowing(userId);
-        if (isFollowingUser !== isFollowingSyncValue) {          setFollowing(isFollowingUser);
-          invalidateCache(); // Forcer la resynchronisation
-        }      } catch (error) {      }
+        // CORRECTION CLIGNOTEMENT: Supprimer la double vérification asynchrone qui cause le clignotement
+        // La vérification synchrone avec le cache est suffisante pour éviter les conflits d'état
+      } catch (error) {
+        // Gestion d'erreur silencieuse
+      }
     };
 
     if (userId) {
