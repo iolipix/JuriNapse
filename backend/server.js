@@ -174,6 +174,22 @@ app.use('/', require('./routes/sitemap.routes')); // Route pour le sitemap
 app.use('/seo', prerenderRoutes); // Routes pré-rendues pour SEO
 app.use('/', botDetection); // Middleware de détection automatique des bots
 
+// Middleware pour capturer les 404 avec debug
+app.use('/api', (req, res, next) => {
+  // Si aucune route API n'a matché, retourner une 404 avec info de debug
+  res.status(404).json({
+    success: false,
+    error: 'Route non trouvée',
+    debug: {
+      method: req.method,
+      path: req.path,
+      originalUrl: req.originalUrl,
+      timestamp: new Date().toISOString(),
+      userAgent: req.get('User-Agent')
+    }
+  });
+});
+
 // Configuration Socket.io
 io.on('connection', (socket) => {
   console.log('🔌 Nouvelle connexion Socket.io:', socket.id);
@@ -289,12 +305,11 @@ const startServer = async () => {
     // Nettoyage global initial au démarrage
     (async () => {
       try {
-        console.log('🧹 [STARTUP] Maintenance cleanup ALL...');
+        // Réduction des logs - exécution en arrière-plan
         const { maintenanceCleanupAll } = require('./scripts/maintenanceCleanupAll');
         await maintenanceCleanupAll({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true, ignoreSystemAccounts: true });
-        console.log('✅ [STARTUP] Maintenance cleanup ALL terminé');
       } catch (e) {
-        console.error('⚠️ [STARTUP] Échec maintenance cleanup ALL:', e.message);
+        console.error('⚠️ [STARTUP] Échec maintenance cleanup:', e.message);
       }
     })();
     server.listen(PORT, '0.0.0.0', () => {

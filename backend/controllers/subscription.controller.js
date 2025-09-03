@@ -14,6 +14,9 @@ const getUserSubscriptions = async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
     }
+
+    // Debug pour theophane_mry
+    const isTheophane = userId === '68b25c61a29835348429424a';
     
     // Normaliser les IDs pour la cohérence frontend
     const normalizedSubscriptions = (user.following || []).map(user => ({
@@ -25,16 +28,30 @@ const getUserSubscriptions = async (req, res) => {
       ...user.toObject(),
       id: user._id.toString()
     }));
-    
-    res.json({
+
+    const response = {
       success: true,
       subscriptions: normalizedSubscriptions,
       followers: normalizedFollowers,
       followingCount: user.followingCount || 0,
-      followersCount: user.followersCount || 0
-    });
+      followersCount: user.followersCount || 0,
+      // Debug info pour F12
+      ...(isTheophane && {
+        debug: {
+          userId,
+          username: user.username,
+          role: user.role,
+          rawFollowing: user.following?.length || 0,
+          rawFollowers: user.followers?.length || 0,
+          timestamp: new Date().toISOString()
+        }
+      })
+    };
+
+    res.json(response);
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Erreur serveur' });
+    console.error('Erreur getUserSubscriptions:', error.message);
+    res.status(500).json({ success: false, error: 'Erreur serveur', debug: { userId: req.user?.id, timestamp: new Date().toISOString() } });
   }
 };
 
