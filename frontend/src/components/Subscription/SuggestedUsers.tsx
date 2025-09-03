@@ -28,7 +28,6 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
   }
   
   const [allUsers, setAllUsers] = useState<LocalUser[]>([]);
-  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -40,20 +39,36 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     // Recharger quand l'utilisateur change
     if (user) {
       loadUsers();
-      loadSuggestedUsers();
     }
   }, [user]); // Seulement quand l'utilisateur change
 
-  const loadSuggestedUsers = async () => {
-    if (!user) return;
+  const getSuggestedUsers = () => {
+    if (!user || !Array.isArray(allUsers)) return [];
     
-    try {
-      const suggestions = await getContextSuggestedUsers();
-      setSuggestedUsers(suggestions.slice(0, 5)); // Double sécurité pour la limite
-    } catch (error) {
-      console.error('Erreur lors du chargement des suggestions:', error);
-      setSuggestedUsers([]);
-    }
+    const filtered = allUsers.filter(suggestedUser => {
+      // Exclure l'utilisateur actuel
+      if (suggestedUser.username === user.username) {
+        return false;
+      }
+
+      const userIdentifier = suggestedUser.username;
+      
+      // Calculer si l'utilisateur est actuellement suivi (selon la base de données)
+      const isFollowingFromDB = isFollowingSync(userIdentifier);
+      
+      // Comportement différentiel :
+      // - Exclure seulement les utilisateurs qu'on suit depuis la base de données (pas ceux récemment suivis)
+      // - Les utilisateurs récemment suivis restent visibles jusqu'au refresh
+      // - Les utilisateurs récemment unfollowés restent aussi visibles jusqu'au refresh
+      
+      if (isFollowingFromDB && !recentlyFollowed.has(userIdentifier) && !recentlyUnfollowed.has(userIdentifier)) {
+        return false; // Cacher seulement ceux déjà suivis en base (pas les nouveaux)
+      }
+      return true; // Afficher tous les autres
+    });
+    
+    // LIMITE IMPORTANTE : Maximum 5 suggestions
+    return filtered.slice(0, 5);
   };
 
   const loadUsers = async () => {
@@ -110,30 +125,28 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     }
   };
 
-  const getSuggestedUsers = () => {
-    if (!user || !Array.isArray(allUsers)) return [];
-    
-    return allUsers.filter(suggestedUser => {
-      // Exclure l'utilisateur actuel
-      if (suggestedUser.username === user.username) {
-        return false;
-      }
+  // Fonction helper pour convertir LocalUser vers User
+  const convertLocalUserToUser = (localUser: LocalUser): User => {
+    return {
+      id: localUser._id,
+      username: localUser.username,
+      email: '', // Pas disponible dans LocalUser
+      firstName: '', // Pas disponible dans LocalUser
+      lastName: '', // Pas disponible dans LocalUser
+      profilePicture: localUser.profilePicture,
+      isStudent: localUser.isStudent,
+      university: localUser.university,
+      joinedAt: new Date(), // Date par défaut
+    } as User;
+  };
 
-      const userIdentifier = suggestedUser.username;
-      
-      // Calculer si l'utilisateur est actuellement suivi (selon la base de données)
-      const isFollowingFromDB = isFollowingSync(userIdentifier);
-      
-      // Comportement différentiel :
-      // - Exclure seulement les utilisateurs qu'on suit depuis la base de données (pas ceux récemment suivis)
-      // - Les utilisateurs récemment suivis restent visibles jusqu'au refresh
-      // - Les utilisateurs récemment unfollowés restent aussi visibles jusqu'au refresh
-      
-      if (isFollowingFromDB && !recentlyFollowed.has(userIdentifier) && !recentlyUnfollowed.has(userIdentifier)) {
-        return false; // Cacher seulement ceux déjà suivis en base (pas les nouveaux)
-      }
-      return true; // Afficher tous les autres
-    });
+  // Fonction helper pour les appels follow/unfollow
+  const handleFollowLocal = (localUser: LocalUser) => {
+    handleFollow(convertLocalUserToUser(localUser));
+  };
+
+  const handleUnfollowLocal = (localUser: LocalUser) => {
+    handleUnfollow(convertLocalUserToUser(localUser));
   };
 
   if (isLoading) {
@@ -158,6 +171,8 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     );
   }
 
+  const suggestedUsers = getSuggestedUsers();
+
   return (
     <div className="suggested-users">
       <h3>Suggestions pour vous</h3>
@@ -172,12 +187,12 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
             
             // Détection du follow-back - l'utilisateur nous suit mais on ne le suit pas
             const isFollowBack = followers.some(follower => 
-              (follower.id === suggestedUser.id) || 
-              ((follower as any)._id === suggestedUser.id)
+              (follower.id === suggestedUser._id) || 
+              ((follower as any)._id === suggestedUser._id)
             ) && !isCurrentlyFollowing;
             
             return (
-              <div key={suggestedUser.id} className="suggestion-item">
+              <div key={suggestedUser._id} className="suggestion-item">
                 <div className="user-info">
                   <img 
                     src={(() => {
@@ -216,7 +231,7 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
                 </div>
                 
                 <button
-                  onClick={() => isCurrentlyFollowing ? handleUnfollow(suggestedUser) : handleFollow(suggestedUser)}
+                  onClick={() => isCurrentlyFollowing ? handleUnfollowLocal(suggestedUser) : handleFollowLocal(suggestedUser)}
                   className={`follow-btn ${isCurrentlyFollowing ? 'following' : (isFollowBack ? 'follow-back' : 'not-following')}`}
                   disabled={false}
                 >
