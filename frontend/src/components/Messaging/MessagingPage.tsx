@@ -21,6 +21,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   const { getConnections } = useSubscription();
   const messagingContext = useMessaging();
   const { 
+    groups,
     getVisibleGroups, 
     messages, 
     lastMessages, 
