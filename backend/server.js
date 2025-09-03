@@ -164,7 +164,7 @@ app.use('/api/notifications', socketMiddleware, notificationRoutes); // Socket.i
 app.use('/api/users', userRoutes);
 app.use('/api/groups', socketMiddleware, groupRoutes); // Socket.io seulement pour les groupes
 app.use('/api/messages', middlewareMessagesOrphelins, socketMiddleware, messageRoutes); // Nettoyage auto + Socket.io pour messages
-app.use('/api/subscriptions', socketMiddleware, subscriptionRoutes); // Socket.io pour les notifications d'abonnement
+app.use('/api/subscriptions', subscriptionRoutes); // TEMP: Test sans socketMiddleware pour debug 404
 app.use('/api/admin', adminRoutes); // Routes d'administration
 app.use('/api/diagnostic', diagnosticRoutes); // Routes de diagnostic
 app.use('/', seoRoutes); // Routes SEO (sitemap, robots.txt)
