@@ -225,6 +225,15 @@ const startServer = async () => {
     console.log('🚀 Démarrage du serveur...');
     await connectDB();
     console.log('✅ Base de données connectée');
+    
+    // Initialiser l'administrateur par défaut
+    try {
+      const { initializeDefaultAdmin } = require('./controllers/admin.controller');
+      await initializeDefaultAdmin();
+    } catch (error) {
+      console.error('⚠️ Erreur initialisation admin par défaut:', error.message);
+    }
+    
     // Nettoyage global initial au démarrage
     (async () => {
       try {

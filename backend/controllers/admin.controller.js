@@ -202,7 +202,37 @@ const quickRepairCounters = async (req, res) => {
     }
 };
 
-module.exports = { repairSubscriptionCounters, quickRepairCounters, getAllUsers, updateUserRole, getRoleStats, toggleUserActive };
+module.exports = { repairSubscriptionCounters, quickRepairCounters, getAllUsers, updateUserRole, getRoleStats, toggleUserActive, initializeDefaultAdmin };
+
+/**
+ * Initialise l'administrateur par défaut si défini dans les variables d'environnement
+ * Cette fonction est appelée au démarrage du serveur
+ */
+const initializeDefaultAdmin = async () => {
+  try {
+    const defaultAdminId = process.env.DEFAULT_ADMIN_USER_ID;
+    
+    if (!defaultAdminId) {
+      return; // Pas d'admin par défaut configuré
+    }
+    
+    const user = await User.findById(defaultAdminId);
+    
+    if (!user) {
+      console.log('⚠️ Utilisateur admin par défaut non trouvé avec ID:', defaultAdminId);
+      return;
+    }
+    
+    if (user.role !== 'administrator') {
+      user.role = 'administrator';
+      await user.save();
+      console.log('✅ Admin par défaut configuré:', user.username);
+    }
+    
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'initialisation de l\'admin par défaut:', error);
+  }
+};
 
 /**
  * Obtenir tous les utilisateurs (admin/modérateur uniquement)
