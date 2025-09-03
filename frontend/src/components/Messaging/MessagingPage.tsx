@@ -109,6 +109,28 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   // Le handleNewMessage pour la réactivation automatique est géré dans MessagingContext_new.tsx
   // Plus besoin de polling - on utilise uniquement Socket.io pour les notifications
 
+  // Auto-suppression des notifications de succès après 4 secondes
+  useEffect(() => {
+    if (showSuccessMessage) {
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(null);
+      }, 4000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessMessage]);
+
+  // Auto-suppression des notifications d'erreur après 5 secondes (un peu plus long pour les erreurs)
+  useEffect(() => {
+    if (showErrorMessage) {
+      const timer = setTimeout(() => {
+        setShowErrorMessage(null);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showErrorMessage]);
+
   // Surveiller les changements de replyingToMessage
   useEffect(() => {
     // Effet vide pour supprimer les anciens logs
@@ -2986,6 +3008,12 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
               <Check className="h-4 w-4" />
             </div>
             <span className="font-medium">{showSuccessMessage}</span>
+            <button 
+              onClick={() => setShowSuccessMessage(null)}
+              className="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
@@ -2998,6 +3026,12 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
               <X className="h-4 w-4" />
             </div>
             <span className="font-medium">{showErrorMessage}</span>
+            <button 
+              onClick={() => setShowErrorMessage(null)}
+              className="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
