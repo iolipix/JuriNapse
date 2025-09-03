@@ -430,7 +430,9 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
         
         return !shouldExclude;
       });      
-      return suggestedUsers;
+      
+      // Limiter les suggestions à 5 utilisateurs maximum
+      return suggestedUsers.slice(0, 5);
     } catch (error) {      return [];
     }
   }, [user, subscriptions, blockedUsers, suggestionsCacheKey]);
