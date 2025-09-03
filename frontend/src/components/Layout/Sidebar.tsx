@@ -90,20 +90,22 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay - Ne couvre pas le bandeau bêta */}
       {isMobileMenuOpen && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          style={{ 
+            pointerEvents: 'auto',
+            top: '128px' /* Navbar (64px) + BetaBanner (~64px) */
+          }}
           onClick={() => setIsMobileMenuOpen(false)}
-          style={{ pointerEvents: 'auto' }}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`
         fixed left-0 w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col
-        top-36 h-[calc(100vh-9rem)]
-        lg:top-28 lg:h-[calc(100vh-7rem)]
+        top-28 h-[calc(100vh-7rem)]
         lg:translate-x-0
         ${isMobileMenuOpen 
           ? 'transform translate-x-0 z-35' 
