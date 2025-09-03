@@ -40,6 +40,10 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   // Charger le statut de suivi au montage et à chaque changement des abonnements
   useEffect(() => {
     const loadFollowStatus = async () => {
+      // Debug temporaire
+      console.log('🔄 FollowButton - loadFollowStatus pour userId:', userId);
+      console.log('⏳ isLoading:', isLoading);
+      
       // Ne pas recharger si une action est en cours
       if (isLoading) {        return;
       }
@@ -47,6 +51,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       try {        
         // Utiliser d'abord le cache synchrone, puis vérifier async si nécessaire
         const isFollowingSyncValue = isFollowingSync(userId);
+        console.log('📊 FollowButton - isFollowingSyncValue:', isFollowingSyncValue);
         setFollowing(isFollowingSyncValue);
         setConnection(isConnection(userId));
         
