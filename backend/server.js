@@ -167,6 +167,17 @@ app.use('/api/messages', middlewareMessagesOrphelins, socketMiddleware, messageR
 app.use('/api/subscriptions', subscriptionRoutes); // TEMP: Test sans socketMiddleware pour debug 404
 app.use('/api/admin', adminRoutes); // Routes d'administration
 app.use('/api/diagnostic', diagnosticRoutes); // Routes de diagnostic
+
+// EMERGENCY: Test route simple pour debug
+app.get('/api/test-subscriptions', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Route de test fonctionne', 
+    timestamp: new Date().toISOString(),
+    routes_loaded: 'subscription routes should work now'
+  });
+});
+
 app.use('/', seoRoutes); // Routes SEO (sitemap, robots.txt)
 app.use('/', require('./routes/sitemap.routes')); // Route pour le sitemap
 
