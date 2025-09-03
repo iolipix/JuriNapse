@@ -57,6 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isStudent: userData.isStudent,
     bio: userData.bio,
     profilePicture: fixProfilePictureUrl(userData.profilePicture), // Fix des URLs Vercel → Railway
+    role: userData.role || 'user', // Ajouter le rôle utilisateur
     joinedAt: new Date(userData.joinedAt)
   }), []);
 

@@ -239,7 +239,7 @@ const startServer = async () => {
       try {
         console.log('🧹 [STARTUP] Maintenance cleanup ALL...');
         const { maintenanceCleanupAll } = require('./scripts/maintenanceCleanupAll');
-  await maintenanceCleanupAll({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true, ignoreSystemAccounts: true });
+        await maintenanceCleanupAll({ dryRun: false, includeSystem: true, forceAllIfNoUsers: true, ignoreSystemAccounts: true });
         console.log('✅ [STARTUP] Maintenance cleanup ALL terminé');
       } catch (e) {
         console.error('⚠️ [STARTUP] Échec maintenance cleanup ALL:', e.message);
