@@ -75,20 +75,16 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   const refreshSubscriptions = React.useCallback(async () => {
     if (!user) return; // Ne pas charger si l'utilisateur n'est pas connecté
     
-    console.log('🔄 Chargement des subscriptions pour user:', user.id);
     setIsLoading(true);
     try {
       const response = await subscriptionsAPI.getUserSubscriptions();
-      console.log('📥 Réponse API subscriptions:', response);
       if (response.success) {
-        console.log('✅ Subscriptions chargées:', response.subscriptions?.length || 0);
         setSubscriptions(response.subscriptions || []);
         setFollowers(response.followers || []);
         setFollowingCount(response.followingCount || 0);
         setFollowersCount(response.followersCount || 0);
       }
     } catch (error) {
-      console.error('❌ Erreur chargement subscriptions:', error);
     } finally {
       setIsLoading(false);
     }
@@ -246,20 +242,13 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
   const isFollowingSync = React.useCallback((userId: string): boolean => {
     if (!user) return false;
     
-    // Debug temporaire
-    console.log('🔍 isFollowingSync - Recherche pour userId:', userId);
-    console.log('📝 Subscriptions dans cache:', subscriptions.map(sub => ({ id: sub.id, username: sub.username })));
-    
     // Rechercher par ID ou par username pour gérer les incohérences
     const matchingSubscription = subscriptions.find(sub => 
       sub.id === userId || 
       sub.username === userId
     );
     
-    console.log('✅ Subscription trouvée:', matchingSubscription ? { id: matchingSubscription.id, username: matchingSubscription.username } : 'AUCUNE');
-    
     const result = !!matchingSubscription;
-    console.log('🎯 Résultat isFollowing:', result);
     return result;
   }, [user, subscriptions]);
 

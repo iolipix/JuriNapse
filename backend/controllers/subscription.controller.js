@@ -8,17 +8,28 @@ const getUserSubscriptions = async (req, res) => {
     const userId = req.user.id;
     
     const user = await User.findById(userId)
-      .populate('following', 'username firstName lastName profilePicture bio university')
-      .populate('followers', 'username firstName lastName profilePicture bio university');
+      .populate('following', '_id username firstName lastName profilePicture bio university')
+      .populate('followers', '_id username firstName lastName profilePicture bio university');
     
     if (!user) {
       return res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
     }
     
+    // Normaliser les IDs pour la cohérence frontend
+    const normalizedSubscriptions = (user.following || []).map(user => ({
+      ...user.toObject(),
+      id: user._id.toString()
+    }));
+    
+    const normalizedFollowers = (user.followers || []).map(user => ({
+      ...user.toObject(),
+      id: user._id.toString()
+    }));
+    
     res.json({
       success: true,
-      subscriptions: user.following || [],
-      followers: user.followers || [],
+      subscriptions: normalizedSubscriptions,
+      followers: normalizedFollowers,
       followingCount: user.followingCount || 0,
       followersCount: user.followersCount || 0
     });
