@@ -11,6 +11,11 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Z-index personnalisé pour le menu mobile */
+  .z-35 {
+    z-index: 35;
+  }
 }
 
 /* Styles pour le thème sombre */
