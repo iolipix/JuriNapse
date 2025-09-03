@@ -233,6 +233,58 @@ const startServer = async () => {
     } catch (error) {
       console.error('⚠️ Erreur initialisation admin par défaut:', error.message);
     }
+
+    // Script d'urgence pour réparer les abonnements de theophane_mry
+    if (process.env.RUN_FIX_SCRIPT === 'true') {
+      try {
+        console.log('🔧 [EMERGENCY] Exécution du script de réparation des abonnements...');
+        
+        const mongoose = require('mongoose');
+        const User = require('./models/user.model');
+
+        const theophaneId = '68b25c61a29835348429424a';
+        const user = await User.findById(theophaneId);
+        
+        if (!user) {
+          console.log('❌ [EMERGENCY] Utilisateur theophane_mry non trouvé !');
+        } else {
+          console.log(`✅ [EMERGENCY] Utilisateur trouvé: ${user.username} (${user.role})`);
+          console.log(`[EMERGENCY] État actuel - Following: ${user.following?.length || 0}, Followers: ${user.followers?.length || 0}`);
+          
+          // Si les tableaux sont vides, essayer de les restaurer
+          if (!user.following || user.following.length === 0) {
+            console.log('⚠️ [EMERGENCY] Tableau "following" vide, tentative de restauration...');
+            
+            const usersFollowingTheophane = await User.find({
+              following: mongoose.Types.ObjectId(theophaneId)
+            }).select('_id username');
+            
+            const potentialFollowing = await User.find({
+              followers: mongoose.Types.ObjectId(theophaneId)
+            }).select('_id username');
+            
+            console.log(`[EMERGENCY] Trouvé ${usersFollowingTheophane.length} followers et ${potentialFollowing.length} following potentiels`);
+            
+            if (usersFollowingTheophane.length > 0 || potentialFollowing.length > 0) {
+              user.followers = usersFollowingTheophane.map(u => u._id);
+              user.followersCount = usersFollowingTheophane.length;
+              user.following = potentialFollowing.map(u => u._id);
+              user.followingCount = potentialFollowing.length;
+              
+              await user.save();
+              console.log('✅ [EMERGENCY] Abonnements restaurés !');
+              console.log(`[EMERGENCY] État final - Following: ${user.followingCount}, Followers: ${user.followersCount}`);
+            }
+          } else {
+            console.log('ℹ️ [EMERGENCY] Abonnements déjà présents, aucune action nécessaire');
+          }
+        }
+        
+        console.log('🎯 [EMERGENCY] Script de réparation terminé');
+      } catch (error) {
+        console.error('❌ [EMERGENCY] Erreur script de réparation:', error.message);
+      }
+    }
     
     // Nettoyage global initial au démarrage
     (async () => {
