@@ -18,7 +18,7 @@ const getApiBaseUrl = () => {
   return import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://jurinapse-production.up.railway.app';
 };
 
-const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = getApiBaseUrl(); // Force redeploy
 
 export interface Group {
   id: string;
