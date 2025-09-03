@@ -1282,10 +1282,20 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     try {
       await groupsAPI.deleteHistory(groupId);
 
-      // Recharger les messages pour refléter la suppression de l'historique
-      await loadMessages(groupId);
-      // Recharger aussi les conversations pour mettre à jour le dernier message affiché
+      // Supprimer tous les messages locaux pour ce groupe
+      setMessages(prevMessages => prevMessages.filter(msg => msg.groupId !== groupId));
+      
+      // Supprimer le dernier message pour ce groupe
+      setLastMessages(prev => {
+        const updated = { ...prev };
+        delete updated[groupId];
+        return updated;
+      });
+
+      // Recharger les conversations pour mettre à jour la liste
       await loadGroups();
+      
+      // Note: On ne recharge pas les messages du groupe car ils sont maintenant vides
       
     } catch (error) {
       console.error('Erreur lors de la suppression de l\'historique:', error);
