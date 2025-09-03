@@ -4,22 +4,6 @@ import { useSocket } from './SocketContext';
 import { User } from '../types';
 import { groupsAPI, messagesAPI } from '../services/api';
 
-// Configuration de l'URL de l'API (même logique que dans api.ts)
-const getApiBaseUrl = () => {
-  // TEMPORAIRE: Forcer Railway même en dev pour tester les statistiques personnelles
-  return 'https://jurinapse-production.up.railway.app';
-  
-  // Si nous sommes en développement local, utiliser le proxy
-  if (import.meta.env.DEV) {
-    return '';
-  }
-  
-  // En production, utiliser la variable d'environnement ou l'URL Railway par défaut
-  return import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'https://jurinapse-production.up.railway.app';
-};
-
-const API_BASE_URL = getApiBaseUrl(); // Force redeploy
-
 export interface Group {
   id: string;
   name: string;
@@ -1276,17 +1260,7 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     if (!groupId) return;
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/groups/${groupId}/delete-history`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la suppression de l\'historique');
-      }
+      await groupsAPI.deleteHistory(groupId);
 
       // Recharger les messages pour refléter la suppression de l'historique
       await loadMessages(groupId);
