@@ -202,8 +202,6 @@ const quickRepairCounters = async (req, res) => {
     }
 };
 
-module.exports = { repairSubscriptionCounters, quickRepairCounters, getAllUsers, updateUserRole, getRoleStats, toggleUserActive, initializeDefaultAdmin };
-
 /**
  * Initialise l'administrateur par défaut si défini dans les variables d'environnement
  * Cette fonction est appelée au démarrage du serveur
@@ -439,4 +437,14 @@ const toggleUserActive = async (req, res) => {
       message: 'Erreur lors de la modification du statut'
     });
   }
+};
+
+module.exports = { 
+  repairSubscriptionCounters, 
+  quickRepairCounters, 
+  getAllUsers, 
+  updateUserRole, 
+  getRoleStats, 
+  toggleUserActive, 
+  initializeDefaultAdmin 
 };
