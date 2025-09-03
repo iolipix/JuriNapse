@@ -25,8 +25,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     getVisibleGroups, 
     messages, 
     lastMessages, 
-    loadMessages,
-    loadGroups, 
+    loadMessages, 
     loadMoreMessages, 
     canLoadMoreMessages, 
     isLoadingMessages, 
@@ -875,14 +874,10 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         // Conversation existante trouvée, l'ouvrir (même si elle était vide/cachée)
         setActiveGroupId(existingPrivateChat.id);
         
-        // Forcer le rechargement des groupes pour que la conversation réapparaisse dans la liste si nécessaire
-        await messagingContext.loadGroups();
-        
         // Charger les messages (même s'il n'y en a pas)
         await loadMessages(existingPrivateChat.id);
         
         setShowNewChat(false);
-        return;
         return;
       }
       
