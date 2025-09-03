@@ -860,7 +860,7 @@ const PostCard: React.FC<PostCardProps> = ({
                     e.stopPropagation();
                     handleShowLikes(e);
                   }}
-                  className={`text-sm font-medium ${post.likes > 0 ? 'hover:underline cursor-pointer' : 'cursor-default'}`}
+                  className={`text-sm font-medium text-gray-500 ${post.likes > 0 ? 'hover:underline cursor-pointer' : 'cursor-default'}`}
                 >
                   {post.likes}
                 </span>
