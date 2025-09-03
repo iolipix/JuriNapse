@@ -181,7 +181,7 @@ interface MessagingProviderProps {
 export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const { socket, joinGroup: joinGroupSocket, leaveGroup: leaveGroupSocket } = useSocket();
-  const { subscriptions } = useSubscription();
+  const { subscriptions, followers } = useSubscription();
   const [groups, setGroups] = useState<Group[]>([]);
   const [privateConversations, _setPrivateConversations] = useState<PrivateConversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -1006,10 +1006,18 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     // Obtenir les IDs des membres actuels du groupe
     const currentMemberIds = new Set(group.members.map(member => member.id));
     
-    // Retourner les connexions (utilisateurs suivis) qui ne sont pas encore membres
-    return (subscriptions || []).filter(followedUser => 
-      !currentMemberIds.has(followedUser.id) && followedUser.id !== user.id
-    );
+    // Créer des sets pour faciliter les vérifications de connexions mutuelles
+    const subscriptionIds = new Set((subscriptions || []).map(user => user.id));
+    const followerIds = new Set((followers || []).map(user => user.id));
+    
+    // Retourner seulement les connexions MUTUELLES qui ne sont pas encore membres
+    return (subscriptions || []).filter(followedUser => {
+      const isMutualConnection = followerIds.has(followedUser.id);
+      const isNotCurrentUser = followedUser.id !== user.id;
+      const isNotAlreadyMember = !currentMemberIds.has(followedUser.id);
+      
+      return isMutualConnection && isNotCurrentUser && isNotAlreadyMember;
+    });
   };
 
   const canManageGroup = (groupId: string): boolean => {
