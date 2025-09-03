@@ -85,6 +85,12 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  // Système de rôles utilisateur
+  role: {
+    type: String,
+    enum: ['user', 'moderator', 'administrator'],
+    default: 'user'
+  },
   // Champs pour le système d'utilisateur supprimé
   isDeleted: {
     type: Boolean,

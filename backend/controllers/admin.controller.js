@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const User = require('../models/user.model');
+const { hasRoleLevel } = require('../middleware/roleAuth');
 
 /**
  * Route d'administration pour réparer les compteurs d'abonnements
@@ -201,4 +202,211 @@ const quickRepairCounters = async (req, res) => {
     }
 };
 
-module.exports = { repairSubscriptionCounters, quickRepairCounters };
+module.exports = { repairSubscriptionCounters, quickRepairCounters, getAllUsers, updateUserRole, getRoleStats, toggleUserActive };
+
+/**
+ * Obtenir tous les utilisateurs (admin/modérateur uniquement)
+ */
+const getAllUsers = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '', role = '' } = req.query;
+    
+    // Construire le filtre de recherche
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (role && ['user', 'moderator', 'administrator'].includes(role)) {
+      filter.role = role;
+    }
+
+    const users = await User.find(filter)
+      .select('username email firstName lastName role isActive createdAt university')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .lean();
+
+    const total = await User.countDocuments(filter);
+
+    res.json({
+      success: true,
+      users,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalUsers: total,
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des utilisateurs'
+    });
+  }
+};
+
+/**
+ * Mettre à jour le rôle d'un utilisateur (admin uniquement)
+ */
+const updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+    const currentUser = req.user;
+
+    // Valider le rôle
+    if (!['user', 'moderator', 'administrator'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rôle invalide'
+      });
+    }
+
+    // Récupérer l'utilisateur cible
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+
+    // Empêcher l'utilisateur de modifier son propre rôle
+    if (currentUser.id === userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vous ne pouvez pas modifier votre propre rôle'
+      });
+    }
+
+    // Seul un administrateur peut créer d'autres administrateurs
+    if (role === 'administrator' && currentUser.role !== 'administrator') {
+      return res.status(403).json({
+        success: false,
+        message: 'Seul un administrateur peut nommer d\'autres administrateurs'
+      });
+    }
+
+    // Mettre à jour le rôle
+    targetUser.role = role;
+    await targetUser.save();
+
+    res.json({
+      success: true,
+      message: `Rôle mis à jour avec succès`,
+      user: {
+        id: targetUser._id,
+        username: targetUser.username,
+        role: targetUser.role
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du rôle:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la mise à jour du rôle'
+    });
+  }
+};
+
+/**
+ * Obtenir les statistiques des rôles (admin uniquement)
+ */
+const getRoleStats = async (req, res) => {
+  try {
+    const stats = await User.aggregate([
+      {
+        $group: {
+          _id: '$role',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Assurer que tous les rôles sont présents
+    const roles = ['user', 'moderator', 'administrator'];
+    const formattedStats = roles.map(role => {
+      const stat = stats.find(s => s._id === role);
+      return {
+        role,
+        count: stat ? stat.count : 0
+      };
+    });
+
+    res.json({
+      success: true,
+      stats: formattedStats
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des statistiques:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des statistiques'
+    });
+  }
+};
+
+/**
+ * Désactiver/Activer un utilisateur (modérateur/admin uniquement)
+ */
+const toggleUserActive = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUser = req.user;
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+
+    // Empêcher de désactiver son propre compte
+    if (currentUser.id === userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vous ne pouvez pas désactiver votre propre compte'
+      });
+    }
+
+    // Empêcher un modérateur de désactiver un admin
+    if (targetUser.role === 'administrator' && currentUser.role !== 'administrator') {
+      return res.status(403).json({
+        success: false,
+        message: 'Vous ne pouvez pas désactiver un administrateur'
+      });
+    }
+
+    targetUser.isActive = !targetUser.isActive;
+    await targetUser.save();
+
+    res.json({
+      success: true,
+      message: `Utilisateur ${targetUser.isActive ? 'activé' : 'désactivé'} avec succès`,
+      user: {
+        id: targetUser._id,
+        username: targetUser.username,
+        isActive: targetUser.isActive
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la modification du statut:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la modification du statut'
+    });
+  }
+};

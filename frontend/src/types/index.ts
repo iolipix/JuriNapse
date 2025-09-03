@@ -9,6 +9,7 @@ export interface User {
   university?: string;
   graduationYear?: number;
   isStudent: boolean;
+  role?: 'user' | 'moderator' | 'administrator';
   joinedAt: Date;
 }
 

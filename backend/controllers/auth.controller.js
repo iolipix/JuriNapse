@@ -276,7 +276,8 @@ const login = async (req, res) => {
         graduationYear: user.graduationYear,
         isStudent: user.isStudent,
         bio: user.bio,
-  profilePicture: user.profilePicture || null,
+        profilePicture: user.profilePicture || null,
+        role: user.role || 'user',
         joinedAt: user.createdAt
       }
     });
@@ -313,7 +314,8 @@ const getProfile = async (req, res) => {
         graduationYear: user.graduationYear,
         isStudent: user.isStudent,
         bio: user.bio,
-  profilePicture: user.profilePicture || null,
+        profilePicture: user.profilePicture || null,
+        role: user.role || 'user',
         joinedAt: user.createdAt
       }
     });

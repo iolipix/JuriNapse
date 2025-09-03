@@ -37,7 +37,11 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    req.user = user;
+    // S'assurer que le rôle est défini
+    req.user = {
+      ...user.toObject(),
+      role: user.role || 'user'
+    };
     next();
   } catch (error) {
     return res.status(401).json({
