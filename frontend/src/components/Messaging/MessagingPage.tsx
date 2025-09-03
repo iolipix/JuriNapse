@@ -476,9 +476,9 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         // Si la conversation a des messages, la garder
         if (lastMessage) return true;
         
-        // Pour les conversations vides, ne les garder que si elles sont très récentes (moins d'1 heure)
-        // Cela évite que les conversations dont l'historique a été supprimé restent visibles
-        const isVeryRecent = group.createdAt && new Date(group.createdAt) > new Date(Date.now() - 60 * 60 * 1000); // 1 heure
+        // Pour les conversations vides, ne les garder que si elles sont très récentes (moins de 5 minutes)
+        // Cela permet de voir les nouvelles conversations mais fait disparaître celles dont l'historique a été supprimé
+        const isVeryRecent = group.createdAt && new Date(group.createdAt) > new Date(Date.now() - 5 * 60 * 1000); // 5 minutes
         return isVeryRecent;
       })
       .sort((a, b) => {
