@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { useSocket } from './SocketContext';
+import { useSubscription } from './SubscriptionContext';
 import { User } from '../types';
 import { groupsAPI, messagesAPI } from '../services/api';
 
@@ -180,6 +181,7 @@ interface MessagingProviderProps {
 export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const { socket, joinGroup: joinGroupSocket, leaveGroup: leaveGroupSocket } = useSocket();
+  const { subscriptions } = useSubscription();
   const [groups, setGroups] = useState<Group[]>([]);
   const [privateConversations, _setPrivateConversations] = useState<PrivateConversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -994,10 +996,20 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
     }
   };
 
-  const getAvailableUsersForGroup = (_groupId: string): User[] => {
-    // Cette fonction devrait retourner les utilisateurs disponibles
-    // Pour l'instant, retournons un tableau vide
-    return [];
+  const getAvailableUsersForGroup = (groupId: string): User[] => {
+    if (!user) return [];
+    
+    // Trouver le groupe
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return [];
+    
+    // Obtenir les IDs des membres actuels du groupe
+    const currentMemberIds = new Set(group.members.map(member => member.id));
+    
+    // Retourner les connexions (utilisateurs suivis) qui ne sont pas encore membres
+    return (subscriptions || []).filter(followedUser => 
+      !currentMemberIds.has(followedUser.id) && followedUser.id !== user.id
+    );
   };
 
   const canManageGroup = (groupId: string): boolean => {
