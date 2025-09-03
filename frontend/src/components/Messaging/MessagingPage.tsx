@@ -445,9 +445,16 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     }
   };
 
-  // Utiliser les groupes visibles (non masqués) avec tri optimisé
+  // Utiliser les groupes visibles (non masqués) avec tri optimisé et filtrage des conversations vides
   const allChats = useMemo(() => {
-    return getVisibleGroups().sort((a, b) => {
+    return getVisibleGroups()
+      .filter(group => {
+        const lastMessage = computedLastMessages[group.id];
+        // Conserver les conversations qui ont des messages ou qui ont été créées récemment (moins de 24h)
+        const isRecent = group.createdAt && new Date(group.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000);
+        return lastMessage || isRecent;
+      })
+      .sort((a, b) => {
       const aLastMessage = computedLastMessages[a.id];
       const bLastMessage = computedLastMessages[b.id];
       
