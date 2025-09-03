@@ -25,7 +25,8 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     getVisibleGroups, 
     messages, 
     lastMessages, 
-    loadMessages, 
+    loadMessages,
+    loadGroups, 
     loadMoreMessages, 
     canLoadMoreMessages, 
     isLoadingMessages, 
@@ -477,8 +478,10 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         // Si la conversation a des messages, la garder
         if (lastMessage) return true;
         
-        // Pour les conversations vides, ne les garder que si elles sont très récentes (moins de 5 minutes)
-        // Cela permet de voir les nouvelles conversations mais fait disparaître celles dont l'historique a été supprimé
+        // Si c'est la conversation actuellement active, la garder même si elle est vide
+        if (activeGroupId && group.id === activeGroupId) return true;
+        
+        // Pour les autres conversations vides, ne les garder que si elles sont très récentes (moins de 5 minutes)
         const isVeryRecent = group.createdAt && new Date(group.createdAt) > new Date(Date.now() - 5 * 60 * 1000); // 5 minutes
         return isVeryRecent;
       })
@@ -871,8 +874,15 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
       if (existingPrivateChat) {
         // Conversation existante trouvée, l'ouvrir (même si elle était vide/cachée)
         setActiveGroupId(existingPrivateChat.id);
+        
+        // Forcer le rechargement des groupes pour que la conversation réapparaisse dans la liste si nécessaire
+        await messagingContext.loadGroups();
+        
+        // Charger les messages (même s'il n'y en a pas)
         await loadMessages(existingPrivateChat.id);
+        
         setShowNewChat(false);
+        return;
         return;
       }
       
