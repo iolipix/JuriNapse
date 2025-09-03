@@ -3,9 +3,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { usersAPI } from '../../services/api';
 import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
+import { User } from '../../types';
 import '../Suggestions.css';
 
-interface User {
+interface LocalUser {
   _id: string;
   username: string;
   profilePicture?: string;
@@ -19,14 +20,15 @@ interface SuggestedUsersProps {
 
 const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) => {
   const { user } = useAuth();
-  const { followUser, unfollowUser, isFollowingSync, followers } = useSubscription();
+  const { followUser, unfollowUser, isFollowingSync, followers, getSuggestedUsers: getContextSuggestedUsers } = useSubscription();
   
   // Ne pas afficher les suggestions si l'utilisateur n'est pas connecté
   if (!user) {
     return null;
   }
   
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<LocalUser[]>([]);
+  const [suggestedUsers, setSuggestedUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -38,8 +40,21 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     // Recharger quand l'utilisateur change
     if (user) {
       loadUsers();
+      loadSuggestedUsers();
     }
   }, [user]); // Seulement quand l'utilisateur change
+
+  const loadSuggestedUsers = async () => {
+    if (!user) return;
+    
+    try {
+      const suggestions = await getContextSuggestedUsers();
+      setSuggestedUsers(suggestions.slice(0, 5)); // Double sécurité pour la limite
+    } catch (error) {
+      console.error('Erreur lors du chargement des suggestions:', error);
+      setSuggestedUsers([]);
+    }
+  };
 
   const loadUsers = async () => {
     // Ne pas charger si l'utilisateur n'est pas connecté
@@ -143,8 +158,6 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
     );
   }
 
-  const suggestedUsers = getSuggestedUsers();
-
   return (
     <div className="suggested-users">
       <h3>Suggestions pour vous</h3>
@@ -159,12 +172,12 @@ const SuggestedUsers: React.FC<SuggestedUsersProps> = ({ onViewUserProfile }) =>
             
             // Détection du follow-back - l'utilisateur nous suit mais on ne le suit pas
             const isFollowBack = followers.some(follower => 
-              (follower.id === suggestedUser._id) || 
-              ((follower as any)._id === suggestedUser._id)
+              (follower.id === suggestedUser.id) || 
+              ((follower as any)._id === suggestedUser.id)
             ) && !isCurrentlyFollowing;
             
             return (
-              <div key={suggestedUser._id} className="suggestion-item">
+              <div key={suggestedUser.id} className="suggestion-item">
                 <div className="user-info">
                   <img 
                     src={(() => {
