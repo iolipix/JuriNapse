@@ -95,32 +95,34 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div 
           className="lg:hidden fixed inset-0 bg-black/50 z-40"
           onClick={() => setIsMobileMenuOpen(false)}
+          style={{ pointerEvents: 'auto' }}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-28 left-0 h-[calc(100vh-7rem)] w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col z-30
+        fixed top-28 left-0 h-[calc(100vh-7rem)] w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col
         lg:translate-x-0
         ${isMobileMenuOpen 
-          ? 'transform translate-x-0' 
-          : 'transform -translate-x-full lg:translate-x-0'
+          ? 'transform translate-x-0 z-50' 
+          : 'transform -translate-x-full lg:translate-x-0 z-30'
         }
         transition-transform duration-300 ease-in-out
+        shadow-lg lg:shadow-none
       `}>
         {/* Header mobile avec bouton de fermeture */}
         <div className="lg:hidden flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 z-50"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
         
         {/* Zone de navigation scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 relative z-50">
         <nav className="space-y-2">
           {/* Onglets principaux */}
           {tabs.map((item) => {
@@ -131,11 +133,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => handleTabClick(item.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors relative z-50 cursor-pointer ${
                   isActive 
                     ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
+                style={{ pointerEvents: 'auto' }}
               >
                 <Icon className={`h-5 w-5 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
                 <span className="font-medium">{item.label}</span>
@@ -152,11 +155,12 @@ const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => handleTabClick(item.id, item.requiresAuth)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors relative ${
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors relative z-50 cursor-pointer ${
                   isActive 
                     ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
+                style={{ pointerEvents: 'auto' }}
               >
                 <div className="flex items-center space-x-3">
                   <Icon className={`h-5 w-5 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
