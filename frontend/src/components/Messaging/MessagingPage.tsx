@@ -859,15 +859,16 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     
     try {
       // Vérifier d'abord s'il existe déjà une conversation privée avec cet utilisateur
-      const visibleGroups = getVisibleGroups();
-      const existingPrivateChat = visibleGroups.find(group => 
+      // Chercher dans TOUS les groupes (pas seulement les visibles) pour éviter les doublons
+      const allGroups = groups; // Utiliser tous les groupes au lieu de getVisibleGroups()
+      const existingPrivateChat = allGroups.find(group => 
         group.isPrivate && 
         group.members.length === 2 && 
         group.members.some(member => member.id === userId)
       );
       
       if (existingPrivateChat) {
-        // Conversation existante trouvée, l'ouvrir
+        // Conversation existante trouvée, l'ouvrir (même si elle était vide/cachée)
         setActiveGroupId(existingPrivateChat.id);
         await loadMessages(existingPrivateChat.id);
         setShowNewChat(false);
