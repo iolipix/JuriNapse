@@ -387,12 +387,31 @@ exports.leaveGroup = async (req, res) => {
       });
     }
 
-    // L'admin ne peut pas quitter le groupe, il doit le supprimer
+    // Si c'est l'admin qui quitte et qu'il y a d'autres membres, transférer l'administration
+    let transferredToAdmin = null;
     if (group.adminId.toString() === userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'En tant qu\'administrateur, vous devez supprimer le groupe'
-      });
+      const remainingMembers = group.members.filter(memberId => memberId.toString() !== userId);
+      
+      if (remainingMembers.length === 0) {
+        // Aucun autre membre, supprimer le groupe
+        await Group.findByIdAndDelete(id);
+        
+        return res.status(200).json({
+          success: true,
+          message: 'Groupe supprimé car vous étiez le seul membre'
+        });
+      } else {
+        // Transférer l'administration
+        // 1. Essayer de donner à un modérateur
+        const newAdminId = group.moderatorIds.find(modId => modId.toString() !== userId) || remainingMembers[0];
+        
+        // Récupérer les infos du nouvel admin pour le message
+        transferredToAdmin = await User.findById(newAdminId).select("username").lean();
+        
+        group.adminId = newAdminId;
+        // Retirer le nouvel admin des modérateurs s'il y était
+        group.moderatorIds = group.moderatorIds.filter(modId => modId.toString() !== newAdminId.toString());
+      }
     }
 
     // Récupérer les informations de l'utilisateur qui quitte
@@ -405,8 +424,15 @@ exports.leaveGroup = async (req, res) => {
 
     // Créer un message système pour notifier le départ
     const Message = require('../models/message.model');
+    let systemMessageContent = `${leavingUser.username} a quitté le groupe.`;
+    
+    // Si c'était l'admin et qu'il y a eu transfert d'administration
+    if (transferredToAdmin) {
+      systemMessageContent += ` L'administration a été transférée à ${transferredToAdmin.username}.`;
+    }
+    
     const systemMessage = new Message({
-      content: `${leavingUser.username} a quitté le groupe.`,
+      content: systemMessageContent,
       authorId: userId,
       groupId: id,
       isSystemMessage: true

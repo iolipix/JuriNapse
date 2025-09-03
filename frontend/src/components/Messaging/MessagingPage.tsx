@@ -972,14 +972,21 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   const confirmLeaveGroup = async () => {
     if (showLeaveConfirm) {
-      await leaveGroup(showLeaveConfirm);
-      setShowLeaveConfirm(null);
-      setShowSuccessMessage('Vous avez quitté le groupe avec succès !');
-      
-      // Si c'était la conversation active, la désélectionner
-      if (activeGroupId === showLeaveConfirm) {
-        setActiveGroupId(null);
-        // Plus besoin de stopMessagePolling car la gestion est automatique
+      try {
+        await leaveGroup(showLeaveConfirm);
+        setShowLeaveConfirm(null);
+        setShowSuccessMessage('Vous avez quitté le groupe avec succès !');
+        
+        // Si c'était la conversation active, la désélectionner
+        if (activeGroupId === showLeaveConfirm) {
+          setActiveGroupId(null);
+          // Plus besoin de stopMessagePolling car la gestion est automatique
+        }
+      } catch (error: any) {
+        setShowLeaveConfirm(null);
+        // Afficher l'erreur spécifique du backend
+        const errorMessage = error?.response?.data?.message || error?.message || 'Erreur lors de la sortie du groupe';
+        setShowErrorMessage(errorMessage);
       }
     }
   };
@@ -2751,7 +2758,9 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
                     <span>
                       {activeChat.isPrivate 
                         ? "Supprimer l'historique de la conversation" 
-                        : "Quitter le groupe"
+                        : activeChat.adminId === user.id 
+                          ? "Transférer et quitter le groupe"
+                          : "Quitter le groupe"
                       }
                     </span>
                   </button>
