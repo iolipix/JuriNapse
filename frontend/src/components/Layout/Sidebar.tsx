@@ -216,7 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
 
           {/* Onglets modérateur (visible uniquement pour les modérateurs) */}
-          {user && isModeratorMultiple(user) && !isAdministratorMultiple(user) && moderatorTabs.map((item) => {
+          {user && isModeratorMultiple(user) && moderatorTabs.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             
