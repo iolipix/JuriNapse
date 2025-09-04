@@ -50,7 +50,8 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
     const searchQuery = q.trim();
     
     // Recherche par nom d'utilisateur, prénom, nom ou email
-    // Exclure les utilisateurs qui ont déjà le rôle modérateur ou administrateur
+    // Exclure seulement les utilisateurs qui ont déjà le rôle modérateur
+    // (permettre aux administrateurs de s'ajouter le rôle modérateur)
     const users = await User.find({
       $and: [
         {
@@ -61,11 +62,11 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
             { email: { $regex: searchQuery, $options: 'i' } }
           ]
         },
-        // Exclure ceux qui ont déjà des rôles d'admin/modérateur
+        // Exclure seulement ceux qui ont déjà le rôle modérateur spécifiquement
         {
           $and: [
-            { roles: { $nin: ['moderator', 'administrator'] } }, // Nouveau système
-            { role: { $nin: ['moderator', 'administrator'] } }   // Ancien système pour compatibilité
+            { roles: { $nin: ['moderator'] } }, // Nouveau système - exclure seulement moderator
+            { role: { $ne: 'moderator' } }      // Ancien système - exclure seulement moderator
           ]
         }
       ]
