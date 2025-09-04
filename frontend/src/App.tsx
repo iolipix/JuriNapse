@@ -417,9 +417,12 @@ const MainApp: React.FC = () => {
         window.history.pushState(null, '', '/settings');
         break;
       case 'admin':
+        console.log('🛡️ Navigation vers admin - User:', user);
         if (!user || user.role !== 'administrator') {
+          console.log('❌ Accès admin refusé:', !user ? 'Pas connecté' : 'Pas admin');
           return;
         }
+        console.log('✅ Navigation admin autorisée, URL: /admin');
         window.history.pushState(null, '', '/admin');
         break;
       case 'terms':
@@ -470,6 +473,7 @@ const MainApp: React.FC = () => {
   // Gestion du routage basé sur l'URL - VERSION SIMPLIFIÉE
   const handleRouting = () => {
     const path = window.location.pathname;
+    console.log('🧭 handleRouting appelé avec path:', path);
     
     // Route racine - retour à l'accueil
     if (path === '/' || path === '') {
@@ -625,17 +629,21 @@ const MainApp: React.FC = () => {
 
     // Routes pour l'administration
     if (path === '/admin') {
+      console.log('🔐 Route /admin détectée');
       if (!user) {
+        console.log('❌ Pas d\'utilisateur connecté pour /admin');
         setIsAuthOpen(true);
         return;
       }
       // Vérifier si l'utilisateur est admin
       if (user.role !== 'administrator') {
+        console.log('❌ Utilisateur non-admin tentant d\'accéder à /admin');
         // Rediriger vers l'accueil si pas admin
         window.history.replaceState(null, '', '/');
         setActiveTab('feed');
         return;
       }
+      console.log('✅ Admin autorisé pour /admin');
       setActiveTab('admin');
       setViewingUserId(null);
       setViewingPostId(null);
@@ -646,18 +654,22 @@ const MainApp: React.FC = () => {
     }
     
     if (path.startsWith('/admin/')) {
+      console.log('🔐 Sous-route admin détectée:', path);
       if (!user) {
+        console.log('❌ Pas d\'utilisateur connecté pour sous-route admin');
         setIsAuthOpen(true);
         return;
       }
       // Vérifier si l'utilisateur est admin
       if (user.role !== 'administrator') {
+        console.log('❌ Utilisateur non-admin tentant d\'accéder à sous-route admin');
         // Rediriger vers l'accueil si pas admin
         window.history.replaceState(null, '', '/');
         setActiveTab('feed');
         return;
       }
       const adminPath = path.substring(7); // Enlever "/admin/"
+      console.log('✅ Admin autorisé pour sous-route, adminPath:', adminPath);
       setActiveTab('admin');
       setViewingUserId(null);
       setViewingPostId(null);
