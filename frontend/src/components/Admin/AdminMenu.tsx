@@ -78,19 +78,6 @@ const AdminMenu: React.FC<AdminMenuProps> = ({ onNavigateToTab, onBack }) => {
         </p>
       </div>
 
-      {/* Avertissement */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-        <div className="flex items-start space-x-3">
-          <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
-          <div>
-            <h3 className="text-red-800 font-medium">Zone d'administration</h3>
-            <p className="text-red-700 text-sm mt-1">
-              Vous êtes dans la zone d'administration. Les actions effectuées ici peuvent affecter tous les utilisateurs de la plateforme.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Menu grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {adminMenuItems.map((item) => {

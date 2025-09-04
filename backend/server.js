@@ -58,7 +58,7 @@ const groupRoutes = require('./routes/group.routes');
 const messageRoutes = require('./routes/message.routes');
 const subscriptionRoutes = require('./routes/subscription.routes');
 const seoRoutes = require('./routes/seo.routes');
-const adminRoutes = require('./routes/admin.routes');
+const adminRoutes = require('./routes/admin');
 const prerenderRoutes = require('./routes/prerender.routes');
 const diagnosticRoutes = require('./routes/diagnostic.routes');
 
