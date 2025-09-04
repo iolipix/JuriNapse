@@ -712,7 +712,7 @@ const MainApp: React.FC = () => {
       // Vérifier si l'utilisateur est admin
       if (user.role !== 'administrator') {
         // Rediriger vers l'accueil si pas admin
-        window.history.pushState(null, '', '/');
+        window.history.replaceState(null, '', '/');
         setActiveTab('feed');
         return;
       }
@@ -733,7 +733,7 @@ const MainApp: React.FC = () => {
       // Vérifier si l'utilisateur est admin
       if (user.role !== 'administrator') {
         // Rediriger vers l'accueil si pas admin
-        window.history.pushState(null, '', '/');
+        window.history.replaceState(null, '', '/');
         setActiveTab('feed');
         return;
       }

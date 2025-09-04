@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Shield, Users, FileText, BarChart3, Settings, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface AdminMenuProps {
   onNavigateToTab: (tab: string) => void;
@@ -7,6 +8,28 @@ interface AdminMenuProps {
 }
 
 const AdminMenu: React.FC<AdminMenuProps> = ({ onNavigateToTab, onBack }) => {
+  const { user } = useAuth();
+
+  // Vérifier les permissions d'accès
+  useEffect(() => {
+    if (!user || user.role !== 'administrator') {
+      // Rediriger vers l'accueil si pas admin
+      window.location.href = '/';
+      return;
+    }
+  }, [user]);
+
+  // Ne pas rendre le composant si l'utilisateur n'est pas admin
+  if (!user || user.role !== 'administrator') {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+          <p className="text-gray-600 mt-2">Vérification des permissions...</p>
+        </div>
+      </div>
+    );
+  }
   const adminMenuItems = [
     {
       id: 'moderators',

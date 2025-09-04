@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Users, Shield, Search, X, UserPlus, Crown } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface User {
   _id: string;
@@ -16,16 +17,40 @@ interface ModeratorsManagementProps {
 }
 
 const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [moderators, setModerators] = useState<User[]>([]);
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
 
+  // Vérifier les permissions d'accès
+  useEffect(() => {
+    if (!user || user.role !== 'administrator') {
+      // Rediriger vers l'accueil si pas admin
+      window.location.href = '/';
+      return;
+    }
+  }, [user]);
+
+  // Ne pas rendre le composant si l'utilisateur n'est pas admin
+  if (!user || user.role !== 'administrator') {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 mt-2">Vérification des permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Charger les modérateurs existants
   useEffect(() => {
-    loadModerators();
-  }, []);
+    if (user && user.role === 'administrator') {
+      loadModerators();
+    }
+  }, [user]);
 
   // Rechercher des utilisateurs quand la query change
   useEffect(() => {
@@ -143,12 +168,17 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
     return `@${user.username}`;
   };
 
+  const handleBack = () => {
+    // Utiliser l'historique du navigateur pour revenir à la page précédente
+    window.history.back();
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header avec retour */}
       <div className="mb-8">
         <button
-          onClick={onBack}
+          onClick={handleBack}
           className="flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
