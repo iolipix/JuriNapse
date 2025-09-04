@@ -1,10 +1,6 @@
 const express = require('express');
 const router = express.Router();
-c    .select('username firstName lastName email profilePicture role roles')
-    .limit(20) // Limiter les résultats
-    .sort({ username: 1 });
-
-    res.json({ users });er = require('../models/user.model');
+const User = require('../models/user.model');
 const { authenticateToken } = require('../middleware/auth.middleware');
 
 // Middleware pour vérifier que l'utilisateur est administrateur
