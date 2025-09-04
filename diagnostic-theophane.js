@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const User = require('../models/user.model');
-const Group = require('../models/group.model');
-const Message = require('../models/message.model');
+const User = require('./backend/models/user.model');
+const Group = require('./backend/models/group.model');
+const Message = require('./backend/models/message.model');
 require('dotenv').config({ path: '../config/.env' });
 
 /**

@@ -218,4 +218,64 @@ router.post('/clear-cache', (req, res) => {
     }
 });
 
+// Route de diagnostic pour un utilisateur spécifique (par username ou ID)
+router.get('/user-info/:identifier', async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        
+        let user;
+        
+        // Tenter de trouver par ID MongoDB si c'est un ObjectId valide
+        if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+            user = await User.findById(identifier).select('-password -refreshToken');
+        } else {
+            // Sinon chercher par username ou email
+            user = await User.findOne({
+                $or: [
+                    { username: identifier },
+                    { email: identifier }
+                ]
+            }).select('-password -refreshToken');
+        }
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: `Utilisateur '${identifier}' non trouvé`,
+                searchedFor: identifier,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        res.json({
+            success: true,
+            user: {
+                id: user._id.toString(),
+                username: user.username,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                isDeleted: user.isDeleted,
+                canLogin: user.canLogin,
+                isEmailVerified: user.isEmailVerified,
+                followingCount: user.followingCount || 0,
+                followersCount: user.followersCount || 0,
+                following: user.following?.length || 0,
+                followers: user.followers?.length || 0,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin
+            },
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 module.exports = router;
