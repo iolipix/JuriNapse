@@ -89,14 +89,19 @@ const MainApp: React.FC = () => {
 
   // Gérer la navigation avec les boutons du navigateur
   useEffect(() => {
+    const handlePopState = () => {
+      console.log('🔙 Événement popstate (bouton arrière/avant du navigateur)');
+      handleRouting(true);
+    };
+
     // Écouter les événements de navigation
-    window.addEventListener('popstate', handleRouting);
+    window.addEventListener('popstate', handlePopState);
 
     // Initial route handling au chargement - TOUJOURS exécuter pour gérer F5
     handleRouting();
 
     return () => {
-      window.removeEventListener('popstate', handleRouting);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []); // Supprimer les dépendances pour éviter les re-rendus
 
@@ -492,13 +497,13 @@ const MainApp: React.FC = () => {
   };
 
   // Gestion du routage basé sur l'URL - VERSION SIMPLIFIÉE
-  const handleRouting = () => {
+  const handleRouting = (fromPopState = false) => {
     const path = window.location.pathname;
-    console.log('🧭 handleRouting appelé avec path:', path, 'isLoading:', isLoading, 'user:', !!user, 'isAdminNavigating:', isAdminNavigating);
+    console.log('🧭 handleRouting appelé avec path:', path, 'isLoading:', isLoading, 'user:', !!user, 'isAdminNavigating:', isAdminNavigating, 'fromPopState:', fromPopState);
     
-    // Ignorer le routage si on est en train de naviguer dans l'admin
-    if (isAdminNavigating) {
-      console.log('🚫 Routage ignoré - navigation admin en cours');
+    // Ignorer le routage si on est en train de naviguer dans l'admin MAIS PAS si c'est un événement popstate (bouton arrière)
+    if (isAdminNavigating && !fromPopState) {
+      console.log('🚫 Routage ignoré - navigation admin en cours (pas popstate)');
       return;
     }
     
@@ -676,13 +681,14 @@ const MainApp: React.FC = () => {
         setActiveTab('feed');
         return;
       }
-      console.log('✅ Admin autorisé pour /admin');
+      console.log('✅ Admin autorisé pour /admin - Réinitialisation vers menu principal');
       setActiveTab('admin');
       setViewingUserId(null);
       setViewingPostId(null);
       setViewingDecision(null);
       setSelectedTag(null);
       setAdminTab(null); // Menu principal d'administration
+      console.log('🔄 adminTab réinitialisé à null pour menu principal');
       return;
     }
     
