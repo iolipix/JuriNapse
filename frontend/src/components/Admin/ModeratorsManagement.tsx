@@ -63,7 +63,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
 
   const loadModerators = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jurinapse_token');
       console.log('🔑 loadModerators - Token présent:', !!token, 'User:', user);
       const response = await fetch('/api/admin/moderators', {
         headers: {
@@ -90,7 +90,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
     
     setSearching(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jurinapse_token');
       console.log('🔍 Recherche utilisateurs avec query:', searchQuery, 'Token présent:', !!token);
       const response = await fetch(`/api/admin/search-users?q=${encodeURIComponent(searchQuery)}`, {
         headers: {
@@ -124,7 +124,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
 
   const handlePromoteToModerator = async (userId: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jurinapse_token');
       const response = await fetch(`/api/admin/promote-moderator/${userId}`, {
         method: 'POST',
         headers: {
@@ -152,7 +152,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
   const handleDemoteFromModerator = async (userId: string) => {
     if (confirm('Êtes-vous sûr de vouloir rétrograder ce modérateur ?')) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('jurinapse_token');
         const response = await fetch(`/api/admin/demote-moderator/${userId}`, {
           method: 'POST',
           headers: {

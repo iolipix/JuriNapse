@@ -99,6 +99,14 @@ const MainApp: React.FC = () => {
     };
   }, []); // Supprimer les dépendances pour éviter les re-rendus
 
+  // Relancer le routage quand l'authentification est prête
+  useEffect(() => {
+    if (!isLoading) {
+      console.log('🎯 Auth initialisée, relance du routage');
+      handleRouting();
+    }
+  }, [isLoading]);
+
   // Écoute globale pour forcer l'affichage de la vérification (déclenché depuis AuthForm via window.setGlobalVerificationFlag)
   useEffect(() => {
     const handler = (e: Event) => {
@@ -473,7 +481,13 @@ const MainApp: React.FC = () => {
   // Gestion du routage basé sur l'URL - VERSION SIMPLIFIÉE
   const handleRouting = () => {
     const path = window.location.pathname;
-    console.log('🧭 handleRouting appelé avec path:', path);
+    console.log('🧭 handleRouting appelé avec path:', path, 'isLoading:', isLoading, 'user:', !!user);
+    
+    // Attendre que l'authentification soit prête pour les routes admin
+    if (path.startsWith('/admin') && isLoading) {
+      console.log('⏳ Attente de l\'initialisation de l\'auth pour route admin');
+      return;
+    }
     
     // Route racine - retour à l'accueil
     if (path === '/' || path === '') {
