@@ -64,15 +64,19 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
   const loadModerators = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('🔑 loadModerators - Token présent:', !!token, 'User:', user);
       const response = await fetch('/api/admin/moderators', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('📡 loadModerators response status:', response.status);
       if (response.ok) {
         const data = await response.json();
         setModerators(data.moderators || []);
+      } else {
+        console.error('❌ Erreur loadModerators:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des modérateurs:', error);
@@ -87,7 +91,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
     setSearching(true);
     try {
       const token = localStorage.getItem('token');
-      console.log('🔍 Recherche utilisateurs avec query:', searchQuery);
+      console.log('🔍 Recherche utilisateurs avec query:', searchQuery, 'Token présent:', !!token);
       const response = await fetch(`/api/admin/search-users?q=${encodeURIComponent(searchQuery)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
