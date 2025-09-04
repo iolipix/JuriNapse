@@ -183,8 +183,8 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
   };
 
   const handleBack = () => {
-    // Utiliser l'historique du navigateur pour revenir à la page précédente
-    window.history.back();
+    // Utiliser onBack pour gérer la navigation proprement
+    onBack();
   };
 
   return (

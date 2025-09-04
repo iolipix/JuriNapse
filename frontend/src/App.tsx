@@ -483,8 +483,8 @@ const MainApp: React.FC = () => {
     const path = window.location.pathname;
     console.log('🧭 handleRouting appelé avec path:', path, 'isLoading:', isLoading, 'user:', !!user);
     
-    // Attendre que l'authentification soit prête pour les routes admin
-    if (path.startsWith('/admin') && isLoading) {
+    // Attendre que l'authentification soit prête pour les routes admin, MAIS seulement si on n'a vraiment pas d'utilisateur
+    if (path.startsWith('/admin') && isLoading && !user) {
       console.log('⏳ Attente de l\'initialisation de l\'auth pour route admin');
       return;
     }
