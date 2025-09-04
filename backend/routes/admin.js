@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user.model');
-const auth = require('../middleware/auth.middleware');
+const { authenticateToken } = require('../middleware/auth.middleware');
 
 // Middleware pour vérifier que l'utilisateur est administrateur
 const adminAuth = (req, res, next) => {
@@ -12,7 +12,7 @@ const adminAuth = (req, res, next) => {
 };
 
 // GET /api/admin/moderators - Récupérer la liste des modérateurs
-router.get('/moderators', auth, adminAuth, async (req, res) => {
+router.get('/moderators', authenticateToken, adminAuth, async (req, res) => {
   try {
     const moderators = await User.find({ role: 'moderator' })
       .select('username firstName lastName email profilePicture role createdAt')
@@ -26,7 +26,7 @@ router.get('/moderators', auth, adminAuth, async (req, res) => {
 });
 
 // GET /api/admin/search-users - Rechercher des utilisateurs
-router.get('/search-users', auth, adminAuth, async (req, res) => {
+router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
   try {
     const { q } = req.query;
     
@@ -62,7 +62,7 @@ router.get('/search-users', auth, adminAuth, async (req, res) => {
 });
 
 // POST /api/admin/promote-moderator/:userId - Promouvoir un utilisateur en modérateur
-router.post('/promote-moderator/:userId', auth, adminAuth, async (req, res) => {
+router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -104,7 +104,7 @@ router.post('/promote-moderator/:userId', auth, adminAuth, async (req, res) => {
 });
 
 // POST /api/admin/demote-moderator/:userId - Rétrograder un modérateur
-router.post('/demote-moderator/:userId', auth, adminAuth, async (req, res) => {
+router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     
