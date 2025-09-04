@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/user.model');
+c    .select('username firstName lastName email profilePicture role roles')
+    .limit(20) // Limiter les résultats
+    .sort({ username: 1 });
+
+    res.json({ users });er = require('../models/user.model');
 const { authenticateToken } = require('../middleware/auth.middleware');
 
 // Middleware pour vérifier que l'utilisateur est administrateur
@@ -49,38 +53,25 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
 
     const searchQuery = q.trim();
     
-    // D'abord, comptons tous les utilisateurs pour debug
-    const totalUsers = await User.countDocuments();
-    const userRoles = await User.aggregate([
-      { $group: { _id: '$role', count: { $sum: 1 } } }
-    ]);
-    console.log('📊 Stats utilisateurs - Total:', totalUsers, 'Roles:', userRoles);
-    
-    // Affichons quelques utilisateurs pour debug
-    const sampleUsers = await User.find({}, 'username firstName lastName email role').limit(3);
-    console.log('👤 Échantillon d\'utilisateurs:', sampleUsers);
-    
-    // Test: recherche SANS filtre de rôle pour voir tous les utilisateurs correspondants
-    const allMatchingUsers = await User.find({
-      $or: [
-        { username: { $regex: searchQuery, $options: 'i' } },
-        { firstName: { $regex: searchQuery, $options: 'i' } },
-        { lastName: { $regex: searchQuery, $options: 'i' } },
-        { email: { $regex: searchQuery, $options: 'i' } }
-      ]
-    })
-    .select('username firstName lastName email role')
-    .limit(5);
-    console.log('🔎 Tous utilisateurs correspondants (sans filtre role):', allMatchingUsers);
-    
     // Recherche par nom d'utilisateur, prénom, nom ou email
-    // TEMPORAIRE: recherche SANS filtre de rôle pour debug
+    // Exclure les utilisateurs qui ont déjà le rôle modérateur ou administrateur
     const users = await User.find({
-      $or: [
-        { username: { $regex: searchQuery, $options: 'i' } },
-        { firstName: { $regex: searchQuery, $options: 'i' } },
-        { lastName: { $regex: searchQuery, $options: 'i' } },
-        { email: { $regex: searchQuery, $options: 'i' } }
+      $and: [
+        {
+          $or: [
+            { username: { $regex: searchQuery, $options: 'i' } },
+            { firstName: { $regex: searchQuery, $options: 'i' } },
+            { lastName: { $regex: searchQuery, $options: 'i' } },
+            { email: { $regex: searchQuery, $options: 'i' } }
+          ]
+        },
+        // Exclure ceux qui ont déjà des rôles d'admin/modérateur
+        {
+          $and: [
+            { roles: { $nin: ['moderator', 'administrator'] } }, // Nouveau système
+            { role: { $nin: ['moderator', 'administrator'] } }   // Ancien système pour compatibilité
+          ]
+        }
       ]
     })
     .select('username firstName lastName email profilePicture role')
