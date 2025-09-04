@@ -58,7 +58,6 @@ const MainApp: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationRequired, setShowVerificationRequired] = useState(false);
-  const [isAdminNavigating, setIsAdminNavigating] = useState(false);
 
   // Détecter automatiquement le besoin de vérification d'email
   useEffect(() => {
@@ -91,7 +90,7 @@ const MainApp: React.FC = () => {
   useEffect(() => {
     const handlePopState = () => {
       console.log('🔙 Événement popstate (bouton arrière/avant du navigateur)');
-      handleRouting(true);
+      handleRouting();
     };
 
     // Écouter les événements de navigation
@@ -112,6 +111,26 @@ const MainApp: React.FC = () => {
       handleRouting();
     }
   }, [isLoading]);
+
+  // Surveiller les changements d'URL directement (pour les cas où popstate ne se déclenche pas)
+  useEffect(() => {
+    const checkUrlChange = () => {
+      const currentPath = window.location.pathname;
+      // Vérifier si on est sur une route admin et si l'état ne correspond pas
+      if (currentPath === '/admin' && adminTab !== null) {
+        console.log('🔧 URL /admin détectée mais adminTab pas null, correction...');
+        setAdminTab(null);
+      } else if (currentPath.startsWith('/admin/') && adminTab !== currentPath.substring(7)) {
+        console.log('🔧 URL admin sous-route détectée, mise à jour adminTab...');
+        setAdminTab(currentPath.substring(7));
+      }
+    };
+
+    // Vérifier toutes les 100ms (léger polling pour détecter les changements d'URL)
+    const interval = setInterval(checkUrlChange, 100);
+
+    return () => clearInterval(interval);
+  }, [adminTab]); // Dépendre de adminTab pour réagir aux changements
 
   // Écoute globale pour forcer l'affichage de la vérification (déclenché depuis AuthForm via window.setGlobalVerificationFlag)
   useEffect(() => {
@@ -472,12 +491,9 @@ const MainApp: React.FC = () => {
       return;
     }
     console.log('✅ Navigation vers sous-onglet admin:', adminTabId);
-    setIsAdminNavigating(true);
     setActiveTab('admin');
     setAdminTab(adminTabId);
     window.history.pushState(null, '', `/admin/${adminTabId}`);
-    // Réinitialiser le flag après un court délai
-    setTimeout(() => setIsAdminNavigating(false), 100);
   };
 
   // Retour au menu principal d'administration
@@ -488,24 +504,15 @@ const MainApp: React.FC = () => {
       return;
     }
     console.log('✅ Retour vers menu admin principal');
-    setIsAdminNavigating(true);
     setAdminTab(null);
     setActiveTab('admin');
     window.history.pushState(null, '', '/admin');
-    // Réinitialiser le flag après un court délai
-    setTimeout(() => setIsAdminNavigating(false), 100);
   };
 
   // Gestion du routage basé sur l'URL - VERSION SIMPLIFIÉE
-  const handleRouting = (fromPopState = false) => {
+  const handleRouting = () => {
     const path = window.location.pathname;
-    console.log('🧭 handleRouting appelé avec path:', path, 'isLoading:', isLoading, 'user:', !!user, 'isAdminNavigating:', isAdminNavigating, 'fromPopState:', fromPopState);
-    
-    // Ignorer le routage si on est en train de naviguer dans l'admin MAIS PAS si c'est un événement popstate (bouton arrière)
-    if (isAdminNavigating && !fromPopState) {
-      console.log('🚫 Routage ignoré - navigation admin en cours (pas popstate)');
-      return;
-    }
+    console.log('🧭 handleRouting appelé avec path:', path);
     
     // Attendre que l'authentification soit prête pour les routes admin, MAIS seulement si on n'a vraiment pas d'utilisateur
     if (path.startsWith('/admin') && isLoading && !user) {
