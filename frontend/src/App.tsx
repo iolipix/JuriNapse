@@ -58,6 +58,7 @@ const MainApp: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationRequired, setShowVerificationRequired] = useState(false);
+  const [isAdminNavigating, setIsAdminNavigating] = useState(false);
 
   // Détecter automatiquement le besoin de vérification d'email
   useEffect(() => {
@@ -460,28 +461,46 @@ const MainApp: React.FC = () => {
 
   // Navigation vers un onglet spécifique d'administration
   const handleAdminTabNavigation = (adminTabId: string) => {
+    console.log('🔧 handleAdminTabNavigation appelé avec:', adminTabId, 'User:', !!user);
     if (!user || user.role !== 'administrator') {
+      console.log('❌ Navigation admin refusée - pas admin');
       return;
     }
+    console.log('✅ Navigation vers sous-onglet admin:', adminTabId);
+    setIsAdminNavigating(true);
     setActiveTab('admin');
     setAdminTab(adminTabId);
     window.history.pushState(null, '', `/admin/${adminTabId}`);
+    // Réinitialiser le flag après un court délai
+    setTimeout(() => setIsAdminNavigating(false), 100);
   };
 
   // Retour au menu principal d'administration
   const handleBackToAdminMenu = () => {
+    console.log('⬅️ handleBackToAdminMenu appelé - User:', !!user);
     if (!user || user.role !== 'administrator') {
+      console.log('❌ Retour admin refusé - pas admin');
       return;
     }
+    console.log('✅ Retour vers menu admin principal');
+    setIsAdminNavigating(true);
     setAdminTab(null);
     setActiveTab('admin');
     window.history.pushState(null, '', '/admin');
+    // Réinitialiser le flag après un court délai
+    setTimeout(() => setIsAdminNavigating(false), 100);
   };
 
   // Gestion du routage basé sur l'URL - VERSION SIMPLIFIÉE
   const handleRouting = () => {
     const path = window.location.pathname;
-    console.log('🧭 handleRouting appelé avec path:', path, 'isLoading:', isLoading, 'user:', !!user);
+    console.log('🧭 handleRouting appelé avec path:', path, 'isLoading:', isLoading, 'user:', !!user, 'isAdminNavigating:', isAdminNavigating);
+    
+    // Ignorer le routage si on est en train de naviguer dans l'admin
+    if (isAdminNavigating) {
+      console.log('🚫 Routage ignoré - navigation admin en cours');
+      return;
+    }
     
     // Attendre que l'authentification soit prête pour les routes admin, MAIS seulement si on n'a vraiment pas d'utilisateur
     if (path.startsWith('/admin') && isLoading && !user) {
