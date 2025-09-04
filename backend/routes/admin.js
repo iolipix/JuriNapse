@@ -45,6 +45,10 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
     ]);
     console.log('📊 Stats utilisateurs - Total:', totalUsers, 'Roles:', userRoles);
     
+    // Affichons quelques utilisateurs pour debug
+    const sampleUsers = await User.find({}, 'username firstName lastName email role').limit(3);
+    console.log('👤 Échantillon d\'utilisateurs:', sampleUsers);
+    
     // Test: recherche SANS filtre de rôle pour voir tous les utilisateurs correspondants
     const allMatchingUsers = await User.find({
       $or: [
