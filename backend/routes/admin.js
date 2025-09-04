@@ -49,9 +49,10 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
 
     const searchQuery = q.trim();
     
+    console.log('🔍 DEBUG - Recherche:', searchQuery);
+    
     // Recherche par nom d'utilisateur, prénom, nom ou email
     // Exclure seulement les utilisateurs qui ont déjà le rôle modérateur
-    // (permettre aux administrateurs de s'ajouter le rôle modérateur)
     const users = await User.find({
       $and: [
         {
@@ -62,20 +63,34 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
             { email: { $regex: searchQuery, $options: 'i' } }
           ]
         },
-        // Exclure seulement ceux qui ont déjà le rôle modérateur spécifiquement
+        // Exclure seulement ceux qui ont déjà le rôle modérateur
         {
           $and: [
-            { roles: { $nin: ['moderator'] } }, // Nouveau système - exclure seulement moderator
-            { role: { $ne: 'moderator' } }      // Ancien système - exclure seulement moderator
+            // Nouveau système : pas de moderator dans roles OU roles n'existe pas
+            {
+              $or: [
+                { roles: { $exists: false } },
+                { roles: { $nin: ['moderator'] } }
+              ]
+            },
+            // Ancien système : rôle différent de moderator
+            { role: { $ne: 'moderator' } }
           ]
         }
       ]
     })
-    .select('username firstName lastName email profilePicture role')
+    .select('username firstName lastName email profilePicture role roles')
     .limit(20) // Limiter les résultats
     .sort({ username: 1 });
 
     console.log('🎯 Résultats recherche:', users.length, 'utilisateurs trouvés');
+    if (users.length > 0) {
+      console.log('🔍 Premier utilisateur exemple:', {
+        username: users[0].username,
+        role: users[0].role,
+        roles: users[0].roles
+      });
+    }
     
     res.json({ users });
   } catch (error) {
