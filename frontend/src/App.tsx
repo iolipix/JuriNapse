@@ -32,6 +32,7 @@ import CookieConsent from './components/Common/CookieConsent';
 import AdminPage from './components/Admin/AdminPage';
 import AdminMenu from './components/Admin/AdminMenu';
 import ModeratorsManagement from './components/Admin/ModeratorsManagement';
+import ModeratorMenu from './components/Moderator/ModeratorMenu';
 
 const MainApp: React.FC = () => {
   const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
@@ -458,6 +459,15 @@ const MainApp: React.FC = () => {
         console.log('✅ Navigation admin autorisée, URL: /admin');
         window.history.pushState(null, '', '/admin');
         break;
+      case 'moderator':
+        console.log('🛡️ Navigation vers modérateur - User:', user);
+        if (!user || (!user.roles?.includes('moderator') && user.role !== 'moderator')) {
+          console.log('❌ Accès modérateur refusé:', !user ? 'Pas connecté' : 'Pas modérateur');
+          return;
+        }
+        console.log('✅ Navigation modérateur autorisée, URL: /moderator');
+        window.history.pushState(null, '', '/moderator');
+        break;
       case 'terms':
       case 'terms-of-service':
         window.history.pushState(null, '', '/conditions-utilisation');
@@ -724,6 +734,33 @@ const MainApp: React.FC = () => {
       setAdminTab(adminPath);
       return;
     }
+
+    // Routes pour la modération
+    if (path === '/moderator') {
+      console.log('🔐 Route /moderator détectée');
+      if (!user) {
+        console.log('❌ Pas d\'utilisateur connecté pour /moderator');
+        setIsAuthOpen(true);
+        return;
+      }
+      // Vérifier si l'utilisateur est modérateur
+      const isModerator = user.roles?.includes('moderator') || user.role === 'moderator';
+      if (!isModerator) {
+        console.log('❌ Utilisateur non-modérateur tentant d\'accéder à /moderator');
+        // Rediriger vers l'accueil si pas modérateur
+        window.history.replaceState(null, '', '/');
+        setActiveTab('feed');
+        return;
+      }
+      console.log('✅ Modérateur autorisé pour /moderator');
+      setActiveTab('moderator');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setAdminTab(null);
+      return;
+    }
     
     // Gestion des routes de posts /post/slug-ou-id
     if (path.startsWith('/post/')) {
@@ -961,6 +998,14 @@ const MainApp: React.FC = () => {
           // Menu principal d'administration (/admin)
           return <AdminMenu onNavigateToTab={handleAdminTabNavigation} />;
         }
+      case 'moderator':
+        // Vérifier que l'utilisateur est modérateur
+        const isModerator = user?.roles?.includes('moderator') || user?.role === 'moderator';
+        if (!user || !isModerator) {
+          setActiveTab('feed');
+          return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
+        }
+        return <ModeratorMenu user={user} />;
       case 'administrateur':
         // Backward compatibility - redirect to admin
         if (!user || user.role !== 'administrator') {

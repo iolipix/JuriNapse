@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FileText, TrendingUp, LogIn, Bell, Menu, LogOut, Settings, FileCheck, BookOpen, Scroll, Edit, X, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { isAdministratorMultiple } from '../../utils/roles';
+import { isAdministratorMultiple, isModeratorMultiple } from '../../utils/roles';
 
 interface SidebarProps {
   activeTab: string;
@@ -66,6 +66,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Onglets administrateur (visibles uniquement pour les admins)
   const adminTabs = [
     { id: 'admin', label: 'Administrateur', icon: Shield, requiresAdmin: true },
+  ];
+
+  // Onglets modérateur (visibles uniquement pour les modérateurs)
+  const moderatorTabs = [
+    { id: 'moderator', label: 'Modérateur', icon: Settings, requiresModerator: true },
   ];
 
   const handleTabClick = (tabId: string, requiresAuth: boolean = false) => {
@@ -206,6 +211,31 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <Icon className={`h-5 w-5 ${isActive ? 'text-red-700' : 'text-red-400'}`} />
                 <span className="font-medium">{item.label}</span>
+              </button>
+            );
+          })}
+
+          {/* Onglets modérateur (visible uniquement pour les modérateurs) */}
+          {user && isModeratorMultiple(user) && !isAdministratorMultiple(user) && moderatorTabs.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleTabClick(item.id, false)}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors relative cursor-pointer border-l-4 ${
+                  isActive 
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200 border-l-blue-500' 
+                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700 border-l-blue-300'
+                }`}
+                style={{ pointerEvents: 'auto' }}
+              >
+                <Icon className={`h-5 w-5 ${isActive ? 'text-blue-700' : 'text-blue-400'}`} />
+                <span className="font-medium">{item.label}</span>
+                <span className="ml-auto text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                  🚧
+                </span>
               </button>
             );
           })}
