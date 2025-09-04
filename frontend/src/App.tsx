@@ -30,6 +30,8 @@ import DecisionPage from './components/Decision/DecisionPage';
 import TermsOfService from './components/Legal/TermsOfService';
 import CookieConsent from './components/Common/CookieConsent';
 import AdminPage from './components/Admin/AdminPage';
+import AdminMenu from './components/Admin/AdminMenu';
+import ModeratorsManagement from './components/Admin/ModeratorsManagement';
 
 const MainApp: React.FC = () => {
   const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
@@ -52,6 +54,7 @@ const MainApp: React.FC = () => {
   const [viewingDecision, setViewingDecision] = useState<string | null>(null);
   const [targetMessageUserId, setTargetMessageUserId] = useState<string | null>(null);
   const [settingsTab, setSettingsTab] = useState<string | null>(null);
+  const [adminTab, setAdminTab] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationRequired, setShowVerificationRequired] = useState(false);
@@ -84,6 +87,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setTargetMessageUserId(null);
       setSettingsTab(null);
+      setAdminTab(null);
       setSelectedTag(null);
       setActiveTab('feed');
     } else if (path === '/profile') {
@@ -93,6 +97,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setTargetMessageUserId(null);
       setSettingsTab(null);
+      setAdminTab(null);
       setSelectedTag(null);
       setActiveTab('profile');
     } else if (path === '/messages') {
@@ -101,6 +106,7 @@ const MainApp: React.FC = () => {
       setViewingPostId(null);
       setViewingDecision(null);
       setSettingsTab(null);
+      setAdminTab(null);
       setSelectedTag(null);
       setActiveTab('messages');
       const userParam = searchParams.get('user');
@@ -116,6 +122,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setTargetMessageUserId(null);
       setSettingsTab(null);
+      setAdminTab(null);
       setSelectedTag(null);
       setActiveTab('notifications');
     } else if (path === '/conditions-utilisation' || path === '/terms-of-service') {
@@ -125,6 +132,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setTargetMessageUserId(null);
       setSettingsTab(null);
+      setAdminTab(null);
       setSelectedTag(null);
       setActiveTab('terms');
     }
@@ -254,6 +262,7 @@ const MainApp: React.FC = () => {
     setSearchQuery('');
     setSelectedTag(null);
     setSettingsTab(null);
+    setAdminTab(null);
     
     // Utiliser la nouvelle fonction de navigation
     navigateTo('/');
@@ -447,6 +456,15 @@ const MainApp: React.FC = () => {
       // Si on va vers 'settings', aller vers le menu principal (pas d'onglet spécifique)
       setSettingsTab(null);
     }
+
+    // Réinitialiser l'onglet d'administration quand on change de page
+    // ou quand on va vers la page principale d'administration
+    if (tab !== 'admin') {
+      setAdminTab(null);
+    } else {
+      // Si on va vers 'admin', aller vers le menu principal (pas d'onglet spécifique)
+      setAdminTab(null);
+    }
     
     // Mettre à jour l'URL selon l'onglet
     switch (tab) {
@@ -478,6 +496,12 @@ const MainApp: React.FC = () => {
       case 'settings':
         window.history.pushState(null, '', '/settings');
         break;
+      case 'admin':
+        if (!user || user.role !== 'administrator') {
+          return;
+        }
+        window.history.pushState(null, '', '/admin');
+        break;
       case 'terms':
       case 'terms-of-service':
         window.history.pushState(null, '', '/conditions-utilisation');
@@ -503,6 +527,26 @@ const MainApp: React.FC = () => {
     window.history.pushState(null, '', '/settings');
   };
 
+  // Navigation vers un onglet spécifique d'administration
+  const handleAdminTabNavigation = (adminTabId: string) => {
+    if (!user || user.role !== 'administrator') {
+      return;
+    }
+    setActiveTab('admin');
+    setAdminTab(adminTabId);
+    window.history.pushState(null, '', `/admin/${adminTabId}`);
+  };
+
+  // Retour au menu principal d'administration
+  const handleBackToAdminMenu = () => {
+    if (!user || user.role !== 'administrator') {
+      return;
+    }
+    setAdminTab(null);
+    setActiveTab('admin');
+    window.history.pushState(null, '', '/admin');
+  };
+
   // Gestion du routage basé sur l'URL - VERSION SIMPLIFIÉE
   const handleRouting = () => {
     const path = window.location.pathname;
@@ -515,6 +559,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       // Forcer le scroll vers le haut
       setTimeout(() => {
         scrollToTop();
@@ -534,6 +579,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       setTimeout(() => scrollToTop(), 100);
       return;
     }
@@ -552,6 +598,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       return;
     }
     
@@ -563,6 +610,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       return;
     }
     
@@ -573,6 +621,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       return;
     }
     
@@ -583,6 +632,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       return;
     }
     
@@ -593,6 +643,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       return;
     }
     
@@ -603,6 +654,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       return;
     }
     
@@ -617,6 +669,7 @@ const MainApp: React.FC = () => {
       setViewingDecision(null);
       setSelectedTag(null);
       setSettingsTab(null);
+      setAdminTab(null);
       return;
     }
     
@@ -649,6 +702,50 @@ const MainApp: React.FC = () => {
       setSettingsTab(settingsPath);
       return;
     }
+
+    // Routes pour l'administration
+    if (path === '/admin') {
+      if (!user) {
+        setIsAuthOpen(true);
+        return;
+      }
+      // Vérifier si l'utilisateur est admin
+      if (user.role !== 'administrator') {
+        // Rediriger vers l'accueil si pas admin
+        window.history.pushState(null, '', '/');
+        setActiveTab('feed');
+        return;
+      }
+      setActiveTab('admin');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setAdminTab(null); // Menu principal d'administration
+      return;
+    }
+    
+    if (path.startsWith('/admin/')) {
+      if (!user) {
+        setIsAuthOpen(true);
+        return;
+      }
+      // Vérifier si l'utilisateur est admin
+      if (user.role !== 'administrator') {
+        // Rediriger vers l'accueil si pas admin
+        window.history.pushState(null, '', '/');
+        setActiveTab('feed');
+        return;
+      }
+      const adminPath = path.substring(7); // Enlever "/admin/"
+      setActiveTab('admin');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setAdminTab(adminPath);
+      return;
+    }
     
     // Gestion des routes de posts /post/slug-ou-id
     if (path.startsWith('/post/')) {
@@ -659,6 +756,8 @@ const MainApp: React.FC = () => {
         setViewingUserId(null);
         setViewingDecision(null);
         setSelectedTag(null);
+        setSettingsTab(null);
+        setAdminTab(null);
         
         return;
       }
@@ -668,7 +767,7 @@ const MainApp: React.FC = () => {
     if (path.length > 1 && path.startsWith('/')) {
       const username = path.substring(1); // Enlever le "/" initial
       // Vérifier si c'est un username valide (pas une autre route)
-  if (username && !username.includes('/') && username !== 'auth' && username !== 'login' && username !== 'messages' && username !== 'fiches' && username !== 'publications' && username !== 'cours' && username !== 'protocole' && username !== 'trending' && username !== 'notifications' && username !== 'post' && username !== 'settings' && username !== 'conditions-utilisation' && username !== 'profile') {
+  if (username && !username.includes('/') && username !== 'auth' && username !== 'login' && username !== 'messages' && username !== 'fiches' && username !== 'publications' && username !== 'cours' && username !== 'protocole' && username !== 'trending' && username !== 'notifications' && username !== 'post' && username !== 'settings' && username !== 'admin' && username !== 'conditions-utilisation' && username !== 'profile') {
         // Vérifier si c'est son propre profil (seulement si l'utilisateur est connecté)
         if (user && (username === user.username || username === user.id)) {
           // C'est son propre profil, aller vers l'onglet profile
@@ -677,6 +776,8 @@ const MainApp: React.FC = () => {
           setViewingPostId(null);
           setViewingDecision(null);
           setSelectedTag(null);
+          setSettingsTab(null);
+          setAdminTab(null);
           
           // Garder l'URL du profil pour maintenir la cohérence
           // Ne pas rediriger vers '/', garder l'URL actuelle
@@ -687,6 +788,8 @@ const MainApp: React.FC = () => {
           setViewingPostId(null);
           setViewingDecision(null);
           setSelectedTag(null);
+          setSettingsTab(null);
+          setAdminTab(null);
           
         }
         return;
@@ -862,13 +965,31 @@ const MainApp: React.FC = () => {
       case 'settings-menu':
         // Menu principal des paramètres (/settings) - même logique que settings sans settingsTab
         return <SettingsMenu onNavigateToTab={handleSettingsTabNavigation} />;
-      case 'administrateur':
+      case 'admin':
         // Vérifier que l'utilisateur est admin
         if (!user || user.role !== 'administrator') {
           setActiveTab('feed');
           return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
         }
-        return <AdminPage />;
+        if (adminTab) {
+          // Page d'onglet spécifique d'administration (ex: /admin/moderators)
+          switch (adminTab) {
+            case 'moderators':
+              return <ModeratorsManagement onBack={handleBackToAdminMenu} />;
+            default:
+              return <AdminMenu onNavigateToTab={handleAdminTabNavigation} />;
+          }
+        } else {
+          // Menu principal d'administration (/admin)
+          return <AdminMenu onNavigateToTab={handleAdminTabNavigation} />;
+        }
+      case 'administrateur':
+        // Backward compatibility - redirect to admin
+        if (!user || user.role !== 'administrator') {
+          setActiveTab('feed');
+          return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
+        }
+        return <AdminMenu onNavigateToTab={handleAdminTabNavigation} />;
       case 'terms':
       case 'terms-of-service':
         return <TermsOfService onBack={handleBackToFeed} />;
@@ -958,7 +1079,7 @@ const MainApp: React.FC = () => {
                 
                 {/* SUGGESTIONS SIDEBAR - REAL COMPONENT */}
                 {(() => {
-                  const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu', 'profile', 'user-profile'];
+                  const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu', 'admin', 'profile', 'user-profile'];
                   const shouldShow = !noSuggestionsPages.includes(activeTab) && !!user;
                   
                   if (!shouldShow) return null;
