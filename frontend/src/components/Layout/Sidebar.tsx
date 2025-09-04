@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FileText, TrendingUp, LogIn, Bell, Menu, LogOut, Settings, FileCheck, BookOpen, Scroll, Edit, X } from 'lucide-react';
+import { FileText, TrendingUp, LogIn, Bell, Menu, LogOut, Settings, FileCheck, BookOpen, Scroll, Edit, X, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { isAdministrator } from '../../utils/roles';
 
 interface SidebarProps {
   activeTab: string;
@@ -60,6 +61,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const authTabs = [
     { id: 'notifications', label: 'Notifications', icon: Bell, requiresAuth: true },
+  ];
+
+  // Onglets administrateur (visibles uniquement pour les admins)
+  const adminTabs = [
+    { id: 'administrateur', label: 'Administrateur', icon: Shield, requiresAdmin: true },
   ];
 
   const handleTabClick = (tabId: string, requiresAuth: boolean = false) => {
@@ -176,6 +182,28 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
+              </button>
+            );
+          })}
+
+          {/* Onglets administrateur (visible uniquement pour les admins) */}
+          {user && isAdministrator(user.role) && adminTabs.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleTabClick(item.id, false)}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors relative cursor-pointer border-l-4 ${
+                  isActive 
+                    ? 'bg-red-50 text-red-700 border border-red-200 border-l-red-500' 
+                    : 'text-gray-600 hover:bg-red-50 hover:text-red-700 border-l-red-300'
+                }`}
+                style={{ pointerEvents: 'auto' }}
+              >
+                <Icon className={`h-5 w-5 ${isActive ? 'text-red-700' : 'text-red-400'}`} />
+                <span className="font-medium">{item.label}</span>
               </button>
             );
           })}

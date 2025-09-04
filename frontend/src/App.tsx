@@ -29,6 +29,7 @@ import SuggestedUsers from './components/Subscription/SuggestedUsers';
 import DecisionPage from './components/Decision/DecisionPage';
 import TermsOfService from './components/Legal/TermsOfService';
 import CookieConsent from './components/Common/CookieConsent';
+import AdminPage from './components/Admin/AdminPage';
 
 const MainApp: React.FC = () => {
   const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
@@ -861,6 +862,13 @@ const MainApp: React.FC = () => {
       case 'settings-menu':
         // Menu principal des paramètres (/settings) - même logique que settings sans settingsTab
         return <SettingsMenu onNavigateToTab={handleSettingsTabNavigation} />;
+      case 'administrateur':
+        // Vérifier que l'utilisateur est admin
+        if (!user || user.role !== 'administrator') {
+          setActiveTab('feed');
+          return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
+        }
+        return <AdminPage />;
       case 'terms':
       case 'terms-of-service':
         return <TermsOfService onBack={handleBackToFeed} />;
