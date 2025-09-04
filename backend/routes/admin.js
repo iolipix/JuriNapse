@@ -59,17 +59,13 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
     console.log('🔎 Tous utilisateurs correspondants (sans filtre role):', allMatchingUsers);
     
     // Recherche par nom d'utilisateur, prénom, nom ou email
+    // TEMPORAIRE: recherche SANS filtre de rôle pour debug
     const users = await User.find({
-      $and: [
-        { role: 'user' }, // Seulement les utilisateurs normaux
-        {
-          $or: [
-            { username: { $regex: searchQuery, $options: 'i' } },
-            { firstName: { $regex: searchQuery, $options: 'i' } },
-            { lastName: { $regex: searchQuery, $options: 'i' } },
-            { email: { $regex: searchQuery, $options: 'i' } }
-          ]
-        }
+      $or: [
+        { username: { $regex: searchQuery, $options: 'i' } },
+        { firstName: { $regex: searchQuery, $options: 'i' } },
+        { lastName: { $regex: searchQuery, $options: 'i' } },
+        { email: { $regex: searchQuery, $options: 'i' } }
       ]
     })
     .select('username firstName lastName email profilePicture role')
