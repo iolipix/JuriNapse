@@ -103,13 +103,17 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
       if (response.ok) {
         const data = await response.json();
         console.log('📊 Données reçues:', data);
-        console.log('👥 Modérateurs actuels:', moderators);
+        console.log('� data.users:', data.users);
+        console.log('📋 data.users type:', typeof data.users);
+        console.log('📋 data.users length:', data.users?.length);
+        console.log('�👥 Modérateurs actuels:', moderators);
         
         // Filtrer les utilisateurs qui ne sont pas déjà modérateurs ou administrateurs
         const filteredUsers = data.users.filter((user: User) => 
           user.role === 'user' && !moderators.find(mod => mod._id === user._id)
         );
         console.log('✅ Utilisateurs filtrés:', filteredUsers);
+        console.log('🔢 Nombre d\'utilisateurs filtrés:', filteredUsers.length);
         setSearchResults(filteredUsers);
       } else {
         const errorData = await response.text();
