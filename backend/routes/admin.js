@@ -226,4 +226,50 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
   }
 });
 
+// POST /api/admin/emergency-restore-theophane - Endpoint temporaire pour restaurer les rôles de Théophane
+router.post('/emergency-restore-theophane', authenticateToken, async (req, res) => {
+  try {
+    console.log('🚨 EMERGENCY: Tentative de restauration des rôles pour Théophane');
+    console.log('🔍 Utilisateur qui fait la demande:', req.user.username, req.user.id);
+
+    // Trouver Théophane par username
+    const theophane = await User.findOne({ username: 'theophane' });
+    if (!theophane) {
+      console.log('❌ Théophane non trouvé');
+      return res.status(404).json({ message: 'Utilisateur Théophane non trouvé' });
+    }
+
+    console.log('👤 Théophane trouvé:', {
+      id: theophane._id,
+      username: theophane.username,
+      currentRole: theophane.role,
+      currentRoles: theophane.roles
+    });
+
+    // Restaurer tous les rôles
+    theophane.roles = ['user', 'administrator', 'moderator', 'premium'];
+    theophane.role = 'administrator'; // Rôle principal
+    
+    await theophane.save();
+
+    console.log('✅ Rôles restaurés pour Théophane:', {
+      newRole: theophane.role,
+      newRoles: theophane.roles
+    });
+
+    res.json({ 
+      message: 'Rôles restaurés avec succès pour Théophane',
+      user: {
+        _id: theophane._id,
+        username: theophane.username,
+        role: theophane.role,
+        roles: theophane.roles
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erreur lors de la restauration d\'urgence:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la restauration' });
+  }
+});
+
 module.exports = router;

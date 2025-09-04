@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Role Restore</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; background: #dc2626; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #b91c1c; }
+        .result { margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 5px; }
+        .success { background: #dcfce7; color: #166534; }
+        .error { background: #fecaca; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <h1>🚨 Emergency Role Restore pour Théophane</h1>
+    <p>Ce script va restaurer les rôles admin + modérateur pour Théophane.</p>
+    
+    <button onclick="restoreRoles()">Restaurer les rôles de Théophane</button>
+    
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        async function restoreRoles() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '⏳ Restauration en cours...';
+            resultDiv.className = 'result';
+            
+            try {
+                // Récupérer le token depuis localStorage (comme fait l'app React)
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token non trouvé. Connectez-vous d\'abord sur l\'application.');
+                }
+                
+                const response = await fetch('/api/admin/emergency-restore-theophane', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Succès!</h3>
+                        <p>${data.message}</p>
+                        <p><strong>Nouveau rôle principal:</strong> ${data.user.role}</p>
+                        <p><strong>Tous les rôles:</strong> ${data.user.roles.join(', ')}</p>
+                        <p><em>Rechargez l'application pour voir les changements.</em></p>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Erreur</h3>
+                        <p>${data.message}</p>
+                    `;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Erreur</h3>
+                    <p>${error.message}</p>
+                `;
+                resultDiv.className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>
