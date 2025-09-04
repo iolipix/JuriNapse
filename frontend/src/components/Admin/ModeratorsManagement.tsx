@@ -108,9 +108,10 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
         console.log('📋 data.users length:', data.users?.length);
         console.log('�👥 Modérateurs actuels:', moderators);
         
-        // Filtrer les utilisateurs qui ne sont pas déjà modérateurs ou administrateurs
+        // Le backend fait déjà le filtrage pour exclure ceux qui ont le rôle modérateur
+        // On fait juste un filtrage pour exclure ceux qui sont déjà dans la liste des modérateurs
         const filteredUsers = data.users.filter((user: User) => 
-          user.role === 'user' && !moderators.find(mod => mod._id === user._id)
+          !moderators.find(mod => mod._id === user._id)
         );
         console.log('✅ Utilisateurs filtrés:', filteredUsers);
         console.log('🔢 Nombre d\'utilisateurs filtrés:', filteredUsers.length);
