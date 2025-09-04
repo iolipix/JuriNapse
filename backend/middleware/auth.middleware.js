@@ -37,9 +37,10 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // S'assurer que le rôle est défini
+    // S'assurer que le rôle est défini et que l'ID est accessible
     req.user = {
       ...user.toObject(),
+      id: user._id.toString(), // Ajouter l'ID pour compatibilité
       role: user.role || 'user'
     };
     next();
