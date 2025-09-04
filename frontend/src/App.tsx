@@ -59,86 +59,6 @@ const MainApp: React.FC = () => {
   const [showEmailVerification, setShowEmailVerification] = useState(false);
   const [showVerificationRequired, setShowVerificationRequired] = useState(false);
 
-  // Fonction pour gérer les changements d'URL
-  const handlePopState = () => {
-    const path = window.location.pathname;
-    const searchParams = new URLSearchParams(window.location.search);
-    
-    // Détecter les pages de vérification d'email
-    if (path === '/verify-email' || searchParams.has('token')) {
-      setShowEmailVerification(true);
-      return;
-    }
-    
-    if (path === '/verification-required') {
-      setShowVerificationRequired(true);
-      return;
-    }
-    
-    // Réinitialiser les états de vérification
-    setShowEmailVerification(false);
-    setShowVerificationRequired(false);
-    
-    // Route en fonction du path et réinitialiser seulement les états non pertinents
-    if (path === '/' || path === '') {
-      // Réinitialiser tous les états
-      setViewingUserId(null);
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setTargetMessageUserId(null);
-      setSettingsTab(null);
-      setAdminTab(null);
-      setSelectedTag(null);
-      setActiveTab('feed');
-    } else if (path === '/profile') {
-      // Route dédiée au profil privé
-      setViewingUserId(null);
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setTargetMessageUserId(null);
-      setSettingsTab(null);
-      setAdminTab(null);
-      setSelectedTag(null);
-      setActiveTab('profile');
-    } else if (path === '/messages') {
-      // Réinitialiser les états non liés aux messages
-      setViewingUserId(null);
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setSettingsTab(null);
-      setAdminTab(null);
-      setSelectedTag(null);
-      setActiveTab('messages');
-      const userParam = searchParams.get('user');
-      if (userParam) {
-        setTargetMessageUserId(userParam);
-      } else {
-        setTargetMessageUserId(null);
-      }
-    } else if (path === '/notifications') {
-      // Réinitialiser les états non liés aux notifications
-      setViewingUserId(null);
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setTargetMessageUserId(null);
-      setSettingsTab(null);
-      setAdminTab(null);
-      setSelectedTag(null);
-      setActiveTab('notifications');
-    } else if (path === '/conditions-utilisation' || path === '/terms-of-service') {
-      // Réinitialiser les états non liés aux conditions
-      setViewingUserId(null);
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setTargetMessageUserId(null);
-      setSettingsTab(null);
-      setAdminTab(null);
-      setSelectedTag(null);
-      setActiveTab('terms');
-    }
-    // ... autres routes
-  };
-
   // Détecter automatiquement le besoin de vérification d'email
   useEffect(() => {
     const path = window.location.pathname;
@@ -163,19 +83,19 @@ const MainApp: React.FC = () => {
 
   // Gérer l'URL au chargement initial
   useEffect(() => {
-    handlePopState();
+    handleRouting();
   }, []);
 
   // Gérer la navigation avec les boutons du navigateur
   useEffect(() => {
     // Écouter les événements de navigation
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleRouting);
 
     // Initial route handling au chargement - TOUJOURS exécuter pour gérer F5
-    handlePopState();
+    handleRouting();
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('popstate', handleRouting);
     };
   }, []); // Supprimer les dépendances pour éviter les re-rendus
 
@@ -1016,12 +936,12 @@ const MainApp: React.FC = () => {
           onBack={() => {
             setShowEmailVerification(false);
             window.history.pushState(null, '', '/');
-            handlePopState();
+            handleRouting();
           }}
           onVerificationSuccess={() => {
             setShowEmailVerification(false);
             window.history.pushState(null, '', '/');
-            handlePopState();
+            handleRouting();
           }}
         />
       )}
@@ -1031,7 +951,7 @@ const MainApp: React.FC = () => {
           onBack={() => {
             setShowVerificationRequired(false);
             window.history.pushState(null, '', '/');
-            handlePopState();
+            handleRouting();
           }}
           onLogin={handleLogin}
           userEmail={typeof pendingVerificationUserId === 'string' && pendingVerificationUserId.includes('@') 

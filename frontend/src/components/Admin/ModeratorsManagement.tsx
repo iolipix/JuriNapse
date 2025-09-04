@@ -87,22 +87,32 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
     setSearching(true);
     try {
       const token = localStorage.getItem('token');
+      console.log('🔍 Recherche utilisateurs avec query:', searchQuery);
       const response = await fetch(`/api/admin/search-users?q=${encodeURIComponent(searchQuery)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
+      console.log('📡 Réponse recherche - Status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('📊 Données reçues:', data);
+        console.log('👥 Modérateurs actuels:', moderators);
+        
         // Filtrer les utilisateurs qui ne sont pas déjà modérateurs ou administrateurs
         const filteredUsers = data.users.filter((user: User) => 
           user.role === 'user' && !moderators.find(mod => mod._id === user._id)
         );
+        console.log('✅ Utilisateurs filtrés:', filteredUsers);
         setSearchResults(filteredUsers);
+      } else {
+        const errorData = await response.text();
+        console.error('❌ Erreur API:', response.status, errorData);
       }
     } catch (error) {
-      console.error('Erreur lors de la recherche:', error);
+      console.error('💥 Erreur lors de la recherche:', error);
     } finally {
       setSearching(false);
     }
