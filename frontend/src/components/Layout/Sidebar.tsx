@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FileText, TrendingUp, LogIn, Bell, Menu, LogOut, Settings, FileCheck, BookOpen, Scroll, Edit, X, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { isAdministrator } from '../../utils/roles';
+import { isAdministratorMultiple } from '../../utils/roles';
 
 interface SidebarProps {
   activeTab: string;
@@ -188,8 +188,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           })}
 
           {/* Onglets administrateur (visible uniquement pour les admins) */}
-          {user && isAdministrator(user.role) && adminTabs.map((item) => {
-            console.log('🛡️ Rendu onglet admin - User:', user, 'isAdmin:', isAdministrator(user.role));
+          {user && isAdministratorMultiple(user) && adminTabs.map((item) => {
+            console.log('🛡️ Rendu onglet admin - User:', user, 'isAdmin:', isAdministratorMultiple(user));
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             

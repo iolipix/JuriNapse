@@ -85,7 +85,13 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  // Système de rôles utilisateur
+  // Système de rôles utilisateur (multiples)
+  roles: {
+    type: [String],
+    enum: ['user', 'moderator', 'administrator', 'premium'],
+    default: ['user']
+  },
+  // Maintenir l'ancien champ role pour la compatibilité (deprecated)
   role: {
     type: String,
     enum: ['user', 'moderator', 'administrator'],
@@ -225,6 +231,61 @@ userSchema.pre('save', function(next) {
   }
   if (this.followingCount === undefined || this.followingCount === null) {
     this.followingCount = this.following ? this.following.length : 0;
+  }
+  next();
+});
+
+// Méthodes pour gérer les rôles multiples
+userSchema.methods.hasRole = function(role) {
+  return this.roles && this.roles.includes(role);
+};
+
+userSchema.methods.addRole = function(role) {
+  if (!this.roles) this.roles = ['user'];
+  if (!this.roles.includes(role)) {
+    this.roles.push(role);
+    // Maintenir la compatibilité avec l'ancien champ role
+    if (role === 'administrator') this.role = 'administrator';
+    else if (role === 'moderator' && !this.hasRole('administrator')) this.role = 'moderator';
+  }
+  return this.roles;
+};
+
+userSchema.methods.removeRole = function(role) {
+  if (!this.roles) this.roles = ['user'];
+  this.roles = this.roles.filter(r => r !== role);
+  if (this.roles.length === 0) this.roles = ['user'];
+  
+  // Maintenir la compatibilité avec l'ancien champ role
+  if (this.hasRole('administrator')) this.role = 'administrator';
+  else if (this.hasRole('moderator')) this.role = 'moderator';
+  else this.role = 'user';
+  
+  return this.roles;
+};
+
+userSchema.methods.isAdmin = function() {
+  return this.hasRole('administrator');
+};
+
+userSchema.methods.isModerator = function() {
+  return this.hasRole('moderator');
+};
+
+userSchema.methods.isPremium = function() {
+  return this.hasRole('premium');
+};
+
+// Middleware pour synchroniser roles avec role (compatibilité)
+userSchema.pre('save', function(next) {
+  if (this.roles && this.roles.length > 0) {
+    if (this.roles.includes('administrator')) {
+      this.role = 'administrator';
+    } else if (this.roles.includes('moderator')) {
+      this.role = 'moderator';
+    } else {
+      this.role = 'user';
+    }
   }
   next();
 });

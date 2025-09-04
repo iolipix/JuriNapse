@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'moderator' | 'administrator';
+export type UserRole = 'user' | 'moderator' | 'administrator' | 'premium';
 
 export const USER_ROLES: Record<UserRole, { label: string; level: number; color: string; description: string }> = {
   user: {
@@ -6,6 +6,12 @@ export const USER_ROLES: Record<UserRole, { label: string; level: number; color:
     level: 1,
     color: 'text-gray-600',
     description: 'Utilisateur standard avec accès aux fonctionnalités de base'
+  },
+  premium: {
+    label: 'Premium',
+    level: 1,
+    color: 'text-yellow-600',
+    description: 'Utilisateur premium avec des fonctionnalités avancées'
   },
   moderator: {
     label: 'Modérateur',
@@ -21,6 +27,27 @@ export const USER_ROLES: Record<UserRole, { label: string; level: number; color:
   }
 };
 
+// Interface pour les utilisateurs avec rôles multiples
+interface UserWithRoles {
+  role?: UserRole;
+  roles?: UserRole[];
+}
+
+/**
+ * Vérifie si un utilisateur a un rôle spécifique (système de rôles multiples)
+ */
+export const hasRole = (user: UserWithRoles | undefined, role: UserRole): boolean => {
+  if (!user) return false;
+  
+  // Vérifier dans le nouveau système de rôles multiples
+  if (user.roles && user.roles.includes(role)) {
+    return true;
+  }
+  
+  // Fallback sur l'ancien système
+  return user.role === role;
+};
+
 /**
  * Vérifie si un utilisateur a au moins le niveau de rôle spécifié
  */
@@ -34,6 +61,41 @@ export const hasRoleLevel = (userRole: UserRole | undefined, requiredRole: UserR
 };
 
 /**
+ * Obtient le niveau de rôle le plus élevé d'un utilisateur
+ */
+export const getHighestRoleLevel = (user: UserWithRoles | undefined): number => {
+  if (!user) return 0;
+  
+  let maxLevel = 0;
+  
+  // Vérifier dans le nouveau système de rôles multiples
+  if (user.roles) {
+    for (const role of user.roles) {
+      const level = USER_ROLES[role]?.level || 0;
+      maxLevel = Math.max(maxLevel, level);
+    }
+  }
+  
+  // Vérifier l'ancien système aussi
+  if (user.role) {
+    const level = USER_ROLES[user.role]?.level || 0;
+    maxLevel = Math.max(maxLevel, level);
+  }
+  
+  return maxLevel;
+};
+
+/**
+ * Vérifie si un utilisateur a au moins le niveau de rôle spécifié (avec rôles multiples)
+ */
+export const hasRoleLevelMultiple = (user: UserWithRoles | undefined, requiredRole: UserRole): boolean => {
+  const userLevel = getHighestRoleLevel(user);
+  const requiredLevel = USER_ROLES[requiredRole]?.level || 0;
+  
+  return userLevel >= requiredLevel;
+};
+
+/**
  * Vérifie si un utilisateur est modérateur ou plus
  */
 export const isModerator = (userRole: UserRole | undefined): boolean => {
@@ -41,10 +103,31 @@ export const isModerator = (userRole: UserRole | undefined): boolean => {
 };
 
 /**
+ * Vérifie si un utilisateur est modérateur ou plus (système de rôles multiples)
+ */
+export const isModeratorMultiple = (user: UserWithRoles | undefined): boolean => {
+  return hasRole(user, 'moderator') || hasRole(user, 'administrator');
+};
+
+/**
  * Vérifie si un utilisateur est administrateur
  */
 export const isAdministrator = (userRole: UserRole | undefined): boolean => {
   return hasRoleLevel(userRole, 'administrator');
+};
+
+/**
+ * Vérifie si un utilisateur est administrateur (système de rôles multiples)
+ */
+export const isAdministratorMultiple = (user: UserWithRoles | undefined): boolean => {
+  return hasRole(user, 'administrator');
+};
+
+/**
+ * Vérifie si un utilisateur est premium
+ */
+export const isPremium = (user: UserWithRoles | undefined): boolean => {
+  return hasRole(user, 'premium');
 };
 
 /**

@@ -5,7 +5,12 @@ const { authenticateToken } = require('../middleware/auth.middleware');
 
 // Middleware pour vérifier que l'utilisateur est administrateur
 const adminAuth = (req, res, next) => {
-  if (req.user.role !== 'administrator') {
+  // Vérifier avec le nouveau système de rôles multiples
+  const hasAdminRole = req.user.roles && req.user.roles.includes('administrator');
+  // Maintenir la compatibilité avec l'ancien système
+  const isAdminLegacy = req.user.role === 'administrator';
+  
+  if (!hasAdminRole && !isAdminLegacy) {
     return res.status(403).json({ message: 'Accès refusé. Permissions administrateur requises.' });
   }
   next();
@@ -14,8 +19,14 @@ const adminAuth = (req, res, next) => {
 // GET /api/admin/moderators - Récupérer la liste des modérateurs
 router.get('/moderators', authenticateToken, adminAuth, async (req, res) => {
   try {
-    const moderators = await User.find({ role: 'moderator' })
-      .select('username firstName lastName email profilePicture role createdAt')
+    // Chercher tous les utilisateurs qui ont le rôle modérateur (nouveau système ou ancien)
+    const moderators = await User.find({
+      $or: [
+        { roles: 'moderator' }, // Nouveau système de rôles multiples
+        { role: 'moderator' }   // Ancien système pour compatibilité
+      ]
+    })
+      .select('username firstName lastName email profilePicture role roles createdAt')
       .sort({ createdAt: -1 });
 
     res.json({ moderators });
@@ -96,15 +107,25 @@ router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (r
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    // Vérifier que l'utilisateur n'est pas déjà modérateur ou administrateur
-    if (user.role !== 'user') {
+    // Vérifier que l'utilisateur n'est pas déjà modérateur
+    if (user.hasRole && user.hasRole('moderator')) {
       return res.status(400).json({ 
-        message: `Cet utilisateur est déjà ${user.role === 'moderator' ? 'modérateur' : 'administrateur'}` 
+        message: `Cet utilisateur est déjà modérateur` 
       });
     }
 
-    // Promouvoir l'utilisateur
-    user.role = 'moderator';
+    // Ajouter le rôle modérateur (sans supprimer les autres rôles)
+    if (user.addRole) {
+      user.addRole('moderator');
+    } else {
+      // Fallback pour compatibilité
+      if (!user.roles) user.roles = ['user'];
+      if (!user.roles.includes('moderator')) {
+        user.roles.push('moderator');
+      }
+      user.role = 'moderator';
+    }
+    
     await user.save();
 
     // Log de l'action
@@ -118,7 +139,8 @@ router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (r
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role
+        role: user.role,
+        roles: user.roles
       }
     });
   } catch (error) {
@@ -139,9 +161,10 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
     }
 
     // Vérifier que l'utilisateur est bien modérateur
-    if (user.role !== 'moderator') {
+    const isModerator = user.hasRole ? user.hasRole('moderator') : user.role === 'moderator';
+    if (!isModerator) {
       return res.status(400).json({ 
-        message: `Cet utilisateur n'est pas modérateur (rôle actuel: ${user.role})` 
+        message: `Cet utilisateur n'est pas modérateur` 
       });
     }
 
@@ -152,22 +175,33 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
       });
     }
 
-    // Rétrograder l'utilisateur
-    user.role = 'user';
+    // Retirer le rôle modérateur (garder les autres rôles)
+    if (user.removeRole) {
+      user.removeRole('moderator');
+    } else {
+      // Fallback pour compatibilité
+      if (user.roles) {
+        user.roles = user.roles.filter(r => r !== 'moderator');
+        if (user.roles.length === 0) user.roles = ['user'];
+      }
+      user.role = user.roles && user.roles.includes('administrator') ? 'administrator' : 'user';
+    }
+    
     await user.save();
 
     // Log de l'action
-    console.log(`[ADMIN] ${req.user.username} a rétrogradé ${user.username} au rang d'utilisateur`);
+    console.log(`[ADMIN] ${req.user.username} a rétrogradé ${user.username} du rang de modérateur`);
 
     res.json({ 
-      message: `${user.username} a été rétrogradé au rang d'utilisateur`,
+      message: `${user.username} a été rétrogradé du rang de modérateur`,
       user: {
         _id: user._id,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role
+        role: user.role,
+        roles: user.roles
       }
     });
   } catch (error) {
