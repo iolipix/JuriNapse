@@ -121,12 +121,25 @@ router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (r
     if (user.addRole) {
       user.addRole('moderator');
     } else {
-      // Fallback pour compatibilité
-      if (!user.roles) user.roles = ['user'];
+      // Fallback pour compatibilité - initialiser le système de rôles multiples
+      if (!user.roles) {
+        // Initialiser avec le rôle actuel + user
+        user.roles = user.role ? [user.role, 'user'] : ['user'];
+      }
+      
+      // Ajouter moderator s'il n'est pas déjà présent
       if (!user.roles.includes('moderator')) {
         user.roles.push('moderator');
       }
-      user.role = 'moderator';
+      
+      // Maintenir le rôle principal le plus élevé
+      if (user.roles.includes('administrator')) {
+        user.role = 'administrator'; // Garder admin comme rôle principal
+      } else if (user.roles.includes('moderator')) {
+        user.role = 'moderator';
+      } else {
+        user.role = 'user';
+      }
     }
     
     await user.save();
