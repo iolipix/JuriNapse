@@ -30,11 +30,33 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
   try {
     const { q } = req.query;
     
+    console.log('🔍 Recherche admin - Query:', q);
+    
     if (!q || q.trim().length < 2) {
       return res.json({ users: [] });
     }
 
     const searchQuery = q.trim();
+    
+    // D'abord, comptons tous les utilisateurs pour debug
+    const totalUsers = await User.countDocuments();
+    const userRoles = await User.aggregate([
+      { $group: { _id: '$role', count: { $sum: 1 } } }
+    ]);
+    console.log('📊 Stats utilisateurs - Total:', totalUsers, 'Roles:', userRoles);
+    
+    // Test: recherche SANS filtre de rôle pour voir tous les utilisateurs correspondants
+    const allMatchingUsers = await User.find({
+      $or: [
+        { username: { $regex: searchQuery, $options: 'i' } },
+        { firstName: { $regex: searchQuery, $options: 'i' } },
+        { lastName: { $regex: searchQuery, $options: 'i' } },
+        { email: { $regex: searchQuery, $options: 'i' } }
+      ]
+    })
+    .select('username firstName lastName email role')
+    .limit(5);
+    console.log('🔎 Tous utilisateurs correspondants (sans filtre role):', allMatchingUsers);
     
     // Recherche par nom d'utilisateur, prénom, nom ou email
     const users = await User.find({
@@ -54,6 +76,8 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
     .limit(20) // Limiter les résultats
     .sort({ username: 1 });
 
+    console.log('🎯 Résultats recherche:', users.length, 'utilisateurs trouvés');
+    
     res.json({ users });
   } catch (error) {
     console.error('Erreur lors de la recherche d\'utilisateurs:', error);
