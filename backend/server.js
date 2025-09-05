@@ -253,6 +253,14 @@ const startServer = async () => {
     await connectDB();
     console.log('✅ Base de données connectée');
     
+    // Migrer automatiquement les rôles au démarrage
+    try {
+      const { migrateRolesOnStartup } = require('./scripts/migrate-roles-startup');
+      await migrateRolesOnStartup();
+    } catch (error) {
+      console.error('⚠️ Erreur lors de la migration des rôles au démarrage:', error.message);
+    }
+    
     // Initialiser l'administrateur par défaut
     try {
       const { initializeDefaultAdmin } = require('./controllers/admin.controller');

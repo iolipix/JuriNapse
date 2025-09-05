@@ -38,10 +38,34 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // S'assurer que le rôle est défini et que l'ID est accessible
+    // Normaliser les rôles pour compatibilité avec l'ancien système
+    let normalizedRole = user.role || 'user';
+    
+    // Si l'utilisateur a encore un champ roles (ancien système), migrer
+    if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
+      const allRoles = ['user', ...user.roles];
+      normalizedRole = [...new Set(allRoles)].join(';');
+      
+      // Migrer automatiquement en base
+      try {
+        await User.findByIdAndUpdate(user._id, {
+          role: normalizedRole,
+          $unset: { roles: 1 }
+        });
+      } catch (err) {
+        console.error('Erreur migration auto rôle:', err);
+      }
+    }
+    
+    // S'assurer que "user" est toujours présent
+    if (!normalizedRole.includes('user')) {
+      normalizedRole = 'user;' + normalizedRole;
+    }
+
     req.user = {
       ...user.toObject(),
       id: user._id.toString(), // Ajouter l'ID pour compatibilité
-      role: user.role || 'user'
+      role: normalizedRole
     };
     next();
   } catch (error) {
@@ -83,8 +107,25 @@ const optionalAuthenticateToken = async (req, res, next) => {
       console.log(`❌ [DEBUG] Utilisateur non trouvé ou supprimé: ${decoded.userId}`);
       req.user = null;
     } else {
-      req.user = user;
-      console.log(`👤 [DEBUG] Utilisateur authentifié: ${user.username}`);
+      // Normaliser les rôles pour compatibilité
+      let normalizedRole = user.role || 'user';
+      
+      // Si l'utilisateur a encore un champ roles (ancien système), migrer
+      if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
+        const allRoles = ['user', ...user.roles];
+        normalizedRole = [...new Set(allRoles)].join(';');
+      }
+      
+      // S'assurer que "user" est toujours présent
+      if (!normalizedRole.includes('user')) {
+        normalizedRole = 'user;' + normalizedRole;
+      }
+      
+      req.user = {
+        ...user,
+        role: normalizedRole
+      };
+      console.log(`👤 [DEBUG] Utilisateur authentifié: ${user.username} avec rôle: ${normalizedRole}`);
     }
     
     next();

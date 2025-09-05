@@ -298,4 +298,24 @@ userSchema.methods.isPremium = function() {
   return this.hasRole('premium');
 };
 
+// Middleware pre-save pour nettoyer automatiquement les rôles
+userSchema.pre('save', function(next) {
+  // Si le rôle est défini, s'assurer qu'il est bien formaté
+  if (this.role) {
+    const cleanedRoles = this.parseRoles();
+    const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
+    const orderedRoles = roleOrder.filter(role => cleanedRoles.includes(role));
+    this.role = orderedRoles.join(';');
+  } else {
+    this.role = 'user';
+  }
+  
+  // Supprimer l'ancien champ roles s'il existe encore
+  if (this.roles !== undefined) {
+    this.roles = undefined;
+  }
+  
+  next();
+});
+
 module.exports = mongoose.model('User', userSchema);
