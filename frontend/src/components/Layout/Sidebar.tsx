@@ -226,12 +226,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => handleTabClick(item.id, false)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors relative cursor-pointer border-l-4 ${
                   isActive 
-                    ? 'bg-blue-50 text-blue-700 border border-blue-200 border-l-blue-500' 
-                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700 border-l-blue-300'
+                    ? 'bg-red-50 text-red-700 border border-red-200 border-l-red-500' 
+                    : 'text-gray-600 hover:bg-red-50 hover:text-red-700 border-l-red-300'
                 }`}
                 style={{ pointerEvents: 'auto' }}
               >
-                <Icon className={`h-5 w-5 ${isActive ? 'text-blue-700' : 'text-blue-400'}`} />
+                <Icon className={`h-5 w-5 ${isActive ? 'text-red-700' : 'text-red-400'}`} />
                 <span className="font-medium">{item.label}</span>
                 <span className="ml-auto text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
                   🚧

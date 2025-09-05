@@ -106,7 +106,9 @@ export const isModerator = (userRole: UserRole | undefined): boolean => {
  * Vérifie si un utilisateur est modérateur ou plus (système de rôles multiples)
  */
 export const isModeratorMultiple = (user: UserWithRoles | undefined): boolean => {
-  return hasRole(user, 'moderator') || hasRole(user, 'administrator');
+  // Vérifier uniquement si l'utilisateur a explicitement le rôle de modérateur
+  // Ne pas afficher l'onglet modérateur aux admins qui n'ont pas le rôle modérateur
+  return hasRole(user, 'moderator');
 };
 
 /**

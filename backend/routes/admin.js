@@ -184,10 +184,11 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
       });
     }
 
-    // Empêcher un admin de se rétrograder lui-même
-    if (user._id.toString() === req.user.id) {
+    // Empêcher un admin de se retirer son propre rôle d'administrateur
+    // Mais permettre de se retirer le rôle de modérateur
+    if (user._id.toString() === req.user.id && user.roles?.includes('administrator')) {
       return res.status(400).json({ 
-        message: 'Vous ne pouvez pas vous rétrograder vous-même' 
+        message: 'Vous ne pouvez pas vous retirer votre propre rôle d\'administrateur. Vous pouvez seulement retirer votre rôle de modérateur.' 
       });
     }
 
@@ -223,52 +224,6 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
   } catch (error) {
     console.error('Erreur lors de la rétrogradation:', error);
     res.status(500).json({ message: 'Erreur serveur lors de la rétrogradation' });
-  }
-});
-
-// POST /api/admin/emergency-restore-theophane - Endpoint temporaire pour restaurer les rôles de Théophane
-router.post('/emergency-restore-theophane', authenticateToken, async (req, res) => {
-  try {
-    console.log('🚨 EMERGENCY: Tentative de restauration des rôles pour Théophane');
-    console.log('🔍 Utilisateur qui fait la demande:', req.user.username, req.user.id);
-
-    // Trouver Théophane par username
-    const theophane = await User.findOne({ username: 'theophane' });
-    if (!theophane) {
-      console.log('❌ Théophane non trouvé');
-      return res.status(404).json({ message: 'Utilisateur Théophane non trouvé' });
-    }
-
-    console.log('👤 Théophane trouvé:', {
-      id: theophane._id,
-      username: theophane.username,
-      currentRole: theophane.role,
-      currentRoles: theophane.roles
-    });
-
-    // Restaurer tous les rôles
-    theophane.roles = ['user', 'administrator', 'moderator', 'premium'];
-    theophane.role = 'administrator'; // Rôle principal
-    
-    await theophane.save();
-
-    console.log('✅ Rôles restaurés pour Théophane:', {
-      newRole: theophane.role,
-      newRoles: theophane.roles
-    });
-
-    res.json({ 
-      message: 'Rôles restaurés avec succès pour Théophane',
-      user: {
-        _id: theophane._id,
-        username: theophane.username,
-        role: theophane.role,
-        roles: theophane.roles
-      }
-    });
-  } catch (error) {
-    console.error('❌ Erreur lors de la restauration d\'urgence:', error);
-    res.status(500).json({ message: 'Erreur serveur lors de la restauration' });
   }
 });
 
