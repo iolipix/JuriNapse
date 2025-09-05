@@ -155,28 +155,26 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
   };
 
   const handleDemoteFromModerator = async (userId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir rétrograder ce modérateur ?')) {
-      try {
-        const token = localStorage.getItem('jurinapse_token');
-        const response = await fetch(`/api/admin/demote-moderator/${userId}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          // Recharger les modérateurs
-          await loadModerators();
-        } else {
-          const error = await response.json();
-          alert(`Erreur: ${error.message}`);
+    try {
+      const token = localStorage.getItem('jurinapse_token');
+      const response = await fetch(`/api/admin/demote-moderator/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('Erreur lors de la rétrogradation:', error);
-        alert('Erreur lors de la rétrogradation du modérateur');
+      });
+
+      if (response.ok) {
+        // Recharger les modérateurs
+        await loadModerators();
+      } else {
+        const error = await response.json();
+        alert(`Erreur: ${error.message}`);
       }
+    } catch (error) {
+      console.error('Erreur lors de la rétrogradation:', error);
+      alert('Erreur lors de la rétrogradation du modérateur');
     }
   };
 

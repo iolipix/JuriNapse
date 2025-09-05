@@ -201,7 +201,11 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
         user.roles = user.roles.filter(r => r !== 'moderator');
         if (user.roles.length === 0) user.roles = ['user'];
       }
-      user.role = user.roles && user.roles.includes('administrator') ? 'administrator' : 'user';
+      // NE PAS changer le rôle principal si l'utilisateur est encore admin
+      if (!user.roles || !user.roles.includes('administrator')) {
+        user.role = 'user';
+      }
+      // Si l'utilisateur a encore le rôle admin, garder admin comme rôle principal
     }
     
     await user.save();
