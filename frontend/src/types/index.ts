@@ -9,8 +9,7 @@ export interface User {
   university?: string;
   graduationYear?: number;
   isStudent: boolean;
-  role?: 'user' | 'moderator' | 'administrator'; // Maintenu pour compatibilité
-  roles?: ('user' | 'moderator' | 'administrator' | 'premium')[]; // Nouveau système de rôles multiples
+  role?: string; // Format: "user;premium;moderator;administrator"
   joinedAt: Date;
 }
 

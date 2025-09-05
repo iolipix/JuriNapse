@@ -41,8 +41,7 @@ const authenticateToken = async (req, res, next) => {
     req.user = {
       ...user.toObject(),
       id: user._id.toString(), // Ajouter l'ID pour compatibilité
-      role: user.role || 'user',
-      roles: user.roles || [user.role || 'user'] // Inclure les rôles multiples
+      role: user.role || 'user'
     };
     next();
   } catch (error) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { User } from '../../types';
-import { isModeratorMultiple } from '../../utils/roles';
+import { isModeratorMultiple, hasRole } from '../../utils/roles';
 
 interface ModeratorMenuProps {
   user: User | null;
@@ -95,10 +95,10 @@ const ModeratorMenu: React.FC<ModeratorMenuProps> = ({ user }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center">
             <div className="text-3xl font-bold text-blue-600 mb-1">
-              {user.roles?.includes('administrator') ? '👑' : '🛡️'}
+              {hasRole(user, 'administrator') ? '👑' : '🛡️'}
             </div>
             <p className="text-sm text-blue-700 font-medium">
-              {user.roles?.includes('administrator') ? 'Admin + Modérateur' : 'Modérateur'}
+              {hasRole(user, 'administrator') ? 'Admin + Modérateur' : 'Modérateur'}
             </p>
           </div>
           <div className="text-center">

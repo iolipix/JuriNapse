@@ -85,16 +85,9 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  // Système de rôles utilisateur (multiples)
-  roles: {
-    type: [String],
-    enum: ['user', 'moderator', 'administrator', 'premium'],
-    default: ['user']
-  },
-  // Maintenir l'ancien champ role pour la compatibilité (deprecated)
+  // Système de rôles cumulatifs (format: "user;premium;moderator;administrator")
   role: {
     type: String,
-    enum: ['user', 'moderator', 'administrator'],
     default: 'user'
   },
   // Champs pour le système d'utilisateur supprimé
@@ -235,33 +228,55 @@ userSchema.pre('save', function(next) {
   next();
 });
 
-// Méthodes pour gérer les rôles multiples
-userSchema.methods.hasRole = function(role) {
-  return this.roles && this.roles.includes(role);
+// Méthodes pour gérer les rôles cumulatifs (nouveau système string)
+userSchema.methods.parseRoles = function() {
+  if (!this.role) return ['user'];
+  return this.role.split(';').map(r => r.trim()).filter(Boolean);
 };
 
-userSchema.methods.addRole = function(role) {
-  if (!this.roles) this.roles = ['user'];
-  if (!this.roles.includes(role)) {
-    this.roles.push(role);
-    // Maintenir la compatibilité avec l'ancien champ role
-    if (role === 'administrator') this.role = 'administrator';
-    else if (role === 'moderator' && !this.hasRole('administrator')) this.role = 'moderator';
+userSchema.methods.hasRole = function(targetRole) {
+  const userRoles = this.parseRoles();
+  return userRoles.includes(targetRole);
+};
+
+userSchema.methods.addRole = function(newRole) {
+  let currentRoles = this.parseRoles();
+  
+  // S'assurer que 'user' est toujours présent
+  if (!currentRoles.includes('user')) {
+    currentRoles.unshift('user');
   }
-  return this.roles;
+  
+  // Ajouter le nouveau rôle s'il n'est pas déjà présent
+  if (!currentRoles.includes(newRole)) {
+    currentRoles.push(newRole);
+  }
+  
+  // Sérialiser en string avec l'ordre correct
+  const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
+  const orderedRoles = roleOrder.filter(role => currentRoles.includes(role));
+  this.role = orderedRoles.join(';');
+  
+  return this.parseRoles();
 };
 
-userSchema.methods.removeRole = function(role) {
-  if (!this.roles) this.roles = ['user'];
-  this.roles = this.roles.filter(r => r !== role);
-  if (this.roles.length === 0) this.roles = ['user'];
+userSchema.methods.removeRole = function(roleToRemove) {
+  let currentRoles = this.parseRoles();
   
-  // Maintenir la compatibilité avec l'ancien champ role
-  if (this.hasRole('administrator')) this.role = 'administrator';
-  else if (this.hasRole('moderator')) this.role = 'moderator';
-  else this.role = 'user';
+  // Retirer le rôle spécifié
+  currentRoles = currentRoles.filter(r => r !== roleToRemove);
   
-  return this.roles;
+  // S'assurer que 'user' est toujours présent
+  if (!currentRoles.includes('user')) {
+    currentRoles.unshift('user');
+  }
+  
+  // Sérialiser en string avec l'ordre correct
+  const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
+  const orderedRoles = roleOrder.filter(role => currentRoles.includes(role));
+  this.role = orderedRoles.join(';');
+  
+  return this.parseRoles();
 };
 
 userSchema.methods.isAdmin = function() {
@@ -275,19 +290,5 @@ userSchema.methods.isModerator = function() {
 userSchema.methods.isPremium = function() {
   return this.hasRole('premium');
 };
-
-// Middleware pour synchroniser roles avec role (compatibilité)
-userSchema.pre('save', function(next) {
-  if (this.roles && this.roles.length > 0) {
-    if (this.roles.includes('administrator')) {
-      this.role = 'administrator';
-    } else if (this.roles.includes('moderator')) {
-      this.role = 'moderator';
-    } else {
-      this.role = 'user';
-    }
-  }
-  next();
-});
 
 module.exports = mongoose.model('User', userSchema);

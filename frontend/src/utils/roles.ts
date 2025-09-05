@@ -30,7 +30,6 @@ export const USER_ROLES: Record<UserRole, { label: string; level: number; color:
 // Interface pour les utilisateurs avec rôle cumulatif
 interface UserWithRoles {
   role?: string; // Format: "user;premium;moderator;administrator"
-  roles?: UserRole[]; // Déprécié - pour compatibilité
 }
 
 /**
@@ -47,18 +46,9 @@ export const parseRoles = (roleString?: string): UserRole[] => {
 export const hasRole = (user: UserWithRoles | undefined, role: UserRole): boolean => {
   if (!user) return false;
   
-  // Nouveau système: parser le champ role
+  // Système actuel: parser le champ role
   const userRoles = parseRoles(user.role);
-  if (userRoles.includes(role)) {
-    return true;
-  }
-  
-  // Fallback sur l'ancien système array (pour compatibilité)
-  if (user.roles && user.roles.includes(role)) {
-    return true;
-  }
-  
-  return false;
+  return userRoles.includes(role);
 };
 
 /**
@@ -81,19 +71,11 @@ export const getHighestRoleLevel = (user: UserWithRoles | undefined): number => 
   
   let maxLevel = 0;
   
-  // Nouveau système: parser le champ role
+  // Parser le champ role et trouver le niveau maximum
   const userRoles = parseRoles(user.role);
   for (const role of userRoles) {
     const level = USER_ROLES[role]?.level || 0;
     maxLevel = Math.max(maxLevel, level);
-  }
-  
-  // Fallback sur l'ancien système array
-  if (user.roles) {
-    for (const role of user.roles) {
-      const level = USER_ROLES[role]?.level || 0;
-      maxLevel = Math.max(maxLevel, level);
-    }
   }
   
   return maxLevel;

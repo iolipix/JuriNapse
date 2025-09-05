@@ -18,6 +18,7 @@ import Sidebar from './components/Layout/Sidebar';
 import BetaBanner from './components/Layout/BetaBanner';
 import FeedPage from './components/Feed/FeedPage';
 import ProfilePage from './components/Profile/ProfilePage';
+import { hasRole } from './utils/roles';
 import UserProfilePage from './components/Profile/UserProfilePage';
 import NotificationsPage from './components/Notifications/NotificationsPage';
 import MessagingPage from './components/Messaging/MessagingPage';
@@ -461,7 +462,7 @@ const MainApp: React.FC = () => {
         break;
       case 'moderator':
         console.log('🛡️ Navigation vers modérateur - User:', user);
-        if (!user || (!user.roles?.includes('moderator') && user.role !== 'moderator')) {
+        if (!user || !hasRole(user, 'moderator')) {
           console.log('❌ Accès modérateur refusé:', !user ? 'Pas connecté' : 'Pas modérateur');
           return;
         }
@@ -744,7 +745,7 @@ const MainApp: React.FC = () => {
         return;
       }
       // Vérifier si l'utilisateur est modérateur
-      const isModerator = user.roles?.includes('moderator') || user.role === 'moderator';
+      const isModerator = hasRole(user, 'moderator');
       if (!isModerator) {
         console.log('❌ Utilisateur non-modérateur tentant d\'accéder à /moderator');
         // Rediriger vers l'accueil si pas modérateur
@@ -1000,7 +1001,7 @@ const MainApp: React.FC = () => {
         }
       case 'moderator':
         // Vérifier que l'utilisateur est modérateur
-        const isModerator = user?.roles?.includes('moderator') || user?.role === 'moderator';
+        const isModerator = hasRole(user, 'moderator');
         if (!user || !isModerator) {
           setActiveTab('feed');
           return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
