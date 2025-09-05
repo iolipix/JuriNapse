@@ -5,12 +5,11 @@ const { authenticateToken } = require('../middleware/auth.middleware');
 
 // Middleware pour vérifier que l'utilisateur est administrateur
 const adminAuth = (req, res, next) => {
-  // Vérifier avec le nouveau système de rôles multiples
-  const hasAdminRole = req.user.roles && req.user.roles.includes('administrator');
-  // Maintenir la compatibilité avec l'ancien système
-  const isAdminLegacy = req.user.role === 'administrator';
+  // Vérifier avec le nouveau système de rôles string
+  const userRoles = req.user.role ? req.user.role.split(';').map(r => r.trim()) : [];
+  const hasAdminRole = userRoles.includes('administrator');
   
-  if (!hasAdminRole && !isAdminLegacy) {
+  if (!hasAdminRole) {
     return res.status(403).json({ message: 'Accès refusé. Permissions administrateur requises.' });
   }
   next();
@@ -19,14 +18,11 @@ const adminAuth = (req, res, next) => {
 // GET /api/admin/moderators - Récupérer la liste des modérateurs
 router.get('/moderators', authenticateToken, adminAuth, async (req, res) => {
   try {
-    // Chercher tous les utilisateurs qui ont le rôle modérateur (nouveau système ou ancien)
+    // Chercher tous les utilisateurs qui ont le rôle modérateur dans le string role
     const moderators = await User.find({
-      $or: [
-        { roles: 'moderator' }, // Nouveau système de rôles multiples
-        { role: 'moderator' }   // Ancien système pour compatibilité
-      ]
+      role: { $regex: 'moderator', $options: 'i' }
     })
-      .select('username firstName lastName email profilePicture role roles createdAt')
+      .select('username firstName lastName email profilePicture role createdAt')
       .sort({ createdAt: -1 });
 
     res.json({ moderators });
@@ -63,23 +59,13 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
             { email: { $regex: searchQuery, $options: 'i' } }
           ]
         },
-        // Exclure seulement ceux qui ont déjà le rôle modérateur
+        // Exclure ceux qui ont déjà le rôle modérateur dans le string role
         {
-          $and: [
-            // Nouveau système : pas de moderator dans roles OU roles n'existe pas
-            {
-              $or: [
-                { roles: { $exists: false } },
-                { roles: { $nin: ['moderator'] } }
-              ]
-            },
-            // Ancien système : rôle différent de moderator
-            { role: { $ne: 'moderator' } }
-          ]
+          role: { $not: { $regex: 'moderator', $options: 'i' } }
         }
       ]
     })
-    .select('username firstName lastName email profilePicture role roles')
+    .select('username firstName lastName email profilePicture role')
     .limit(20) // Limiter les résultats
     .sort({ username: 1 });
 
@@ -87,8 +73,7 @@ router.get('/search-users', authenticateToken, adminAuth, async (req, res) => {
     if (users.length > 0) {
       console.log('🔍 Premier utilisateur exemple:', {
         username: users[0].username,
-        role: users[0].role,
-        roles: users[0].roles
+        role: users[0].role
       });
     }
     
@@ -111,7 +96,7 @@ router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (r
     }
 
     // Vérifier que l'utilisateur n'est pas déjà modérateur
-    if (user.hasRole && user.hasRole('moderator')) {
+    if (userHasRole(user, 'moderator')) {
       return res.status(400).json({ 
         message: `Cet utilisateur est déjà modérateur` 
       });
@@ -137,8 +122,7 @@ router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (r
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        roles: user.roles
+        role: user.role
       }
     });
   } catch (error) {
@@ -159,8 +143,7 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
     }
 
     // Vérifier que l'utilisateur est bien modérateur
-    const isModerator = user.hasRole ? user.hasRole('moderator') : user.role === 'moderator';
-    if (!isModerator) {
+    if (!userHasRole(user, 'moderator')) {
       return res.status(400).json({ 
         message: `Cet utilisateur n'est pas modérateur` 
       });
@@ -172,11 +155,7 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
     // Donc on peut toujours procéder, l'admin sera préservé dans la logique ci-dessous
 
     // Retirer le rôle modérateur (garder les autres rôles)
-    if (user.removeRole) {
-      user.removeRole('moderator');
-    } else {
-      removeRoleFromUser(user, 'moderator');
-    }
+    removeRoleFromUser(user, 'moderator');
     
     await user.save();
 
@@ -191,8 +170,7 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        roles: user.roles
+        role: user.role
       }
     });
   } catch (error) {
@@ -201,66 +179,70 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
   }
 });
 
+// Fonction helper pour parser les rôles depuis une string
+const parseRoles = (roleString) => {
+  if (!roleString) return [];
+  return roleString.split(';').map(r => r.trim()).filter(Boolean);
+};
+
+// Fonction helper pour sérialiser les rôles en string
+const serializeRoles = (rolesArray) => {
+  if (!rolesArray || rolesArray.length === 0) return 'user';
+  const uniqueRoles = [...new Set(rolesArray)];
+  const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
+  const orderedRoles = roleOrder.filter(role => uniqueRoles.includes(role));
+  return orderedRoles.join(';');
+};
+
+// Fonction helper pour vérifier si un utilisateur a un rôle
+const userHasRole = (user, targetRole) => {
+  const userRoles = parseRoles(user.role);
+  return userRoles.includes(targetRole);
+};
+
 // Fonction helper pour ajouter un rôle de manière cohérente
 const addRoleToUser = (user, newRole) => {
-  // Initialiser le système de rôles multiples si nécessaire
-  if (!user.roles) {
-    user.roles = ['user'];
-    if (user.role && user.role !== 'user' && !user.roles.includes(user.role)) {
-      user.roles.push(user.role);
-    }
-  }
+  // Parser les rôles existants
+  let currentRoles = parseRoles(user.role);
   
   // S'assurer que 'user' est toujours présent
-  if (!user.roles.includes('user')) {
-    user.roles.unshift('user');
+  if (!currentRoles.includes('user')) {
+    currentRoles.unshift('user');
   }
   
   // Ajouter le nouveau rôle s'il n'est pas déjà présent
-  if (!user.roles.includes(newRole)) {
-    user.roles.push(newRole);
+  if (!currentRoles.includes(newRole)) {
+    currentRoles.push(newRole);
   }
   
-  // Maintenir l'ordre logique des rôles: [user, premium, moderator, administrator]
-  const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
-  user.roles = roleOrder.filter(role => user.roles.includes(role));
+  // Sérialiser en string avec l'ordre correct
+  user.role = serializeRoles(currentRoles);
   
-  // Déterminer le rôle principal (le plus élevé dans la hiérarchie)
-  if (user.roles.includes('administrator')) {
-    user.role = 'administrator';
-  } else if (user.roles.includes('moderator')) {
-    user.role = 'moderator';
-  } else if (user.roles.includes('premium')) {
-    user.role = 'premium';
-  } else {
-    user.role = 'user';
+  // Nettoyer l'ancien champ roles s'il existe
+  if (user.roles) {
+    delete user.roles;
   }
 };
 
 // Fonction helper pour retirer un rôle de manière cohérente
 const removeRoleFromUser = (user, roleToRemove) => {
+  // Parser les rôles existants
+  let currentRoles = parseRoles(user.role);
+  
+  // Retirer le rôle spécifié
+  currentRoles = currentRoles.filter(r => r !== roleToRemove);
+  
+  // S'assurer que 'user' est toujours présent
+  if (!currentRoles.includes('user')) {
+    currentRoles.unshift('user');
+  }
+  
+  // Sérialiser en string avec l'ordre correct
+  user.role = serializeRoles(currentRoles);
+  
+  // Nettoyer l'ancien champ roles s'il existe
   if (user.roles) {
-    user.roles = user.roles.filter(r => r !== roleToRemove);
-    
-    // S'assurer que 'user' est toujours présent
-    if (!user.roles.includes('user')) {
-      user.roles.unshift('user');
-    }
-    
-    // Maintenir l'ordre logique des rôles: [user, premium, moderator, administrator]
-    const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
-    user.roles = roleOrder.filter(role => user.roles.includes(role));
-    
-    // Recalculer le rôle principal (le plus élevé dans la hiérarchie)
-    if (user.roles.includes('administrator')) {
-      user.role = 'administrator';
-    } else if (user.roles.includes('moderator')) {
-      user.role = 'moderator';
-    } else if (user.roles.includes('premium')) {
-      user.role = 'premium';
-    } else {
-      user.role = 'user';
-    }
+    delete user.roles;
   }
 };
 
@@ -274,7 +256,7 @@ router.post('/promote-premium/:userId', authenticateToken, adminAuth, async (req
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    if (user.hasRole && user.hasRole('premium')) {
+    if (userHasRole(user, 'premium')) {
       return res.status(400).json({ 
         message: `Cet utilisateur est déjà premium` 
       });
@@ -293,8 +275,7 @@ router.post('/promote-premium/:userId', authenticateToken, adminAuth, async (req
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        roles: user.roles
+        role: user.role
       }
     });
   } catch (error) {
@@ -313,8 +294,7 @@ router.post('/demote-premium/:userId', authenticateToken, adminAuth, async (req,
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    const isPremium = user.hasRole ? user.hasRole('premium') : user.role === 'premium';
-    if (!isPremium) {
+    if (!userHasRole(user, 'premium')) {
       return res.status(400).json({ 
         message: `Cet utilisateur n'est pas premium` 
       });
@@ -333,8 +313,7 @@ router.post('/demote-premium/:userId', authenticateToken, adminAuth, async (req,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        roles: user.roles
+        role: user.role
       }
     });
   } catch (error) {
@@ -353,7 +332,7 @@ router.post('/promote-administrator/:userId', authenticateToken, adminAuth, asyn
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    if (user.hasRole && user.hasRole('administrator')) {
+    if (userHasRole(user, 'administrator')) {
       return res.status(400).json({ 
         message: `Cet utilisateur est déjà administrateur` 
       });
@@ -372,8 +351,7 @@ router.post('/promote-administrator/:userId', authenticateToken, adminAuth, asyn
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        roles: user.roles
+        role: user.role
       }
     });
   } catch (error) {
@@ -392,8 +370,7 @@ router.post('/demote-administrator/:userId', authenticateToken, adminAuth, async
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    const isAdmin = user.hasRole ? user.hasRole('administrator') : user.role === 'administrator';
-    if (!isAdmin) {
+    if (!userHasRole(user, 'administrator')) {
       return res.status(400).json({ 
         message: `Cet utilisateur n'est pas administrateur` 
       });
@@ -419,8 +396,7 @@ router.post('/demote-administrator/:userId', authenticateToken, adminAuth, async
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        roles: user.roles
+        role: user.role
       }
     });
   } catch (error) {

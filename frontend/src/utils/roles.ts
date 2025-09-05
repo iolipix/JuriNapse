@@ -27,25 +27,38 @@ export const USER_ROLES: Record<UserRole, { label: string; level: number; color:
   }
 };
 
-// Interface pour les utilisateurs avec rôles multiples
+// Interface pour les utilisateurs avec rôle cumulatif
 interface UserWithRoles {
-  role?: UserRole;
-  roles?: UserRole[];
+  role?: string; // Format: "user;premium;moderator;administrator"
+  roles?: UserRole[]; // Déprécié - pour compatibilité
 }
 
 /**
- * Vérifie si un utilisateur a un rôle spécifique (système de rôles multiples)
+ * Parse le champ role pour extraire les rôles individuels
+ */
+export const parseRoles = (roleString?: string): UserRole[] => {
+  if (!roleString) return [];
+  return roleString.split(';').map(r => r.trim() as UserRole).filter(Boolean);
+};
+
+/**
+ * Vérifie si un utilisateur a un rôle spécifique (système de rôle cumulatif)
  */
 export const hasRole = (user: UserWithRoles | undefined, role: UserRole): boolean => {
   if (!user) return false;
   
-  // Vérifier dans le nouveau système de rôles multiples
+  // Nouveau système: parser le champ role
+  const userRoles = parseRoles(user.role);
+  if (userRoles.includes(role)) {
+    return true;
+  }
+  
+  // Fallback sur l'ancien système array (pour compatibilité)
   if (user.roles && user.roles.includes(role)) {
     return true;
   }
   
-  // Fallback sur l'ancien système
-  return user.role === role;
+  return false;
 };
 
 /**
@@ -68,18 +81,19 @@ export const getHighestRoleLevel = (user: UserWithRoles | undefined): number => 
   
   let maxLevel = 0;
   
-  // Vérifier dans le nouveau système de rôles multiples
+  // Nouveau système: parser le champ role
+  const userRoles = parseRoles(user.role);
+  for (const role of userRoles) {
+    const level = USER_ROLES[role]?.level || 0;
+    maxLevel = Math.max(maxLevel, level);
+  }
+  
+  // Fallback sur l'ancien système array
   if (user.roles) {
     for (const role of user.roles) {
       const level = USER_ROLES[role]?.level || 0;
       maxLevel = Math.max(maxLevel, level);
     }
-  }
-  
-  // Vérifier l'ancien système aussi
-  if (user.role) {
-    const level = USER_ROLES[user.role]?.level || 0;
-    maxLevel = Math.max(maxLevel, level);
   }
   
   return maxLevel;
