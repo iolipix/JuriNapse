@@ -91,7 +91,6 @@ const MainApp: React.FC = () => {
   // Gérer la navigation avec les boutons du navigateur
   useEffect(() => {
     const handlePopState = () => {
-      console.log('🔙 Événement popstate (bouton arrière/avant du navigateur)');
       handleRouting();
     };
 
@@ -109,7 +108,6 @@ const MainApp: React.FC = () => {
   // Relancer le routage quand l'authentification est prête
   useEffect(() => {
     if (!isLoading) {
-      console.log('🎯 Auth initialisée, relance du routage');
       handleRouting();
     }
   }, [isLoading]);
@@ -452,21 +450,15 @@ const MainApp: React.FC = () => {
         window.history.pushState(null, '', '/settings');
         break;
       case 'admin':
-        console.log('🛡️ Navigation vers admin - User:', user);
         if (!user || !hasRole(user, 'administrator')) {
-          console.log('❌ Accès admin refusé:', !user ? 'Pas connecté' : 'Pas admin');
           return;
         }
-        console.log('✅ Navigation admin autorisée, URL: /admin');
         window.history.pushState(null, '', '/admin');
         break;
       case 'moderator':
-        console.log('🛡️ Navigation vers modérateur - User:', user);
         if (!user || !hasRole(user, 'moderator')) {
-          console.log('❌ Accès modérateur refusé:', !user ? 'Pas connecté' : 'Pas modérateur');
           return;
         }
-        console.log('✅ Navigation modérateur autorisée, URL: /moderator');
         window.history.pushState(null, '', '/moderator');
         break;
       case 'terms':
@@ -496,12 +488,9 @@ const MainApp: React.FC = () => {
 
   // Navigation vers un onglet spécifique d'administration
   const handleAdminTabNavigation = (adminTabId: string) => {
-    console.log('🔧 handleAdminTabNavigation appelé avec:', adminTabId, 'User:', !!user);
     if (!user || !hasRole(user, 'administrator')) {
-      console.log('❌ Navigation admin refusée - pas admin');
       return;
     }
-    console.log('✅ Navigation vers sous-onglet admin:', adminTabId);
     setActiveTab('admin');
     setAdminTab(adminTabId);
     window.history.pushState(null, '', `/admin/${adminTabId}`);
@@ -509,12 +498,9 @@ const MainApp: React.FC = () => {
 
   // Retour au menu principal d'administration
   const handleBackToAdminMenu = () => {
-    console.log('⬅️ handleBackToAdminMenu appelé - User:', !!user);
     if (!user || !hasRole(user, 'administrator')) {
-      console.log('❌ Retour admin refusé - pas admin');
       return;
     }
-    console.log('✅ Retour vers menu admin principal');
     setAdminTab(null);
     setActiveTab('admin');
     window.history.pushState(null, '', '/admin');
@@ -523,11 +509,9 @@ const MainApp: React.FC = () => {
   // Gestion du routage basé sur l'URL - VERSION SIMPLIFIÉE
   const handleRouting = () => {
     const path = window.location.pathname;
-    console.log('🧭 handleRouting appelé avec path:', path);
     
     // Attendre que l'authentification soit prête pour les routes admin, MAIS seulement si on n'a vraiment pas d'utilisateur
     if (path.startsWith('/admin') && isLoading && !user) {
-      console.log('⏳ Attente de l\'initialisation de l\'auth pour route admin');
       return;
     }
     
@@ -685,21 +669,17 @@ const MainApp: React.FC = () => {
 
     // Routes pour l'administration
     if (path === '/admin') {
-      console.log('🔐 Route /admin détectée');
       if (!user) {
-        console.log('❌ Pas d\'utilisateur connecté pour /admin');
         setIsAuthOpen(true);
         return;
       }
       // Vérifier si l'utilisateur est admin
       if (!hasRole(user, 'administrator')) {
-        console.log('❌ Utilisateur non-admin tentant d\'accéder à /admin');
         // Rediriger vers l'accueil si pas admin
         window.history.replaceState(null, '', '/');
         setActiveTab('feed');
         return;
       }
-      console.log('✅ Admin autorisé pour /admin - Réinitialisation vers menu principal');
       setActiveTab('admin');
       setViewingUserId(null);
       setViewingPostId(null);
@@ -711,22 +691,18 @@ const MainApp: React.FC = () => {
     }
     
     if (path.startsWith('/admin/')) {
-      console.log('🔐 Sous-route admin détectée:', path);
       if (!user) {
-        console.log('❌ Pas d\'utilisateur connecté pour sous-route admin');
         setIsAuthOpen(true);
         return;
       }
       // Vérifier si l'utilisateur est admin
       if (!hasRole(user, 'administrator')) {
-        console.log('❌ Utilisateur non-admin tentant d\'accéder à sous-route admin');
         // Rediriger vers l'accueil si pas admin
         window.history.replaceState(null, '', '/');
         setActiveTab('feed');
         return;
       }
       const adminPath = path.substring(7); // Enlever "/admin/"
-      console.log('✅ Admin autorisé pour sous-route, adminPath:', adminPath);
       setActiveTab('admin');
       setViewingUserId(null);
       setViewingPostId(null);
@@ -738,22 +714,18 @@ const MainApp: React.FC = () => {
 
     // Routes pour la modération
     if (path === '/moderator') {
-      console.log('🔐 Route /moderator détectée');
       if (!user) {
-        console.log('❌ Pas d\'utilisateur connecté pour /moderator');
         setIsAuthOpen(true);
         return;
       }
       // Vérifier si l'utilisateur est modérateur
       const isModerator = hasRole(user, 'moderator');
       if (!isModerator) {
-        console.log('❌ Utilisateur non-modérateur tentant d\'accéder à /moderator');
         // Rediriger vers l'accueil si pas modérateur
         window.history.replaceState(null, '', '/');
         setActiveTab('feed');
         return;
       }
-      console.log('✅ Modérateur autorisé pour /moderator');
       setActiveTab('moderator');
       setViewingUserId(null);
       setViewingPostId(null);

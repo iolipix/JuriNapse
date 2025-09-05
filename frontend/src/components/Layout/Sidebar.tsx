@@ -74,7 +74,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const handleTabClick = (tabId: string, requiresAuth: boolean = false) => {
-    console.log('🔘 Sidebar - handleTabClick appelé avec:', tabId);
     if (!user && requiresAuth) {
       onLogin();
       return;
@@ -194,7 +193,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Onglets administrateur (visible uniquement pour les admins) */}
           {user && isAdministratorMultiple(user) && adminTabs.map((item) => {
-            console.log('🛡️ Rendu onglet admin - User:', user, 'isAdmin:', isAdministratorMultiple(user));
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             
