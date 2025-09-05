@@ -138,7 +138,7 @@ export const isPremium = (user: UserWithRoles | undefined): boolean => {
 };
 
 /**
- * Obtient le badge de rôle pour l'affichage
+ * Obtient le badge de rôle pour l'affichage (ancien système - un seul rôle)
  */
 export const getRoleBadge = (role: UserRole | undefined): { label: string; color: string } | null => {
   if (!role || role === 'user') return null;
@@ -148,6 +148,55 @@ export const getRoleBadge = (role: UserRole | undefined): { label: string; color
     label: roleInfo.label,
     color: roleInfo.color
   };
+};
+
+/**
+ * Obtient le badge de rôle le plus élevé pour un utilisateur (système multi-rôles)
+ */
+export const getHighestRoleBadge = (user: UserWithRoles | undefined): { label: string; color: string } | null => {
+  if (!user) return null;
+  
+  const userRoles = parseRoles(user.role);
+  
+  // Ordre de priorité pour l'affichage (du plus élevé au plus bas)
+  const roleOrder = ['administrator', 'moderator', 'premium', 'user'];
+  
+  for (const role of roleOrder) {
+    if (userRoles.includes(role as UserRole) && role !== 'user') {
+      const roleInfo = USER_ROLES[role as UserRole];
+      return {
+        label: roleInfo.label,
+        color: roleInfo.color
+      };
+    }
+  }
+  
+  return null; // Utilisateur standard (user)
+};
+
+/**
+ * Obtient tous les badges de rôles pour un utilisateur (sauf 'user')
+ */
+export const getAllRoleBadges = (user: UserWithRoles | undefined): Array<{ label: string; color: string }> => {
+  if (!user) return [];
+  
+  const userRoles = parseRoles(user.role);
+  const badges: Array<{ label: string; color: string }> = [];
+  
+  // Ordre d'affichage pour les badges multiples
+  const roleOrder = ['premium', 'moderator', 'administrator'];
+  
+  for (const role of roleOrder) {
+    if (userRoles.includes(role as UserRole)) {
+      const roleInfo = USER_ROLES[role as UserRole];
+      badges.push({
+        label: roleInfo.label,
+        color: roleInfo.color
+      });
+    }
+  }
+  
+  return badges;
 };
 
 /**
