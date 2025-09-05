@@ -121,24 +121,7 @@ router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (r
     if (user.addRole) {
       user.addRole('moderator');
     } else {
-      // Fallback pour compatibilité - initialiser le système de rôles multiples
-      if (!user.roles) {
-        // Initialiser avec le rôle actuel + user
-        user.roles = user.role ? [user.role, 'user'] : ['user'];
-      }
-      
-      // Ajouter moderator s'il n'est pas déjà présent
-      if (!user.roles.includes('moderator')) {
-        user.roles.push('moderator');
-      }
-      
-      // PRÉSERVER le rôle principal existant si c'est admin
-      // Ne changer le rôle principal que si ce n'était pas déjà un admin
-      if (!user.roles.includes('administrator')) {
-        // Si pas admin, alors mettre moderator comme rôle principal
-        user.role = 'moderator';
-      }
-      // Si c'est déjà admin, garder administrator comme rôle principal
+      addRoleToUser(user, 'moderator');
     }
     
     await user.save();
@@ -184,27 +167,15 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
     }
 
     // Empêcher un admin de se retirer son propre rôle d'administrateur
-    // Mais permettre de se retirer le rôle de modérateur
-    if (user._id.toString() === req.user.id && user.roles?.includes('administrator')) {
-      return res.status(400).json({ 
-        message: 'Vous ne pouvez pas vous retirer votre propre rôle d\'administrateur. Vous pouvez seulement retirer votre rôle de modérateur.' 
-      });
-    }
+    // MAIS permettre de se retirer le rôle de modérateur même si on est admin
+    // Cette route retire SEULEMENT le rôle modérateur, jamais le rôle admin
+    // Donc on peut toujours procéder, l'admin sera préservé dans la logique ci-dessous
 
     // Retirer le rôle modérateur (garder les autres rôles)
     if (user.removeRole) {
       user.removeRole('moderator');
     } else {
-      // Fallback pour compatibilité
-      if (user.roles) {
-        user.roles = user.roles.filter(r => r !== 'moderator');
-        if (user.roles.length === 0) user.roles = ['user'];
-      }
-      // NE PAS changer le rôle principal si l'utilisateur est encore admin
-      if (!user.roles || !user.roles.includes('administrator')) {
-        user.role = 'user';
-      }
-      // Si l'utilisateur a encore le rôle admin, garder admin comme rôle principal
+      removeRoleFromUser(user, 'moderator');
     }
     
     await user.save();
@@ -227,6 +198,234 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
   } catch (error) {
     console.error('Erreur lors de la rétrogradation:', error);
     res.status(500).json({ message: 'Erreur serveur lors de la rétrogradation' });
+  }
+});
+
+// Fonction helper pour ajouter un rôle de manière cohérente
+const addRoleToUser = (user, newRole) => {
+  // Initialiser le système de rôles multiples si nécessaire
+  if (!user.roles) {
+    user.roles = ['user'];
+    if (user.role && user.role !== 'user' && !user.roles.includes(user.role)) {
+      user.roles.push(user.role);
+    }
+  }
+  
+  // S'assurer que 'user' est toujours présent
+  if (!user.roles.includes('user')) {
+    user.roles.unshift('user');
+  }
+  
+  // Ajouter le nouveau rôle s'il n'est pas déjà présent
+  if (!user.roles.includes(newRole)) {
+    user.roles.push(newRole);
+  }
+  
+  // Maintenir l'ordre logique des rôles: [user, premium, moderator, administrator]
+  const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
+  user.roles = roleOrder.filter(role => user.roles.includes(role));
+  
+  // Déterminer le rôle principal (le plus élevé dans la hiérarchie)
+  if (user.roles.includes('administrator')) {
+    user.role = 'administrator';
+  } else if (user.roles.includes('moderator')) {
+    user.role = 'moderator';
+  } else if (user.roles.includes('premium')) {
+    user.role = 'premium';
+  } else {
+    user.role = 'user';
+  }
+};
+
+// Fonction helper pour retirer un rôle de manière cohérente
+const removeRoleFromUser = (user, roleToRemove) => {
+  if (user.roles) {
+    user.roles = user.roles.filter(r => r !== roleToRemove);
+    
+    // S'assurer que 'user' est toujours présent
+    if (!user.roles.includes('user')) {
+      user.roles.unshift('user');
+    }
+    
+    // Maintenir l'ordre logique des rôles: [user, premium, moderator, administrator]
+    const roleOrder = ['user', 'premium', 'moderator', 'administrator'];
+    user.roles = roleOrder.filter(role => user.roles.includes(role));
+    
+    // Recalculer le rôle principal (le plus élevé dans la hiérarchie)
+    if (user.roles.includes('administrator')) {
+      user.role = 'administrator';
+    } else if (user.roles.includes('moderator')) {
+      user.role = 'moderator';
+    } else if (user.roles.includes('premium')) {
+      user.role = 'premium';
+    } else {
+      user.role = 'user';
+    }
+  }
+};
+
+// POST /api/admin/promote-premium/:userId - Promouvoir un utilisateur en premium
+router.post('/promote-premium/:userId', authenticateToken, adminAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    if (user.hasRole && user.hasRole('premium')) {
+      return res.status(400).json({ 
+        message: `Cet utilisateur est déjà premium` 
+      });
+    }
+
+    addRoleToUser(user, 'premium');
+    await user.save();
+
+    console.log(`[ADMIN] ${req.user.username} a promu ${user.username} au rang premium`);
+
+    res.json({ 
+      message: `${user.username} a été promu premium avec succès`,
+      user: {
+        _id: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        roles: user.roles
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la promotion premium:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la promotion premium' });
+  }
+});
+
+// POST /api/admin/demote-premium/:userId - Rétrograder un utilisateur premium
+router.post('/demote-premium/:userId', authenticateToken, adminAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    const isPremium = user.hasRole ? user.hasRole('premium') : user.role === 'premium';
+    if (!isPremium) {
+      return res.status(400).json({ 
+        message: `Cet utilisateur n'est pas premium` 
+      });
+    }
+
+    removeRoleFromUser(user, 'premium');
+    await user.save();
+
+    console.log(`[ADMIN] ${req.user.username} a rétrogradé ${user.username} du rang premium`);
+
+    res.json({ 
+      message: `${user.username} a été rétrogradé du rang premium`,
+      user: {
+        _id: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        roles: user.roles
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la rétrogradation premium:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la rétrogradation premium' });
+  }
+});
+
+// POST /api/admin/promote-administrator/:userId - Promouvoir un utilisateur en administrateur
+router.post('/promote-administrator/:userId', authenticateToken, adminAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    if (user.hasRole && user.hasRole('administrator')) {
+      return res.status(400).json({ 
+        message: `Cet utilisateur est déjà administrateur` 
+      });
+    }
+
+    addRoleToUser(user, 'administrator');
+    await user.save();
+
+    console.log(`[ADMIN] ${req.user.username} a promu ${user.username} au rang d'administrateur`);
+
+    res.json({ 
+      message: `${user.username} a été promu administrateur avec succès`,
+      user: {
+        _id: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        roles: user.roles
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la promotion administrateur:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la promotion administrateur' });
+  }
+});
+
+// POST /api/admin/demote-administrator/:userId - Rétrograder un administrateur
+router.post('/demote-administrator/:userId', authenticateToken, adminAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    const isAdmin = user.hasRole ? user.hasRole('administrator') : user.role === 'administrator';
+    if (!isAdmin) {
+      return res.status(400).json({ 
+        message: `Cet utilisateur n'est pas administrateur` 
+      });
+    }
+
+    // Empêcher qu'un admin se retire ses propres droits d'administrateur
+    if (user._id.toString() === req.user.id) {
+      return res.status(400).json({ 
+        message: 'Vous ne pouvez pas vous retirer votre propre rôle d\'administrateur' 
+      });
+    }
+
+    removeRoleFromUser(user, 'administrator');
+    await user.save();
+
+    console.log(`[ADMIN] ${req.user.username} a rétrogradé ${user.username} du rang d'administrateur`);
+
+    res.json({ 
+      message: `${user.username} a été rétrogradé du rang d'administrateur`,
+      user: {
+        _id: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        roles: user.roles
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la rétrogradation administrateur:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la rétrogradation administrateur' });
   }
 });
 
