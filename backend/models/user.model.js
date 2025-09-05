@@ -231,7 +231,14 @@ userSchema.pre('save', function(next) {
 // Méthodes pour gérer les rôles cumulatifs (nouveau système string)
 userSchema.methods.parseRoles = function() {
   if (!this.role) return ['user'];
-  return this.role.split(';').map(r => r.trim()).filter(Boolean);
+  const roles = this.role.split(';').map(r => r.trim()).filter(Boolean);
+  
+  // S'assurer que 'user' est toujours présent
+  if (!roles.includes('user')) {
+    roles.unshift('user');
+  }
+  
+  return roles;
 };
 
 userSchema.methods.hasRole = function(targetRole) {

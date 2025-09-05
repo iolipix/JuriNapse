@@ -181,8 +181,15 @@ router.post('/demote-moderator/:userId', authenticateToken, adminAuth, async (re
 
 // Fonction helper pour parser les rôles depuis une string
 const parseRoles = (roleString) => {
-  if (!roleString) return [];
-  return roleString.split(';').map(r => r.trim()).filter(Boolean);
+  if (!roleString) return ['user'];
+  const roles = roleString.split(';').map(r => r.trim()).filter(Boolean);
+  
+  // S'assurer que 'user' est toujours présent
+  if (!roles.includes('user')) {
+    roles.unshift('user');
+  }
+  
+  return roles;
 };
 
 // Fonction helper pour sérialiser les rôles en string

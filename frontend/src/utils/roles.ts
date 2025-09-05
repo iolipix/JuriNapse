@@ -34,10 +34,19 @@ interface UserWithRoles {
 
 /**
  * Parse le champ role pour extraire les rôles individuels
+ * S'assure que 'user' est toujours inclus
  */
 export const parseRoles = (roleString?: string): UserRole[] => {
-  if (!roleString) return [];
-  return roleString.split(';').map(r => r.trim() as UserRole).filter(Boolean);
+  if (!roleString) return ['user'];
+  
+  const roles = roleString.split(';').map(r => r.trim() as UserRole).filter(Boolean);
+  
+  // S'assurer que 'user' est toujours présent
+  if (!roles.includes('user')) {
+    roles.unshift('user');
+  }
+  
+  return roles;
 };
 
 /**
