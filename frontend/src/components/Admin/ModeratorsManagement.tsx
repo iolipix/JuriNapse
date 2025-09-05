@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Users, Shield, Search, X, UserPlus, Crown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { hasRole } from '../../utils/roles';
 
 interface User {
   _id: string;
@@ -26,7 +27,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
 
   // Vérifier les permissions d'accès
   useEffect(() => {
-    if (!user || user.role !== 'administrator') {
+    if (!user || !hasRole(user, 'administrator')) {
       // Rediriger vers l'accueil si pas admin
       window.location.href = '/';
       return;
@@ -34,7 +35,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
   }, [user]);
 
   // Ne pas rendre le composant si l'utilisateur n'est pas admin
-  if (!user || user.role !== 'administrator') {
+  if (!user || !hasRole(user, 'administrator')) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
@@ -47,7 +48,7 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
 
   // Charger les modérateurs existants
   useEffect(() => {
-    if (user && user.role === 'administrator') {
+    if (user && hasRole(user, 'administrator')) {
       loadModerators();
     }
   }, [user]);

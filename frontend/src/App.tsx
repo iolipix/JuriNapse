@@ -453,7 +453,7 @@ const MainApp: React.FC = () => {
         break;
       case 'admin':
         console.log('🛡️ Navigation vers admin - User:', user);
-        if (!user || user.role !== 'administrator') {
+        if (!user || !hasRole(user, 'administrator')) {
           console.log('❌ Accès admin refusé:', !user ? 'Pas connecté' : 'Pas admin');
           return;
         }
@@ -497,7 +497,7 @@ const MainApp: React.FC = () => {
   // Navigation vers un onglet spécifique d'administration
   const handleAdminTabNavigation = (adminTabId: string) => {
     console.log('🔧 handleAdminTabNavigation appelé avec:', adminTabId, 'User:', !!user);
-    if (!user || user.role !== 'administrator') {
+    if (!user || !hasRole(user, 'administrator')) {
       console.log('❌ Navigation admin refusée - pas admin');
       return;
     }
@@ -510,7 +510,7 @@ const MainApp: React.FC = () => {
   // Retour au menu principal d'administration
   const handleBackToAdminMenu = () => {
     console.log('⬅️ handleBackToAdminMenu appelé - User:', !!user);
-    if (!user || user.role !== 'administrator') {
+    if (!user || !hasRole(user, 'administrator')) {
       console.log('❌ Retour admin refusé - pas admin');
       return;
     }
@@ -692,7 +692,7 @@ const MainApp: React.FC = () => {
         return;
       }
       // Vérifier si l'utilisateur est admin
-      if (user.role !== 'administrator') {
+      if (!hasRole(user, 'administrator')) {
         console.log('❌ Utilisateur non-admin tentant d\'accéder à /admin');
         // Rediriger vers l'accueil si pas admin
         window.history.replaceState(null, '', '/');
@@ -718,7 +718,7 @@ const MainApp: React.FC = () => {
         return;
       }
       // Vérifier si l'utilisateur est admin
-      if (user.role !== 'administrator') {
+      if (!hasRole(user, 'administrator')) {
         console.log('❌ Utilisateur non-admin tentant d\'accéder à sous-route admin');
         // Rediriger vers l'accueil si pas admin
         window.history.replaceState(null, '', '/');
@@ -983,7 +983,7 @@ const MainApp: React.FC = () => {
         return <SettingsMenu onNavigateToTab={handleSettingsTabNavigation} />;
       case 'admin':
         // Vérifier que l'utilisateur est admin
-        if (!user || user.role !== 'administrator') {
+        if (!user || !hasRole(user, 'administrator')) {
           setActiveTab('feed');
           return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
         }
@@ -1009,7 +1009,7 @@ const MainApp: React.FC = () => {
         return <ModeratorMenu user={user} />;
       case 'administrateur':
         // Backward compatibility - redirect to admin
-        if (!user || user.role !== 'administrator') {
+        if (!user || !hasRole(user, 'administrator')) {
           setActiveTab('feed');
           return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
         }
