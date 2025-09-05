@@ -132,14 +132,13 @@ router.post('/promote-moderator/:userId', authenticateToken, adminAuth, async (r
         user.roles.push('moderator');
       }
       
-      // Maintenir le rôle principal le plus élevé
-      if (user.roles.includes('administrator')) {
-        user.role = 'administrator'; // Garder admin comme rôle principal
-      } else if (user.roles.includes('moderator')) {
+      // PRÉSERVER le rôle principal existant si c'est admin
+      // Ne changer le rôle principal que si ce n'était pas déjà un admin
+      if (!user.roles.includes('administrator')) {
+        // Si pas admin, alors mettre moderator comme rôle principal
         user.role = 'moderator';
-      } else {
-        user.role = 'user';
       }
+      // Si c'est déjà admin, garder administrator comme rôle principal
     }
     
     await user.save();
