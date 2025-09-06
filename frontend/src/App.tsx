@@ -563,6 +563,16 @@ const MainApp: React.FC = () => {
       setSelectedTag(null);
       setSettingsTab(null);
       setAdminTab(null);
+      
+      // Gérer le paramètre 'user' pour ouvrir une conversation spécifique
+      const searchParams = new URLSearchParams(window.location.search);
+      const targetUserId = searchParams.get('user');
+      if (targetUserId) {
+        setTargetMessageUserId(targetUserId);
+      } else {
+        setTargetMessageUserId(null);
+      }
+      
       return;
     }
     

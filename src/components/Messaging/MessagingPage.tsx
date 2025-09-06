@@ -14,7 +14,7 @@ interface MessagingPageProps {
   targetUserId?: string; // ID de l'utilisateur avec qui démarrer une conversation
 }
 
-const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserProfile }) => {
+const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserProfile, targetUserId }) => {
   const { user } = useAuth();
   const { getConnections } = useSubscription();
   const messagingContext = useMessaging();
@@ -348,6 +348,19 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   }, [messages, activeGroupId]);
 
   const getLastMessage = (chatId: string) => computedLastMessages[chatId] || null;
+
+  // Effet pour traiter le targetUserId quand le composant se charge
+  useEffect(() => {
+    if (targetUserId && user) {
+      console.log('🎯 Création/ouverture de conversation avec:', targetUserId);
+      
+      // Essayer de créer ou ouvrir la conversation privée
+      handleCreatePrivateChat(targetUserId).catch((error) => {
+        console.error('❌ Erreur lors de la création de la conversation:', error);
+        setShowErrorMessage('Erreur lors de l\'ouverture de la conversation');
+      });
+    }
+  }, [targetUserId, user]); // Se déclenche quand targetUserId change ou quand l'utilisateur se connecte
 
   // Helper functions for private chat display
   const getOtherParticipant = (chat: any) => {
