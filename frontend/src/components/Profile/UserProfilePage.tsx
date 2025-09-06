@@ -89,7 +89,8 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
     title: userProfile ? `${fullName} (@${userProfile.username}) - Jurinapse` : 'Profil - Jurinapse',
     description: userProfile?.bio || `Découvrez le profil de ${fullName} sur Jurinapse`,
     type: 'profile' as const,
-    url: userProfile ? `https://jurinapse.com/profile/${userProfile.username}` : undefined,
+  // Canonical profile URL uses /:username (no /profile/ prefix)
+  url: userProfile ? `https://jurinapse.com/${userProfile.username}` : undefined,
     username: userProfile?.username,
     fullName: fullName,
     shouldSubmitToGoogle: !!userProfile, // Indexation automatique pour tous les profils

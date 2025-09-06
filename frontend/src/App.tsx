@@ -23,6 +23,7 @@ import UserProfilePage from './components/Profile/UserProfilePage';
 import NotificationsPage from './components/Notifications/NotificationsPage';
 import MessagingPage from './components/Messaging/MessagingPage';
 import PostDetailPage from './components/Post/PostDetailPage';
+import { usersAPI } from './services/api';
 import CreatePostModal from './components/Post/CreatePostModal';
 import SettingsPage from './components/Settings/SettingsPage';
 import SettingsMenu from './components/Settings/SettingsMenu';
@@ -274,7 +275,7 @@ const MainApp: React.FC = () => {
     scrollToTop();
   };
 
-  const handleViewUserProfile = (userId: string) => {
+  const handleViewUserProfile = async (userId: string) => {
     // 🔧 CORRECTION : Vérifier si c'est son propre profil
     if (user && userId === user.id) {
       // Rediriger vers son propre profil
@@ -284,20 +285,33 @@ const MainApp: React.FC = () => {
 
     // Essayer de récupérer le username depuis les posts (synchrone)
     const userPost = posts ? posts.find(post => post.authorId === userId) : null;
-    if (userPost && userPost.author && userPost.author.username) {
-      handleViewUserProfileByUsername(userPost.author.username);
-    } else {
-      // Fallback sur l'ID - utiliser une URL propre
-      setViewingUserId(userId);
-      setActiveTab('user-profile');
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setSelectedTag(null);
-      
-      // URL propre sans hash
-      window.history.pushState({}, '', `/${userId}`);
-      scrollToTop();
+    const cachedUsername = userPost?.author?.username;
+
+    // Si pas trouvé dans le cache, tenter via API pour garantir username-only
+    let usernameToUse = cachedUsername;
+    if (!usernameToUse) {
+      try {
+        const resp = await usersAPI.getUserById(userId);
+        if (resp && resp.user && resp.user.username) {
+          usernameToUse = resp.user.username;
+        }
+      } catch (_) {}
     }
+
+    // Si on a un username, naviguer en /:username uniquement
+    if (usernameToUse) {
+      handleViewUserProfileByUsername(usernameToUse);
+      return;
+    }
+
+    // En dernier recours, rester sur l'onglet profil utilisateur sans changer l'URL vers un ID
+    setViewingUserId(userId);
+    setActiveTab('user-profile');
+    setViewingPostId(null);
+    setViewingDecision(null);
+    setSelectedTag(null);
+    // Ne pas pousser d'URL /:id; garder l'URL courante
+    scrollToTop();
   };
 
   const handleViewUserProfileByUsername = (username: string) => {
@@ -309,8 +323,8 @@ const MainApp: React.FC = () => {
     setSelectedTag(null);
     
     
-    // URL propre sans hash
-    window.history.pushState({}, '', `/${username}`);
+  // URL canonique sans hash: /:username (jamais /profile/:username ni /:id)
+  window.history.pushState({}, '', `/${username}`);
     
     scrollToTop(); // Défiler vers le haut
   };
@@ -531,7 +545,7 @@ const MainApp: React.FC = () => {
     }
 
     // Route profil privé
-    if (path === '/profile') {
+  if (path === '/profile') {
       if (!user) {
         openAuthModal();
         return;
@@ -765,13 +779,22 @@ const MainApp: React.FC = () => {
       }
     }
     
-    // Vérifier si c'est un profil utilisateur par username
+    // Normaliser /profile/:username -> /:username
+    if (path.startsWith('/profile/')) {
+      const username = path.substring('/profile/'.length);
+      if (username) {
+        window.history.replaceState({}, '', `/${username}`);
+        // Continuer le routing avec le nouveau path
+      }
+    }
+
+    // Vérifier si c'est un profil utilisateur par username (canonique)
     if (path.length > 1 && path.startsWith('/')) {
       const username = path.substring(1); // Enlever le "/" initial
       // Vérifier si c'est un username valide (pas une autre route)
   if (username && !username.includes('/') && username !== 'auth' && username !== 'login' && username !== 'messages' && username !== 'fiches' && username !== 'publications' && username !== 'cours' && username !== 'protocole' && username !== 'trending' && username !== 'notifications' && username !== 'post' && username !== 'settings' && username !== 'admin' && username !== 'conditions-utilisation' && username !== 'profile') {
         // Vérifier si c'est son propre profil (seulement si l'utilisateur est connecté)
-        if (user && (username === user.username || username === user.id)) {
+        if (user && (username === user.username)) {
           // C'est son propre profil, aller vers l'onglet profile
           setActiveTab('profile');
           setViewingUserId(null);
