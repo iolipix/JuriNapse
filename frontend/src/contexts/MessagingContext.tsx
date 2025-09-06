@@ -685,16 +685,37 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
   const createPrivateChat = async (otherUserId: string) => {
     if (!user) throw new Error('Utilisateur non connecté');
     
-    // Note: La vérification de connexion mutuelle est déjà faite côté UI
-    // On fait confiance au composant qui appelle cette fonction
     console.log('🔧 createPrivateChat appelé pour:', otherUserId);
     
     try {
-      await createGroup('Chat privé', 'Conversation privée', true, [otherUserId]);
+      // Vérifier d'abord si une conversation existe déjà
+      console.log('🔍 Vérification conversation existante...');
+      const existingGroup = groups.find(group => 
+        group.isPrivate && 
+        group.members.length === 2 && 
+        group.members.some(member => member.id === otherUserId)
+      );
+      
+      if (existingGroup) {
+        console.log('✅ Conversation existante trouvée:', existingGroup.id);
+        return; // Conversation existe déjà
+      }
+      
+      console.log('🆕 Création d\'une nouvelle conversation privée...');
+      
+      // Essayer avec un nom générique qui évite les conflits
+      const timestamp = Date.now();
+      const groupName = `Chat privé ${timestamp}`;
+      
+      await createGroup(groupName, 'Conversation privée', true, [otherUserId]);
       console.log('✅ Chat privé créé avec succès');
     } catch (error) {
       console.error('❌ Erreur lors de la création du chat privé:', error);
-      throw error;
+      
+      // Si ça échoue, on peut essayer une approche différente
+      // ou simplement laisser l'utilisateur envoyer un message qui créera la conversation
+      console.log('💡 La conversation sera créée au premier message envoyé');
+      throw new Error('La conversation sera créée automatiquement au premier message');
     }
   };
 

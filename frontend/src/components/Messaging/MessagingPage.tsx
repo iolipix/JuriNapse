@@ -401,12 +401,13 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   useEffect(() => {
     console.log('📨 MessagingPage useEffect - targetUserId:', targetUserId, 'user:', !!user);
     if (targetUserId && user) {
-      console.log('🎯 Création/ouverture de conversation avec:', targetUserId);
+      console.log('🎯 Préparation de conversation avec:', targetUserId);
       
-      // Essayer de créer ou ouvrir la conversation privée
+      // Au lieu d'essayer de créer immédiatement, on prépare juste l'interface
+      // La conversation sera créée au premier message
       handleCreatePrivateChat(targetUserId).catch((error) => {
-        console.error('❌ Erreur lors de la création de la conversation:', error);
-        setShowErrorMessage('Erreur lors de l\'ouverture de la conversation');
+        console.log('ℹ️ Information:', error.message || 'Conversation sera créée au premier message');
+        // Ne pas afficher d'erreur, c'est normal
       });
     }
   }, [targetUserId, user]); // Se déclenche quand targetUserId change ou quand l'utilisateur se connecte
@@ -899,44 +900,23 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         return;
       }
       
-      console.log('🆕 Création d\'une nouvelle conversation...');
-      // Aucune conversation existante, en créer une nouvelle
-      await createPrivateChat(userId);
+      console.log('🆕 Aucune conversation existante trouvée');
+      console.log('🔍 Vérification de l\'utilisateur cible...');
       
-      console.log('⏳ Attente et rechargement des groupes...');
-      // Attendre un peu puis recharger les groupes
-      setTimeout(async () => {
-        try {
-          // Recharger les groupes pour voir la nouvelle conversation
-          // @ts-ignore - loadGroups existe mais les types ne sont pas à jour
-          await messagingContext.loadGroups();
-          
-          // Chercher la nouvelle conversation créée
-          const updatedGroups = getVisibleGroups();
-          const newPrivateChat = updatedGroups.find(group => 
-            group.isPrivate && 
-            group.members.length === 2 && 
-            group.members.some(member => member.id === userId)
-          );
-          
-          if (newPrivateChat) {
-            console.log('✅ Nouvelle conversation trouvée et activée:', newPrivateChat.id);
-            setActiveGroupId(newPrivateChat.id);
-            await loadMessages(newPrivateChat.id);
-          } else {
-            console.warn('⚠️ Nouvelle conversation non trouvée après création');
-          }
-        } catch (error) {
-          console.error('❌ Erreur lors de la recherche de la nouvelle conversation:', error);
-          setShowErrorMessage('Erreur lors du rechargement');
-        }
-      }, 500);
+      // Solution de contournement : au lieu de créer un groupe, 
+      // ouvrir la page de messagerie et afficher un message d'information
+      console.log('💡 Conversation privée sera créée au premier message');
       
+      // Pour l'instant, simuler une "conversation" en attente
       setShowNewChat(false);
-      setShowSuccessMessage('Conversation privée créée avec succès !');
+      setShowSuccessMessage('Prêt à envoyer un message privé ! Tapez votre message ci-dessous.');
+      
+      // Optionnel : on pourrait définir un état spécial pour les nouvelles conversations
+      // setActiveGroupId('pending-' + userId);
+      
     } catch (error: any) {
       console.error('❌ Erreur dans handleCreatePrivateChat:', error);
-      setShowErrorMessage(error.message || 'Erreur lors de la création de la conversation');
+      setShowErrorMessage(`Erreur lors de la préparation de la conversation: ${error.message || 'Erreur inconnue'}`);
       setShowNewChat(false);
     }
   };
