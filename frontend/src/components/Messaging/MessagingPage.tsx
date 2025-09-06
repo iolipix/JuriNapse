@@ -408,18 +408,27 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   // Effet pour traiter le targetUserId quand le composant se charge
   useEffect(() => {
+    if (!user) return;
+    if (!targetUserId) return;
     console.log('📨 MessagingPage useEffect - targetUserId:', targetUserId, 'user:', !!user);
-    if (targetUserId && user) {
-      console.log('🎯 Préparation de conversation avec:', targetUserId);
-      
-      // Au lieu d'essayer de créer immédiatement, on prépare juste l'interface
-      // La conversation sera créée au premier message
-      handleCreatePrivateChat(targetUserId).catch((error) => {
-        console.log('ℹ️ Information:', error.message || 'Conversation sera créée au premier message');
-        // Ne pas afficher d'erreur, c'est normal
-      });
-    }
-  }, [targetUserId, user]); // Se déclenche quand targetUserId change ou quand l'utilisateur se connecte
+    let cancelled = false;
+    const open = async () => {
+      try {
+        await handleCreatePrivateChat(targetUserId);
+        if (cancelled) return;
+        if (activeGroupId) setTimeout(() => markGroupAsRead(activeGroupId), 150);
+      } catch (error) {
+        console.log('ℹ️ Information:', (error as any)?.message || 'Conversation sera créée au premier message');
+        // Retenter une fois après un court délai pour éviter l'effet "double clic"
+        setTimeout(async () => {
+          if (cancelled) return;
+          try { await handleCreatePrivateChat(targetUserId); } catch (_) {}
+        }, 250);
+      }
+    };
+    open();
+    return () => { cancelled = true; };
+  }, [targetUserId, user]);
 
   // Helper functions for private chat display
   const getOtherParticipant = (chat: any) => {

@@ -269,9 +269,8 @@ const MainApp: React.FC = () => {
     setViewingPostId(null);
     setViewingDecision(null);
     setSelectedTag(null);
-    
-    window.location.hash = `#user-${userId}`;
-    window.history.pushState(null, '', `/messages?user=${userId}`);
+  // Utiliser la navigation unifiée pour déclencher handleRouting immédiatement
+  navigateTo(`/messages?user=${userId}`);
     scrollToTop();
   };
 
