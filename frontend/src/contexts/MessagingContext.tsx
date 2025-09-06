@@ -464,6 +464,8 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
 
   const createGroup = async (name: string, description: string, isPrivate = false, selectedMembers: string[] = []) => {
     try {
+      console.log('🔧 createGroup frontend appelé avec:', { name, description, isPrivate, selectedMembers });
+      
       const response = await groupsAPI.createGroup({
         name,
         description,
@@ -471,12 +473,17 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
         selectedMembers
       });
       
+      console.log('📡 Réponse de l\'API:', response);
+      
       if (response.success) {
+        console.log('✅ Groupe créé avec succès, rechargement des groupes...');
         await loadGroups(); // Recharger les groupes
       } else {
+        console.error('❌ Échec de création:', response.message);
         throw new Error(response.message || 'Erreur lors de la création du groupe');
       }
     } catch (err) {
+      console.error('❌ Erreur dans createGroup frontend:', err);
       setError('Erreur lors de la création du groupe');
       throw err;
     }
