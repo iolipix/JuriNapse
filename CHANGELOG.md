@@ -1,3 +1,11 @@
+## 2025-09-06
+
+### Correction Rôles & Nettoyage
+- ✅ **FIX CRITIQUE**: Désactivation de la migration automatique des rôles au démarrage du serveur
+- ✅ **Préservation modérateur**: Les rôles existants (moderator, etc.) ne sont plus supprimés lors des redémarrages
+- ✅ **Nettoyage repository**: Suppression complète des fichiers test, fix et vides (Git + filesystem)
+- ✅ **Optimisation**: Initialisation additive des rôles (user + administrator) sans suppression
+
 ## 2025-08-30
 
 ### Modifications Frontend
