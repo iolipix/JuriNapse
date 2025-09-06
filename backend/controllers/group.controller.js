@@ -62,19 +62,26 @@ exports.getAllGroups = async (req, res) => {
 // Créer un nouveau groupe
 exports.createGroup = async (req, res) => {
   try {
+    console.log('🔧 createGroup appelé avec:', req.body);
+    console.log('🔍 User ID:', req.user?.id);
+    
     const { name, description, isPrivate = false, selectedMembers = [] } = req.body;
     const adminId = req.user.id;
 
     // Vérifier que le nom n'est pas vide
     if (!name || !name.trim()) {
+      console.log('❌ Nom du groupe manquant');
       return res.status(400).json({
         success: false,
         message: 'Le nom du groupe est requis'
       });
     }
 
+    console.log('📝 Données du groupe:', { name, description, isPrivate, selectedMembers, adminId });
+
     // Créer le groupe avec l'admin comme premier membre
     const members = [adminId, ...selectedMembers.filter(id => id !== adminId)];
+    console.log('👥 Membres finaux:', members);
 
     const group = new Group({
       name: name.trim(),
@@ -85,21 +92,28 @@ exports.createGroup = async (req, res) => {
       moderatorIds: []
     });
 
+    console.log('💾 Sauvegarde du groupe...');
     await group.save();
+    console.log('✅ Groupe sauvegardé avec succès');
 
+    console.log('🔄 Population des données...');
     // Populer les données pour la réponse
     await group.populate('members', 'username firstName lastName university isStudent');
     await group.populate('adminId', 'username firstName lastName');
     await group.populate('moderatorIds', 'username firstName lastName');
+    console.log('✅ Population terminée');
 
     res.status(201).json({
       success: true,
       data: group
     });
   } catch (error) {
+    console.error('❌ Erreur dans createGroup:', error);
+    console.error('❌ Stack trace:', error.stack);
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de la création du groupe'
+      message: 'Erreur lors de la création du groupe',
+      error: error.message
     });
   }
 };
