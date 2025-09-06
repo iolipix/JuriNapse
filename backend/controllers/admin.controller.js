@@ -209,24 +209,44 @@ const quickRepairCounters = async (req, res) => {
 const initializeDefaultAdmin = async () => {
   try {
     const defaultAdminId = process.env.DEFAULT_ADMIN_USER_ID;
-    
+
     if (!defaultAdminId) {
       return; // Pas d'admin par défaut configuré
     }
-    
+
     const user = await User.findById(defaultAdminId);
-    
+
     if (!user) {
       console.log('⚠️ Utilisateur admin par défaut non trouvé avec ID:', defaultAdminId);
       return;
     }
-    
-    if (user.role !== 'administrator') {
-      user.role = 'administrator';
+
+    // Rôles stockés en string séparée par des ';' (ex: "user;moderator;administrator")
+    const roles = (typeof user.role === 'string' && user.role.trim().length > 0)
+      ? user.role.split(';').map(r => r.trim()).filter(Boolean)
+      : [];
+
+    // Toujours garantir le rôle de base 'user'
+    if (!roles.includes('user')) roles.unshift('user');
+
+    // Ajouter 'administrator' si manquant, sans enlever d'autres rôles
+    if (!roles.includes('administrator')) {
+      roles.push('administrator');
+      user.role = Array.from(new Set(roles)).join(';');
       await user.save();
-      console.log('✅ Admin par défaut configuré:', user.username);
+      console.log('✅ Admin par défaut ajusté (additive):', user.username, '→', user.role);
+    } else {
+      // Rien à faire si déjà admin; ne pas écraser les autres rôles
+      // Optionnel: normaliser l'ordre minimal
+      const normalized = Array.from(new Set(roles));
+      const before = user.role;
+      const after = normalized.join(';');
+      if (before !== after) {
+        user.role = after;
+        await user.save();
+      }
+      console.log('ℹ️ Admin par défaut déjà configuré, aucun changement pour', user.username);
     }
-    
   } catch (error) {
     console.error('❌ Erreur lors de l\'initialisation de l\'admin par défaut:', error);
   }
