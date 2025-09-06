@@ -212,6 +212,8 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   const modalRef = useRef<HTMLDivElement>(null);
   const messageMenuRef = useRef<HTMLDivElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  // Empêche les créations multiples d'un même chat privé en parallèle
+  const createInFlightRef = useRef<{ [userId: string]: boolean }>({});
   const isAtBottomRef = useRef(true); // Pour tracker si l'utilisateur est en bas
   const previousMessagesCountRef = useRef<number>(0); // Pour tracker le nombre de messages précédents
   // const scrollPositionRef = useRef<{ scrollTop: number; scrollHeight: number } | null>(null); // (supprimé - inutilisé)
@@ -503,7 +505,9 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   // Utiliser les groupes visibles (non masqués) avec tri optimisé et filtrage des conversations vides
   const allChats = useMemo(() => {
-    return getVisibleGroups()
+    // 1) Dédoublonnage: ne garder qu'un seul chat privé par autre participant
+    const seenPrivateByUser: { [otherId: string]: string } = {};
+    const deduped = getVisibleGroups()
       .filter(group => {
         const lastMessage = computedLastMessages[group.id];
         
@@ -516,6 +520,30 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         // Pour les autres conversations vides, ne les garder que si elles sont très récentes (moins de 5 minutes)
         const isVeryRecent = group.createdAt && new Date(group.createdAt) > new Date(Date.now() - 5 * 60 * 1000); // 5 minutes
         return isVeryRecent;
+      })
+      .filter(group => {
+        if (group.isPrivate && Array.isArray(group.members) && group.members.length === 2) {
+          const other = group.members.find((m: any) => m.id !== user?.id);
+          const otherId = other?.id;
+          if (!otherId) return true;
+          if (seenPrivateByUser[otherId]) {
+            // Conserver le groupe le plus récent (avec lastMessage) et filtrer les autres
+            const keptId = seenPrivateByUser[otherId];
+            const keptLast = computedLastMessages[keptId];
+            const currLast = computedLastMessages[group.id];
+            const keptTime = keptLast?.createdAt ? new Date(keptLast.createdAt).getTime() : -Infinity;
+            const currTime = currLast?.createdAt ? new Date(currLast.createdAt).getTime() : -Infinity;
+            if (currTime > keptTime) {
+              // Remplacer l'ancien par ce groupe plus récent
+              seenPrivateByUser[otherId] = group.id;
+              return true; // garder celui-ci; l'ancien restera dans seen mais sera filtré plus bas
+            }
+            // Sinon, filtrer celui-ci (doublon plus ancien)
+            return false;
+          }
+          seenPrivateByUser[otherId] = group.id;
+        }
+        return true;
       })
       .sort((a, b) => {
       const aLastMessage = computedLastMessages[a.id];
@@ -536,7 +564,8 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         console.warn('Error sorting chats:', error);
         return 0;
       }
-    });
+  });
+  return deduped;
   }, [getVisibleGroups, computedLastMessages]);
 
   const filteredChats = useMemo(() => {
@@ -673,7 +702,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     if (messageInput.trim() && activeGroupId) {
       const messageText = messageInput.trim();
       
-      // Si c'est une conversation virtuelle, créer d'abord la vraie conversation
+      // Si c'est une conversation virtuelle, créer d'abord la vraie conversation (sans doublon)
       if (activeGroupId.startsWith('temp-')) {
         console.log('💬 Envoi dans conversation virtuelle, création de la vraie conversation...');
         
@@ -683,7 +712,14 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
           console.log('🔍 UserID extrait:', userId);
           
           // Créer la vraie conversation
-          await createPrivateChat(userId);
+          if (!createInFlightRef.current[userId]) {
+            createInFlightRef.current[userId] = true;
+            try {
+              await createPrivateChat(userId);
+            } finally {
+              setTimeout(() => { delete createInFlightRef.current[userId]; }, 800);
+            }
+          }
           
           // Attendre et recharger les groupes
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -692,11 +728,15 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
           
           // Trouver la nouvelle conversation
           const updatedGroups = getVisibleGroups();
-          const newPrivateChat = updatedGroups.find(group => 
-            group.isPrivate && 
-            group.members.length === 2 && 
-            group.members.some(member => member.id === userId)
+          // Préférer la plus récente si plusieurs (sécurité)
+          const candidates = updatedGroups.filter(group => 
+            group.isPrivate && group.members.length === 2 && group.members.some(member => member.id === userId)
           );
+          const newPrivateChat = candidates.sort((a: any, b: any) => {
+            const aLast = computedLastMessages[a.id]?.createdAt ? new Date(computedLastMessages[a.id].createdAt).getTime() : -Infinity;
+            const bLast = computedLastMessages[b.id]?.createdAt ? new Date(computedLastMessages[b.id].createdAt).getTime() : -Infinity;
+            return bLast - aLast;
+          })[0];
           
           if (newPrivateChat) {
             console.log('✅ Vraie conversation trouvée, envoi du message...');
@@ -949,6 +989,18 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     console.log('🔧 handleCreatePrivateChat appelé avec userId:', userId);
     
     try {
+      // Empêcher les créations multiples simultanées pour le même userId
+      if (createInFlightRef.current[userId]) {
+        console.log('⏳ Création déjà en cours pour', userId, '— éviter les doublons');
+        // Tant que la création est en vol, ouvrir/maintenir une conversation virtuelle si besoin
+        if (!activeGroupId || !activeGroupId.startsWith(`temp-${userId}-`)) {
+          const virtualConversationId = `temp-${userId}-${Date.now()}`;
+          setActiveGroupId(virtualConversationId);
+        }
+        return;
+      }
+      createInFlightRef.current[userId] = true;
+
       // Vérifier d'abord s'il existe déjà une conversation privée avec cet utilisateur
       console.log('🔍 Recherche de conversation existante...');
       const allGroups = groups;
@@ -1004,7 +1056,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
             } catch (error) {
               console.log('ℹ️ Garder la conversation virtuelle active');
             }
-          }, 1000);
+          }, 600);
         } catch (error) {
           console.log('ℹ️ Conversation virtuelle maintenue, vraie conversation créée au premier message');
         }
@@ -1014,6 +1066,9 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
       console.error('❌ Erreur dans handleCreatePrivateChat:', error);
       setShowErrorMessage(`Erreur lors de la préparation de la conversation: ${error.message || 'Erreur inconnue'}`);
       setShowNewChat(false);
+    } finally {
+      // Libérer le lock après un court délai pour laisser les effets se stabiliser
+      setTimeout(() => { delete createInFlightRef.current[userId]; }, 800);
     }
   };
 
