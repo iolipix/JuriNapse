@@ -399,6 +399,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
 
   // Effet pour traiter le targetUserId quand le composant se charge
   useEffect(() => {
+    console.log('📨 MessagingPage useEffect - targetUserId:', targetUserId, 'user:', !!user);
     if (targetUserId && user) {
       console.log('🎯 Création/ouverture de conversation avec:', targetUserId);
       

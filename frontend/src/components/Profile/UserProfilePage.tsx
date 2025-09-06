@@ -494,23 +494,33 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
 
   const handleSendMessage = async () => {
     try {
+      console.log('🔔 handleSendMessage déclenché - UserProfilePage');
+      console.log('🔍 canMessage:', canMessage);
+      
       if (!canMessage) {
         setShowSuccessMessage('Vous devez être connectés mutuellement pour envoyer un message.');
         return;
       }
       if (onSendMessage) {
+        console.log('🔄 Utilisation du callback onSendMessage');
         // Utiliser le callback personnalisé si fourni
         onSendMessage(userId);
       } else {
+        console.log('🚀 Redirection directe depuis UserProfilePage');
         // Utiliser directement le contexte de messagerie
         // Utiliser l'ID réel de l'utilisateur (pas le username)
         const realUserId = userProfile?.id || userProfile?._id;
+        
+        console.log('🔍 userProfile:', userProfile);
+        console.log('🔍 realUserId:', realUserId);
         
         if (!realUserId) {
           console.error('❌ ID utilisateur réel introuvable');
           setShowSuccessMessage('Erreur: Impossible de trouver l\'utilisateur');
           return;
         }
+        
+        console.log('🚀 Redirection vers:', `/messages?user=${realUserId}`);
         
         // Rediriger immédiatement vers la messagerie avec le paramètre utilisateur
         window.location.href = `/messages?user=${realUserId}`;

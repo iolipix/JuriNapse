@@ -556,6 +556,7 @@ const MainApp: React.FC = () => {
     
     // Route pour la messagerie
     if (path === '/messages') {
+      console.log('🔀 Route /messages détectée dans handleRouting');
       setActiveTab('messages');
       setViewingUserId(null);
       setViewingPostId(null);
@@ -567,9 +568,13 @@ const MainApp: React.FC = () => {
       // Gérer le paramètre 'user' pour ouvrir une conversation spécifique
       const searchParams = new URLSearchParams(window.location.search);
       const targetUserId = searchParams.get('user');
+      console.log('🔍 Paramètre URL "user":', targetUserId);
+      
       if (targetUserId) {
+        console.log('🎯 Setting targetMessageUserId:', targetUserId);
         setTargetMessageUserId(targetUserId);
       } else {
+        console.log('🔄 Resetting targetMessageUserId to null');
         setTargetMessageUserId(null);
       }
       
