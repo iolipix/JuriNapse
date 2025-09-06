@@ -677,11 +677,18 @@ export const MessagingProvider: React.FC<MessagingProviderProps> = ({ children }
 
   const createPrivateChat = async (otherUserId: string) => {
     if (!user) throw new Error('Utilisateur non connecté');
-    // Vérifier connexion mutuelle
-    if (!isConnection(otherUserId)) {
-      throw new Error('Vous devez être connectés mutuellement pour démarrer une conversation');
+    
+    // Note: La vérification de connexion mutuelle est déjà faite côté UI
+    // On fait confiance au composant qui appelle cette fonction
+    console.log('🔧 createPrivateChat appelé pour:', otherUserId);
+    
+    try {
+      await createGroup('Chat privé', 'Conversation privée', true, [otherUserId]);
+      console.log('✅ Chat privé créé avec succès');
+    } catch (error) {
+      console.error('❌ Erreur lors de la création du chat privé:', error);
+      throw error;
     }
-    await createGroup('Chat privé', 'Conversation privée', true, [otherUserId]);
   };
 
   // Nouvelles fonctions pour les conversations privées

@@ -874,8 +874,11 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
       return;
     }
     
+    console.log('🔧 handleCreatePrivateChat appelé avec userId:', userId);
+    
     try {
       // Vérifier d'abord s'il existe déjà une conversation privée avec cet utilisateur
+      console.log('🔍 Recherche de conversation existante...');
       // Chercher dans TOUS les groupes (pas seulement les visibles) pour éviter les doublons
       const allGroups = groups; // Utiliser tous les groupes au lieu de getVisibleGroups()
       const existingPrivateChat = allGroups.find(group => 
@@ -885,6 +888,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
       );
       
       if (existingPrivateChat) {
+        console.log('✅ Conversation existante trouvée:', existingPrivateChat.id);
         // Conversation existante trouvée, l'ouvrir (même si elle était vide/cachée)
         setActiveGroupId(existingPrivateChat.id);
         
@@ -895,9 +899,11 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         return;
       }
       
+      console.log('🆕 Création d\'une nouvelle conversation...');
       // Aucune conversation existante, en créer une nouvelle
       await createPrivateChat(userId);
       
+      console.log('⏳ Attente et rechargement des groupes...');
       // Attendre un peu puis recharger les groupes
       setTimeout(async () => {
         try {
@@ -914,10 +920,14 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
           );
           
           if (newPrivateChat) {
+            console.log('✅ Nouvelle conversation trouvée et activée:', newPrivateChat.id);
             setActiveGroupId(newPrivateChat.id);
             await loadMessages(newPrivateChat.id);
+          } else {
+            console.warn('⚠️ Nouvelle conversation non trouvée après création');
           }
         } catch (error) {
+          console.error('❌ Erreur lors de la recherche de la nouvelle conversation:', error);
           setShowErrorMessage('Erreur lors du rechargement');
         }
       }, 500);
@@ -925,6 +935,7 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
       setShowNewChat(false);
       setShowSuccessMessage('Conversation privée créée avec succès !');
     } catch (error: any) {
+      console.error('❌ Erreur dans handleCreatePrivateChat:', error);
       setShowErrorMessage(error.message || 'Erreur lors de la création de la conversation');
       setShowNewChat(false);
     }
