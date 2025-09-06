@@ -510,16 +510,11 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     const deduped = getVisibleGroups()
       .filter(group => {
         const lastMessage = computedLastMessages[group.id];
-        
-        // Si la conversation a des messages, la garder
+        // Garder uniquement les conversations avec au moins un message,
+        // ou la conversation actuellement ouverte (même si vide)
         if (lastMessage) return true;
-        
-        // Si c'est la conversation actuellement active, la garder même si elle est vide
         if (activeGroupId && group.id === activeGroupId) return true;
-        
-        // Pour les autres conversations vides, ne les garder que si elles sont très récentes (moins de 5 minutes)
-        const isVeryRecent = group.createdAt && new Date(group.createdAt) > new Date(Date.now() - 5 * 60 * 1000); // 5 minutes
-        return isVeryRecent;
+        return false;
       })
       .filter(group => {
         if (group.isPrivate && Array.isArray(group.members) && group.members.length === 2) {
