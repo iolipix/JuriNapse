@@ -65,14 +65,12 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
   const loadModerators = async () => {
     try {
       const token = localStorage.getItem('jurinapse_token');
-      console.log('🔑 loadModerators - Token présent:', !!token, 'User:', user);
       const response = await fetch('/api/admin/moderators', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      console.log('📡 loadModerators response status:', response.status);
       if (response.ok) {
         const data = await response.json();
         setModerators(data.moderators || []);
@@ -92,30 +90,20 @@ const ModeratorsManagement: React.FC<ModeratorsManagementProps> = ({ onBack }) =
     setSearching(true);
     try {
       const token = localStorage.getItem('jurinapse_token');
-      console.log('🔍 Recherche utilisateurs avec query:', searchQuery, 'Token présent:', !!token);
       const response = await fetch(`/api/admin/search-users?q=${encodeURIComponent(searchQuery)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-
-      console.log('📡 Réponse recherche - Status:', response.status);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('📊 Données reçues:', data);
-        console.log('� data.users:', data.users);
-        console.log('📋 data.users type:', typeof data.users);
-        console.log('📋 data.users length:', data.users?.length);
-        console.log('�👥 Modérateurs actuels:', moderators);
         
         // Le backend fait déjà le filtrage pour exclure ceux qui ont le rôle modérateur
         // On fait juste un filtrage pour exclure ceux qui sont déjà dans la liste des modérateurs
         const filteredUsers = data.users.filter((user: User) => 
           !moderators.find(mod => mod._id === user._id)
         );
-        console.log('✅ Utilisateurs filtrés:', filteredUsers);
-        console.log('🔢 Nombre d\'utilisateurs filtrés:', filteredUsers.length);
         setSearchResults(filteredUsers);
       } else {
         const errorData = await response.text();
