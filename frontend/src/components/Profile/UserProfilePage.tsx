@@ -503,13 +503,14 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       }
       if (onSendMessage) {
         console.log('🔄 Utilisation du callback onSendMessage');
-        // Utiliser le callback personnalisé si fourni
-        onSendMessage(userId);
+  // Utiliser le callback personnalisé si fourni avec l'ID RÉEL de l'utilisateur
+  const realUserId = userProfile?.id || (userProfile as any)?._id || userId;
+  onSendMessage(realUserId);
       } else {
         console.log('🚀 Redirection directe depuis UserProfilePage');
         // Utiliser directement le contexte de messagerie
         // Utiliser l'ID réel de l'utilisateur (pas le username)
-        const realUserId = userProfile?.id || userProfile?._id;
+  const realUserId = userProfile?.id || (userProfile as any)?._id;
         
         console.log('🔍 userProfile:', userProfile);
         console.log('🔍 realUserId:', realUserId);

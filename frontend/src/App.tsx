@@ -988,7 +988,7 @@ const MainApp: React.FC = () => {
         }
       case 'moderator':
         // Vérifier que l'utilisateur est modérateur
-        const isModerator = hasRole(user, 'moderator');
+  const isModerator = hasRole(user || undefined, 'moderator');
         if (!user || !isModerator) {
           setActiveTab('feed');
           return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;

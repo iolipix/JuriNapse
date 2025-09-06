@@ -63,7 +63,10 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
   
   // Mémoriser le résultat pour éviter les appels pendant le rendu
   const canSendMessage = useMemo(() => {
-    return activeGroupId ? isUserMemberOfGroup(activeGroupId) : false;
+    if (!activeGroupId) return false;
+    // Autoriser l'envoi dans une conversation virtuelle (temp-)
+    if (activeGroupId.startsWith('temp-')) return true;
+    return isUserMemberOfGroup(activeGroupId);
   }, [activeGroupId, isUserMemberOfGroup]);
   const [messageInput, setMessageInput] = useState('');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -556,38 +559,52 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
     }
   }, [activeGroupId, groupMessages.length, user?.id]); // Ajouter user?.id aux dépendances
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Empêcher l'envoi si les suggestions de mentions sont ouvertes
-    if (showMentionSuggestions) {
+    if (showMentionSuggestions) return;
+    if (!messageInput.trim() || !activeGroupId) return;
+
+    const text = messageInput.trim();
+
+    // Conversation virtuelle: créer la vraie conv avant d'envoyer
+    if (activeGroupId.startsWith('temp-')) {
+      try {
+        const userId = activeGroupId.split('-')[1];
+        await createPrivateChat(userId);
+        await new Promise(r => setTimeout(r, 500));
+        // @ts-ignore
+        await messagingContext.loadGroups();
+        const updated = getVisibleGroups();
+        const real = updated.find(g => g.isPrivate && g.members.length === 2 && g.members.some((m: any) => m.id === userId));
+        if (real) {
+          setActiveGroupId(real.id);
+          await loadMessages(real.id);
+          if (replyingToMessage) {
+            sendMessage(real.id, text, replyingToMessage.id);
+            setReplyingToMessage(null);
+          } else {
+            sendMessage(real.id, text);
+          }
+          setMessageInput('');
+          setTimeout(() => markGroupAsRead(real.id), 100);
+        } else {
+          setShowErrorMessage('Erreur lors de la création de la conversation');
+        }
+      } catch (_) {
+        setShowErrorMessage('Erreur lors de l\'envoi du message');
+      }
       return;
     }
-    
-    if (messageInput.trim() && activeGroupId) {
-      // Si on répond à un message, créer un message avec référence
-      if (replyingToMessage) {
-        sendMessage(activeGroupId, messageInput.trim(), replyingToMessage.id);
-        setReplyingToMessage(null);
-      } else {
-        sendMessage(activeGroupId, messageInput.trim());
-      }
-      setMessageInput('');
-      
-      // Marquer le groupe comme lu après avoir envoyé un message
-      setTimeout(() => markGroupAsRead(activeGroupId), 100);
-      
-      // DÉSACTIVÉ : Plus de scroll automatique même quand on envoie un message
-      // L'utilisateur reste à sa position actuelle
-      if (false) { // Désactivé
-        isAtBottomRef.current = true;
-        setTimeout(() => {
-          if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      }
+
+    // Conversation réelle
+    if (replyingToMessage) {
+      sendMessage(activeGroupId, text, replyingToMessage.id);
+      setReplyingToMessage(null);
+    } else {
+      sendMessage(activeGroupId, text);
     }
+    setMessageInput('');
+    setTimeout(() => markGroupAsRead(activeGroupId), 100);
   };
 
   const handleReplyToMessage = (message: any) => {
@@ -803,36 +820,37 @@ const MessagingPage: React.FC<MessagingPageProps> = ({ onViewPost, onViewUserPro
         setShowNewChat(false);
         return;
       }
-      
-      // Aucune conversation existante, en créer une nouvelle
-      await createPrivateChat(userId);
-      
-      // Attendre un peu puis recharger les groupes
+      // Aucune conversation existante, créer d'abord une conversation virtuelle
+      const virtualConversationId = `temp-${userId}-${Date.now()}`;
+      setActiveGroupId(virtualConversationId);
+      setShowNewChat(false);
+      setShowSuccessMessage('Conversation prête ! Tapez votre message.');
+
+      // En arrière-plan, essayer de créer la vraie conversation
       setTimeout(async () => {
         try {
-          // Recharger les groupes pour voir la nouvelle conversation
-          // @ts-ignore - loadGroups existe mais les types ne sont pas à jour
-          await messagingContext.loadGroups();
-          
-          // Chercher la nouvelle conversation créée
-          const updatedGroups = getVisibleGroups();
-          const newPrivateChat = updatedGroups.find(group => 
-            group.isPrivate && 
-            group.members.length === 2 && 
-            group.members.some(member => member.id === userId)
-          );
-          
-          if (newPrivateChat) {
-            setActiveGroupId(newPrivateChat.id);
-            await loadMessages(newPrivateChat.id);
-          }
-        } catch (error) {
-          setShowErrorMessage('Erreur lors du rechargement');
+          await createPrivateChat(userId);
+          // Recharger les groupes et basculer vers la vraie conversation si créée
+          setTimeout(async () => {
+            try {
+              // @ts-ignore
+              await messagingContext.loadGroups();
+              const updatedGroups = getVisibleGroups();
+              const newPrivateChat = updatedGroups.find(group => 
+                group.isPrivate && 
+                group.members.length === 2 && 
+                group.members.some(member => member.id === userId)
+              );
+              if (newPrivateChat) {
+                setActiveGroupId(newPrivateChat.id);
+                await loadMessages(newPrivateChat.id);
+              }
+            } catch (_) {}
+          }, 800);
+        } catch (_) {
+          // On garde la conversation virtuelle, la vraie sera créée à l'envoi
         }
-      }, 500);
-      
-      setShowNewChat(false);
-      setShowSuccessMessage('Conversation privée créée avec succès !');
+      }, 100);
     } catch (error: any) {
       setShowErrorMessage(error.message || 'Erreur lors de la création de la conversation');
       setShowNewChat(false);
