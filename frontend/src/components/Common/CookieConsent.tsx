@@ -54,6 +54,16 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
       version: '1.0'
     }));
     
+    // 🎯 Consentement Google Analytics + Ads
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('consent', 'update', {
+        'analytics_storage': 'granted',
+        'ad_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted'
+      });
+    }
+    
     setIsVisible(false);
     onAcceptAll?.();
   };
@@ -72,6 +82,16 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
       version: '1.0'
     }));
     
+    // 🚫 Refus Google Analytics + Ads
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('consent', 'update', {
+        'analytics_storage': 'denied',
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied'
+      });
+    }
+    
     setIsVisible(false);
     onRejectAll?.();
   };
@@ -82,6 +102,16 @@ const CookieConsent: React.FC<CookieConsentProps> = ({
       timestamp: new Date().toISOString(),
       version: '1.0'
     }));
+    
+    // 🎛️ Gestion granulaire du consentement
+    if (typeof (window as any).gtag === 'function') {
+      (window as any).gtag('consent', 'update', {
+        'analytics_storage': preferences.analytics ? 'granted' : 'denied',
+        'ad_storage': preferences.marketing ? 'granted' : 'denied',
+        'ad_user_data': preferences.marketing ? 'granted' : 'denied',
+        'ad_personalization': preferences.marketing ? 'granted' : 'denied'
+      });
+    }
     
     setIsVisible(false);
     onSavePreferences?.(preferences);

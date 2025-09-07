@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Google Analytics - JuriNapse</title>
+    
+    <!-- Google Analytics - TEST -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3NV8LWDG0D"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        gtag('config', 'G-3NV8LWDG0D', {
+            debug_mode: true, // Mode debug activé
+            anonymize_ip: true,
+            allow_google_signals: false
+        });
+        
+        // Test événement personnalisé
+        setTimeout(() => {
+            gtag('event', 'test_tracking', {
+                event_category: 'Test',
+                event_label: 'Analytics_Test',
+                value: 1
+            });
+            console.log('✅ Événement de test envoyé');
+        }, 2000);
+    </script>
+</head>
+<body style="padding: 20px; font-family: Arial;">
+    <h1>🧪 Test Google Analytics JuriNapse</h1>
+    <p><strong>ID:</strong> G-3NV8LWDG0D</p>
+    <p><strong>Status:</strong> <span id="status">Chargement...</span></p>
+    
+    <script>
+        // Vérification du chargement
+        window.addEventListener('load', () => {
+            if (typeof gtag === 'function') {
+                document.getElementById('status').textContent = '✅ Google Analytics chargé';
+                document.getElementById('status').style.color = 'green';
+            } else {
+                document.getElementById('status').textContent = '❌ Erreur de chargement';
+                document.getElementById('status').style.color = 'red';
+            }
+        });
+        
+        // Log pour débugger
+        console.log('🔍 Test Google Analytics démarré');
+        console.log('📊 ID de tracking:', 'G-3NV8LWDG0D');
+    </script>
+    
+    <div style="margin-top: 20px;">
+        <h3>Étapes suivantes :</h3>
+        <ol>
+            <li>Ouvrez les outils de développement (F12)</li>
+            <li>Regardez l'onglet Console</li>
+            <li>Vérifiez l'onglet Network pour les requêtes vers Google</li>
+            <li>Attendez 5-10 minutes</li>
+            <li>Vérifiez Google Analytics (Temps réel)</li>
+        </ol>
+    </div>
+</body>
+</html>

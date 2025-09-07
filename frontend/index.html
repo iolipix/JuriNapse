@@ -11,6 +11,15 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       
+      // 🍪 Consentement par défaut RGPD (refusé jusqu'à acceptation)
+      gtag('consent', 'default', {
+        'analytics_storage': 'denied',
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'wait_for_update': 2000
+      });
+      
       gtag('config', 'G-3NV8LWDG0D', {
         anonymize_ip: true,
         allow_google_signals: false
