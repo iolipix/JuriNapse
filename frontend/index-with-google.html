@@ -1,19 +1,39 @@
+<!-- 📊 Template HTML avec intégration Google Ads/Analytics -->
 <!doctype html>
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
     
-    <!-- 📊 Google Analytics - CONFIGURÉ -->
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3NV8LWDG0D"></script>
+    <!-- ⚠️ IMPORTANT: Remplacez G-XXXXXXXXXX par votre vrai ID Google -->
+    <!-- Google tag (gtag.js) - À activer quand vous aurez votre ID -->
+    <!-- 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       
-      gtag('config', 'G-3NV8LWDG0D', {
+      // Configuration Google Analytics 4
+      gtag('config', 'G-XXXXXXXXXX', {
         anonymize_ip: true,
         allow_google_signals: false
+      });
+      
+      // Configuration Google Ads (si vous avez un compte Ads)
+      // gtag('config', 'AW-XXXXXXXXXX');
+    </script>
+    -->
+    
+    <!-- 🍪 RGPD - Consentement par défaut (recommandé) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      
+      // Mode consentement initial (RGPD compliant)
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        wait_for_update: 2000
       });
     </script>
     
@@ -51,10 +71,37 @@
     <meta name="twitter:description" content="Connectez-vous avec des étudiants et professionnels du droit. Partagez vos connaissances et développez votre réseau professionnel." />
     <meta name="twitter:image" content="/jurinapse-og-image.png?v=2024" />
     
+    <!-- 📊 Google Ads Remarketing (Optionnel) -->
+    <!-- Décommentez quand vous aurez votre pixel de remarketing -->
+    <!--
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-XXXXXXXXXX');
+    </script>
+    -->
+    
     <title>Jurinapse - Plateforme sociale pour la communauté juridique</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- 🎯 Google Ads Conversion Tracking (Optionnel) -->
+    <!-- Ce script sera appelé lors d'actions spécifiques -->
+    <script>
+      // Fonction globale pour tracking des conversions
+      window.trackConversion = function(conversionId, value = 0) {
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'conversion', {
+            'send_to': conversionId,
+            'value': value,
+            'currency': 'EUR'
+          });
+        }
+      };
+    </script>
   </body>
 </html>
