@@ -62,6 +62,16 @@ const adminRoutes = require('./routes/admin');
 const prerenderRoutes = require('./routes/prerender.routes');
 const diagnosticRoutes = require('./routes/diagnostic.routes');
 
+// Import des middlewares de sécurité
+const { 
+  authLimiter, 
+  registerLimiter, 
+  apiLimiter, 
+  helmetConfig, 
+  mongoSanitize, 
+  ipWhitelist 
+} = require('../security-middleware');
+
 // Import du middleware de nettoyage automatique
 const { middlewareMessagesOrphelins } = require('./middleware/orphanCleanup');
 
@@ -122,6 +132,18 @@ const connectDB = async () => {
 };
 
 // Middleware
+// 🛡️ Sécurité - Headers HTTP sécurisés
+app.use(helmetConfig);
+
+// 🛡️ Sécurité - Protection contre les injections NoSQL
+app.use(mongoSanitize);
+
+// 🛡️ Sécurité - Rate limiting global
+app.use('/api/', apiLimiter);
+
+// 🛡️ Sécurité - Surveillance IP (optionnel)
+// app.use(ipWhitelist); // Décommenter si nécessaire
+
 app.use(cors({
   origin: [
     'http://localhost:3000', 
@@ -157,7 +179,21 @@ const socketMiddleware = (req, res, next) => {
 };
 
 // Utilisation des routes
+// 🛡️ Protection renforcée pour l'authentification
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', registerLimiter);
 app.use('/api/auth', authRoutes);
+
+// 🔍 Route de santé pour monitoring de sécurité
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    security: 'protected'
+  });
+});
+
 app.use('/api/posts', postRoutes); // Pas de Socket.io pour les posts
 app.use('/api/folders', folderRoutes);
 app.use('/api/notifications', socketMiddleware, notificationRoutes); // Socket.io pour les notifications en temps réel
