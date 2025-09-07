@@ -6,8 +6,8 @@ export const GOOGLE_CONFIG = {
   // Google Analytics 4
   GA_MEASUREMENT_ID: 'G-3NV8LWDG0D', // ID réel JuriNapse
   
-  // Google Ads (à configurer plus tard si besoin)
-  GOOGLE_ADS_ID: null, // Pas encore configuré
+  // Google Ads - CONFIGURÉ ✅
+  GOOGLE_ADS_CLIENT_ID: 'ca-pub-1676150794227736', // ID réel Google Ads
   
   // Conversion Tracking (à configurer avec Google Ads)
   CONVERSIONS: {
