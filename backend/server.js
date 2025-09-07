@@ -70,7 +70,7 @@ const {
   helmetConfig, 
   mongoSanitize, 
   ipWhitelist 
-} = require('../security-middleware');
+} = require('./security-middleware');
 
 // Import du middleware de nettoyage automatique
 const { middlewareMessagesOrphelins } = require('./middleware/orphanCleanup');
