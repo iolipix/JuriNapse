@@ -388,3 +388,42 @@ try {
 } catch (e) {
   console.error('⚠️ Impossible de programmer la tâche maintenance cleanup ALL:', e.message);
 }
+
+// -------------------------
+// Fallback pour client-side routing
+// Permettre aux URLs SPA (ex: /post/:slug) d'être résolues par le frontend
+// Quand le build frontend est présent, servir son index.html
+// Sinon, rediriger vers le domaine frontend public configuré via FRONTEND_URL
+// -------------------------
+app.get('*', (req, res) => {
+  try {
+    // Éviter d'interférer avec les routes API et SEO
+    if (req.path.startsWith('/api') || req.path.startsWith('/seo') || req.path.startsWith('/robots.txt') || req.path.startsWith('/sitemap.xml')) {
+      return res.status(404).send('Not Found');
+    }
+
+    const path = require('path');
+    const fs = require('fs');
+    // Chercher le build frontend dans les emplacements probables
+    const possibleFrontends = [
+      path.join(__dirname, '..', 'frontend', 'dist', 'index.html'),
+      path.join(__dirname, '..', 'frontend', 'build', 'index.html'),
+      path.join(__dirname, '..', 'dist', 'index.html'),
+      path.join(__dirname, '..', 'public', 'index.html')
+    ];
+
+    for (const fp of possibleFrontends) {
+      if (fs.existsSync(fp)) {
+        return res.sendFile(fp);
+      }
+    }
+
+    // Si pas de build présent, rediriger vers le FRONTEND_URL si configuré
+    const frontendUrl = process.env.FRONTEND_URL || process.env.FRONTEND_HOST || 'https://www.jurinapse.com';
+    const target = `${frontendUrl.replace(/\/$/, '')}${req.originalUrl}`;
+    return res.redirect(302, target);
+  } catch (e) {
+    console.error('❌ Erreur fallback frontend:', e.message);
+    return res.status(500).send('Server error');
+  }
+});
