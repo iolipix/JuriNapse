@@ -4,6 +4,7 @@ export { default as AdBanner } from './AdBanner';
 export { default as AdFeedNative } from './AdFeedNative';
 export { default as AdSidebar } from './AdSidebar';
 export { default as SimpleAdBanner } from './SimpleAdBanner';
+export { default as CustomAdBanner } from './CustomAdBanner';
 export { 
   AdSidebarProfile, 
   AdSidebarPost, 
@@ -11,12 +12,20 @@ export {
   usePostsWithAds 
 } from './AdComponents';
 export {
+  PrestigePhotoMedium,
+  PrestigePhotoHalf,
+  PrestigePhotoAd
+} from './PrestigePhotoAds';
+export {
   MediumRectangle,
   Leaderboard,
   MobileBanner,
   WideSkyscraper,
   HalfPage,
   LargeRectangle,
-  Square
+  Square,
+  SuperLeaderboard,
+  LargeSquare,
+  Portrait
 } from './AdFormats';
 export type { AdConfig, AdProps, AdContextType } from './types';

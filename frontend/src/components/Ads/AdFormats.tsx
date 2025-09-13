@@ -1,17 +1,12 @@
 import React from 'react';
 import AdBanner from './AdBanner';
+import { PrestigePhotoMedium, PrestigePhotoHalf } from './PrestigePhotoAds';
 
 // Composants prédéfinis pour différents formats publicitaires
 
-// Format rectangulaire standard (fil d'actualité)
+// Format rectangulaire standard (fil d'actualité) - Prestige Photo
 export const MediumRectangle: React.FC<{ className?: string }> = ({ className }) => (
-  <AdBanner 
-    slot="medium-rectangle"
-    size={[300, 250]}
-    format="rectangle"
-    testMode={true}
-    className={className}
-  />
+  <PrestigePhotoMedium className={className} />
 );
 
 // Bannière horizontale (en haut/bas de page)
@@ -46,15 +41,9 @@ export const WideSkyscraper: React.FC<{ className?: string }> = ({ className }) 
   />
 );
 
-// Demi-page pour sidebar
+// Demi-page pour sidebar - Prestige Photo
 export const HalfPage: React.FC<{ className?: string }> = ({ className }) => (
-  <AdBanner 
-    slot="half-page"
-    size={[300, 600]}
-    format="rectangle"
-    className={className}
-    responsive={false}
-  />
+  <PrestigePhotoHalf className={className} />
 );
 
 // Grand rectangle
@@ -74,5 +63,36 @@ export const Square: React.FC<{ className?: string }> = ({ className }) => (
     size={[250, 250]}
     format="rectangle"
     className={className}
+  />
+);
+
+// Grande bannière (Top Leaderboard)
+export const SuperLeaderboard: React.FC<{ className?: string }> = ({ className }) => (
+  <AdBanner 
+    slot="super-leaderboard"
+    size={[970, 90]}
+    format="banner"
+    className={className}
+  />
+);
+
+// Grand carré (Large Square)
+export const LargeSquare: React.FC<{ className?: string }> = ({ className }) => (
+  <AdBanner 
+    slot="large-square"
+    size={[300, 300]}
+    format="rectangle"
+    className={className}
+  />
+);
+
+// Portrait (format vertical plus large)
+export const Portrait: React.FC<{ className?: string }> = ({ className }) => (
+  <AdBanner 
+    slot="portrait"
+    size={[300, 1050]}
+    format="rectangle"
+    className={className}
+    responsive={false}
   />
 );

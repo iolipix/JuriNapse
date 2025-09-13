@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useAds } from './AdProvider';
 import { AdProps } from './types';
+import { PrestigePhotoMedium, PrestigePhotoHalf } from './PrestigePhotoAds';
 
 const AdBanner: React.FC<AdProps> = ({ 
   slot, 
@@ -31,20 +32,17 @@ const AdBanner: React.FC<AdProps> = ({
   // Si les ads sont désactivées ou en cas d'erreur, ne rien afficher
   if (!config.enabled) return null;
 
-  // Placeholder en mode test
+  // Afficher les publicités Prestige Photo à la place des tests
   if (isTestMode) {
-    return (
-      <div 
-        className={`bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-500 text-sm ${className}`}
-        style={{ width: width, height: height }}
-      >
-        <div className="text-center">
-          <div className="font-semibold">🎯 Publicité Test</div>
-          <div className="text-xs mt-1">Bannière {width}x{height}</div>
-          <div className="text-xs">Slot: {slot}</div>
-        </div>
-      </div>
-    );
+    // Choisir le bon format selon la taille
+    if (width === 300 && height === 600) {
+      return <PrestigePhotoHalf className={className} />;
+    } else if (width === 300 && height === 250) {
+      return <PrestigePhotoMedium className={className} />;
+    } else {
+      // Pour les autres tailles, afficher Prestige Photo Medium par défaut
+      return <PrestigePhotoMedium className={className} />;
+    }
   }
 
   return (

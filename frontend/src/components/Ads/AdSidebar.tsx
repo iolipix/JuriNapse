@@ -31,22 +31,22 @@ const AdSidebar: React.FC<AdSidebarProps> = ({
 
   return (
     <div className={`ad-sidebar ${className}`}>
-      {/* Bannière rectangulaire standard */}
+      {/* Format HalfPage (300x600) - Plus grand et plus visible */}
       <div className="mb-4">
         <AdBanner
           slot={getSlot()}
-          size={[300, 250]}
+          size={[300, 600]}
           format="rectangle"
           responsive={true}
           className="mx-auto"
         />
       </div>
 
-      {/* Bannière carrée plus petite si on a de la place */}
-      <div className="hidden lg:block">
+      {/* Large Rectangle supplémentaire si on a de la place */}
+      <div className="hidden xl:block mt-4">
         <AdBanner
-          slot={`${getSlot()}-square`}
-          size={[300, 300]}
+          slot={`${getSlot()}-large`}
+          size={[336, 280]}
           format="rectangle"
           responsive={true}
           className="mx-auto"
