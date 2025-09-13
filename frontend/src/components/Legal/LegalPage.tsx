@@ -41,7 +41,7 @@ const LegalPage: React.FC = () => {
 
       {/* Contenu */}
       <div className="py-8">
-        {activeTab === 'terms' && <TermsOfService onBack={() => window.history.back()} />}
+        {activeTab === 'terms' && <TermsOfService />}
         {activeTab === 'privacy' && <PrivacyPolicy />}
       </div>
     </div>
