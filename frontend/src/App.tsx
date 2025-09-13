@@ -40,6 +40,19 @@ const MainApp: React.FC = () => {
   const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
   const { posts, getPostBySlugOrId } = usePost();
   const { getTotalUnreadMessagesCount } = useMessaging();
+
+  // CRITICAL FIX: Check isLoading BEFORE declaring any useState hooks to fix React error #310
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
   const userRef = useRef(user);
   
   // Synchroniser le ref avec l'utilisateur actuel
@@ -926,18 +939,6 @@ const MainApp: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [activeTab, targetMessageUserId]);
-
-  // Si l'authentification est en cours de chargement, afficher un écran de chargement
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
 
   const renderContent = () => {
     if (activeTab === 'decision' && viewingDecision) {
