@@ -415,11 +415,9 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
             En outre, l'Exploitant se réserve le droit de modifier à tout moment et sans préavis la localisation du Site sur l'Internet, ainsi que les présentes Conditions Générales. Le Client est donc tenu par conséquent de se reporter aux présentes Conditions Générales avant toute utilisation du Site.
           </p>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="font-medium text-blue-800">
-              EN CAS DE MODIFICATIONS MATÉRIELLES ET DANS L'HYPOTHÈSE DE PRESTATIONS DE SERVICES CONTINUES / EN COURS, L'UTILISATEUR SERA INFORMÉ AU MOYEN D'UN EMAIL ET D'UN AVERTISSEMENT SUR LE SITE AVANT LA MISE EN APPLICATION DE LA MODIFICATION.
-            </p>
-          </div>
+          <p className="mb-4 font-medium">
+            EN CAS DE MODIFICATIONS MATÉRIELLES ET DANS L'HYPOTHÈSE DE PRESTATIONS DE SERVICES CONTINUES / EN COURS, L'UTILISATEUR SERA INFORMÉ AU MOYEN D'UN EMAIL ET D'UN AVERTISSEMENT SUR LE SITE AVANT LA MISE EN APPLICATION DE LA MODIFICATION.
+          </p>
           
           <p className="mb-4">
             Le Client reconnaît que l'Exploitant ne saurait être tenu responsable de quelque manière que ce soit envers lui ou tout tiers du fait de ces modifications, suspensions ou cessations.
