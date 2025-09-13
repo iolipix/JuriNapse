@@ -700,7 +700,12 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                   {/* Ajouter une pub tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (
                     <div className="flex justify-center my-6">
-                      <MediumRectangle className="mx-auto" />
+                      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+                        <div className="text-xs text-gray-500 mb-2 font-medium">
+                          Contenu sponsorisé
+                        </div>
+                        <MediumRectangle className="mx-auto" />
+                      </div>
                     </div>
                   )}
                 </React.Fragment>
@@ -1013,7 +1018,10 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       <div className="hidden xl:block xl:col-span-1">
         <div className="sticky top-20 space-y-6">
           {/* Publicité Skyscraper - Ajusté pour 300x600 */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 w-80">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96">
+            <div className="text-xs text-gray-500 mb-2 font-medium">
+              Contenu sponsorisé
+            </div>
             <HalfPage className="mx-auto" />
           </div>
         </div>
