@@ -297,6 +297,28 @@ const startServer = async () => {
       console.error('⚠️ Erreur initialisation admin par défaut:', error.message);
     }
 
+    // === Si un build frontend existe localement, le monter en statique ===
+    try {
+      const path = require('path');
+      const fs = require('fs');
+      const possibleStaticDirs = [
+        path.join(__dirname, '..', 'frontend', 'dist'),
+        path.join(__dirname, '..', 'frontend', 'build'),
+        path.join(__dirname, '..', 'dist'),
+        path.join(__dirname, '..', 'public')
+      ];
+
+      for (const dir of possibleStaticDirs) {
+        if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+          app.use(express.static(dir));
+          console.log(`📦 Serving static frontend from: ${dir}`);
+          break;
+        }
+      }
+    } catch (e) {
+      console.error('⚠️ Erreur lors du montage du frontend statique:', e.message);
+    }
+
     // Script d'urgence pour réparer les abonnements de theophane_mry
     if (process.env.RUN_FIX_SCRIPT === 'true') {
       try {
