@@ -29,7 +29,7 @@ import SettingsPage from './components/Settings/SettingsPage';
 import SettingsMenu from './components/Settings/SettingsMenu';
 import SuggestedUsers from './components/Subscription/SuggestedUsers';
 import DecisionPage from './components/Decision/DecisionPage';
-import TermsOfService from './components/Legal/TermsOfService';
+import LegalPage from './components/Legal/LegalPage';
 import CookieConsent from './components/Common/CookieConsent';
 import AdminPage from './components/Admin/AdminPage';
 import AdminMenu from './components/Admin/AdminMenu';
@@ -1025,7 +1025,7 @@ const MainApp: React.FC = () => {
         return <AdminMenu onNavigateToTab={handleAdminTabNavigation} />;
       case 'terms':
       case 'terms-of-service':
-        return <TermsOfService onBack={handleBackToFeed} />;
+        return <LegalPage />;
       case 'feed':
       case 'fiches':
       case 'publications':
