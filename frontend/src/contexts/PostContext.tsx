@@ -47,8 +47,8 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
   const hasInitializedRef = useRef(false);
   const lastLoadTimeRef = useRef(0);
   
-  // Récupérer le contexte auth pour s'enregistrer au callback de logout
-  const { setOnLogoutCallback } = useAuth();
+  // Récupérer le contexte auth de manière sécurisée
+  const authContext = useAuth();
 
   const loadPosts = useCallback(async (page = 1, reset = false) => {
     // Éviter les appels trop rapprochés (debounce)
@@ -401,35 +401,39 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
         return cachedPost;
       }
 
-      // Sinon récupérer depuis l'API
+      // Sinon récupérer depuis l'API avec headers anti-cache
       const response = await postsAPI.getPostBySlugOrId(slugOrId);
-      if (response.success && response.data) {
+      if (response.success && response.post) {
+        const postData = response.post; // API retourne { success: true, post: {...} }
         const post = {
-          id: response.data._id,
-          _id: response.data._id, // Ajout de l'ID MongoDB explicite
-          authorId: response.data.authorId && typeof response.data.authorId === 'object' 
-            ? (response.data.authorId._id || response.data.authorId.id) 
-            : response.data.authorId || null,
-          author: response.data.authorId || null,
-          type: response.data.type,
-          title: response.data.title,
-          content: response.data.content,
-          tags: response.data.tags || [],
-          createdAt: new Date(response.data.createdAt),
-          updatedAt: new Date(response.data.updatedAt),
-          likes: response.data.likes || 0,
-          likedBy: response.data.likedBy || [],
-          likesWithTimestamp: response.data.likesWithTimestamp || [],
-          savesCount: response.data.savesCount || 0, // Compteur de sauvegardes
-          savesWithTimestamp: response.data.savesWithTimestamp || [], // Timestamps des sauvegardes
-          comments: response.data.comments || [],
-          slug: response.data.slug,
-          pdfFile: response.data.pdfFile ? {
-            name: response.data.pdfFile.name,
-            url: response.data.pdfFile.url,
-            size: response.data.pdfFile.size,
-            type: response.data.pdfFile.type || 'application/pdf'
-          } : undefined
+          id: postData._id,
+          _id: postData._id, // Ajout de l'ID MongoDB explicite
+          authorId: postData.authorId && typeof postData.authorId === 'object' 
+            ? (postData.authorId._id || postData.authorId.id) 
+            : postData.authorId || null,
+          author: postData.authorId || null,
+          type: postData.type,
+          title: postData.title,
+          content: postData.content,
+          tags: postData.tags || [],
+          createdAt: new Date(postData.createdAt),
+          updatedAt: new Date(postData.updatedAt),
+          likes: postData.likedBy ? postData.likedBy.length : 0,
+          likedBy: postData.likedBy || [],
+          likesWithTimestamp: postData.likesWithTimestamp || [],
+          savesCount: postData.savesCount || 0, // Compteur de sauvegardes
+          savesWithTimestamp: postData.savesWithTimestamp || [], // Timestamps des sauvegardes
+          comments: postData.comments || [],
+          slug: postData.slug,
+          pdfFile: postData.pdfFile ? {
+            name: postData.pdfFile.name,
+            url: postData.pdfFile.url,
+            size: postData.pdfFile.size,
+            type: postData.pdfFile.type || 'application/pdf'
+          } : undefined,
+          isPrivate: postData.isPrivate || false,
+          decisionNumber: postData.decisionNumber || null,
+          folderId: postData.folderId || null
         };
         return post;
       }
@@ -505,10 +509,10 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
 
   // Enregistrer le callback de forceReloadPosts auprès d'AuthContext
   useEffect(() => {
-    if (setOnLogoutCallback) {
-      setOnLogoutCallback(forceReloadPosts);
+    if (authContext && authContext.setOnLogoutCallback) {
+      authContext.setOnLogoutCallback(forceReloadPosts);
     }
-  }, [setOnLogoutCallback, forceReloadPosts]);
+  }, [forceReloadPosts]);
 
   const loadMorePosts = useCallback(async () => {
     if (hasMore && !loading) {

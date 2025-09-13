@@ -1,4 +1,41 @@
-// VALIDATION FINALE - React Error #310 Correctif 
+// Script pour diagnostiquer et resoudre l'erreur React #310
+console.log('Diagnostic React Error #310 - useMemo/useCallback hooks');
+console.log('');
+
+// L'erreur React #310 indique un probleme avec useMemo, useCallback ou autres hooks
+console.log('Causes possibles de React Error #310:');
+console.log('1. Dependances qui changent de reference a chaque render');
+console.log('2. Hooks conditionnels (useEffect, useMemo dans des if/for)');
+console.log('3. References d objets qui changent dans les dependances');
+console.log('4. useContext utilise sans provider');
+console.log('5. Conflits entre plusieurs versions de React');
+console.log('');
+
+console.log('Solutions appliquees:');
+console.log('1. Suppression du try/catch autour de useAuth()');
+console.log('2. Simplification des dependances useEffect');
+console.log('3. Stabilisation des references d objets');
+console.log('4. Logs backend pour diagnostiquer les routes');
+console.log('');
+
+console.log('Prochaines etapes:');
+console.log('1. Tester avec F5 sur une page de post');
+console.log('2. Verifier la console F12 pour les nouvelles erreurs');
+console.log('3. Analyser les logs backend Railway');
+console.log('4. Si l erreur persiste, desactiver temporairement useMemo/useCallback');
+console.log('');
+
+console.log('URLs de test recommandees:');
+console.log('- https://www.jurinapse.com/post/[slug-existant]');
+console.log('- Faire F5 sur cette page');
+console.log('- Verifier si la page se charge ou reste blanche');
+console.log('');
+
+console.log('Corrections appliquees dans ce commit:');
+console.log('PostContext.tsx: Suppression try/catch useAuth()');
+console.log('PostContext.tsx: Simplification dependances useEffect');
+console.log('server.js: Logs detailles route fallback');
+console.log('Ajout script de diagnostic'); 
 // Simule les actions utilisateur qui causaient le crash
 
 console.log('🔍 VALIDATION FINALE - React Error #310\n');

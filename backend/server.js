@@ -419,20 +419,20 @@ try {
 // -------------------------
 app.get('*', (req, res) => {
   try {
+    console.log(`🔄 Route fallback pour: ${req.path} (User-Agent: ${req.get('User-Agent')?.substring(0, 50)})`);
+    
     // Éviter d'interférer avec les routes API et SEO
     if (req.path.startsWith('/api') || 
         req.path.startsWith('/seo') || 
         req.path.startsWith('/robots.txt') || 
         req.path.startsWith('/sitemap.xml') ||
         req.path.includes('.')) { // Éviter les fichiers statiques (.js, .css, .ico, etc.)
+      console.log(`❌ Route fallback: ${req.path} exclue - retourne 404`);
       return res.status(404).send('Not Found');
     }
 
     const path = require('path');
     const fs = require('fs');
-    
-    // Log pour debug des routes fallback
-    console.log(`🔄 Route fallback pour: ${req.path}`);
     
     // Headers pour éviter le cache des pages SPA
     res.set({
@@ -451,7 +451,7 @@ app.get('*', (req, res) => {
 
     for (const fp of possibleFrontends) {
       if (fs.existsSync(fp)) {
-        console.log(`📁 Serving frontend from: ${fp}`);
+        console.log(`📁 Serving frontend from: ${fp} for path: ${req.path}`);
         return res.sendFile(fp);
       }
     }
@@ -459,7 +459,7 @@ app.get('*', (req, res) => {
     // Si pas de build présent, rediriger vers le FRONTEND_URL si configuré
     const frontendUrl = process.env.FRONTEND_URL || process.env.FRONTEND_HOST || 'https://www.jurinapse.com';
     const target = `${frontendUrl.replace(/\/$/, '')}${req.originalUrl}`;
-    console.log(`🔗 Redirect to frontend: ${target}`);
+    console.log(`🔗 Redirect to frontend: ${target} for path: ${req.path}`);
     return res.redirect(302, target);
   } catch (e) {
     console.error('❌ Erreur fallback frontend:', e.message);

@@ -3,12 +3,9 @@ import { fixApiUrl } from '../utils/apiUrlFixer';
 
 // Configuration de l'URL de l'API en fonction de l'environnement
 const getApiBaseUrl = () => {
-  // TEMPORAIRE: Forcer Railway même en dev pour tester les statistiques personnelles
-  return 'https://jurinapse-production.up.railway.app/api';
-  
-  // Si nous sommes en développement local, utiliser le proxy
+  // Si nous sommes en développement local, utiliser le serveur local
   if (import.meta.env.DEV) {
-    return '/api';
+    return 'http://localhost:5000/api';
   }
   
   // En production, utiliser la variable d'environnement ou l'URL Railway par défaut
@@ -309,7 +306,12 @@ export const usersAPI = {
 // Posts API methods
 export const postsAPI = {
   getPostBySlugOrId: async (slugOrId: string) => {
-    const response = await api.get(`/posts/${slugOrId}`);
+    const response = await api.get(`/posts/${slugOrId}`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     return response.data;
   },
   
