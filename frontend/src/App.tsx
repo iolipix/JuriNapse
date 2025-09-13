@@ -30,6 +30,8 @@ import SettingsMenu from './components/Settings/SettingsMenu';
 import SuggestedUsers from './components/Subscription/SuggestedUsers';
 import DecisionPage from './components/Decision/DecisionPage';
 import LegalPage from './components/Legal/LegalPage';
+import TermsOfServicePage from './components/Legal/TermsOfServicePage';
+import PrivacyPolicyPage from './components/Legal/PrivacyPolicyPage';
 import CookieConsent from './components/Common/CookieConsent';
 import AdminPage from './components/Admin/AdminPage';
 import AdminMenu from './components/Admin/AdminMenu';
@@ -478,6 +480,10 @@ const MainApp: React.FC = () => {
       case 'terms-of-service':
         window.history.pushState(null, '', '/conditions-utilisation');
         break;
+      case 'privacy':
+      case 'privacy-policy':
+        window.history.pushState(null, '', '/charte-confidentialite');
+        break;
       default:
         break;
     }
@@ -779,6 +785,29 @@ const MainApp: React.FC = () => {
       }
     }
     
+    // Gestion des routes légales
+    if (path === '/conditions-utilisation') {
+      setActiveTab('terms-of-service');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setSettingsTab(null);
+      setAdminTab(null);
+      return;
+    }
+    
+    if (path === '/charte-confidentialite') {
+      setActiveTab('privacy-policy');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setSettingsTab(null);
+      setAdminTab(null);
+      return;
+    }
+    
     // Normaliser /profile/:username -> /:username
     if (path.startsWith('/profile/')) {
       const username = path.substring('/profile/'.length);
@@ -792,7 +821,7 @@ const MainApp: React.FC = () => {
     if (path.length > 1 && path.startsWith('/')) {
       const username = path.substring(1); // Enlever le "/" initial
       // Vérifier si c'est un username valide (pas une autre route)
-  if (username && !username.includes('/') && username !== 'auth' && username !== 'login' && username !== 'messages' && username !== 'fiches' && username !== 'publications' && username !== 'cours' && username !== 'protocole' && username !== 'trending' && username !== 'notifications' && username !== 'post' && username !== 'settings' && username !== 'admin' && username !== 'conditions-utilisation' && username !== 'profile') {
+  if (username && !username.includes('/') && username !== 'auth' && username !== 'login' && username !== 'messages' && username !== 'fiches' && username !== 'publications' && username !== 'cours' && username !== 'protocole' && username !== 'trending' && username !== 'notifications' && username !== 'post' && username !== 'settings' && username !== 'admin' && username !== 'conditions-utilisation' && username !== 'charte-confidentialite' && username !== 'profile') {
         // Vérifier si c'est son propre profil (seulement si l'utilisateur est connecté)
         if (user && (username === user.username)) {
           // C'est son propre profil, aller vers l'onglet profile
@@ -1025,6 +1054,11 @@ const MainApp: React.FC = () => {
         return <AdminMenu onNavigateToTab={handleAdminTabNavigation} />;
       case 'terms':
       case 'terms-of-service':
+        return <TermsOfServicePage />;
+      case 'privacy':
+      case 'privacy-policy':
+        return <PrivacyPolicyPage />;
+      case 'legal':
         return <LegalPage />;
       case 'feed':
       case 'fiches':
