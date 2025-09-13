@@ -9,8 +9,7 @@ import PostCard from '../Post/PostCard';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import FoldersPage from '../Folder/FoldersPage';
 import { 
-  MediumRectangle, 
-  WideSkyscraper
+  HalfPage
 } from '../Ads';
 
 interface ProfilePageProps {
@@ -525,7 +524,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
                   {/* Publicité tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < savedPosts.length - 1 && (
                     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-                      <MediumRectangle className="mx-auto" />
+                      <HalfPage className="mx-auto" />
                     </div>
                   )}
                 </React.Fragment>
@@ -575,7 +574,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
                 {/* Publicité tous les 4 posts */}
                 {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-                    <MediumRectangle className="mx-auto" />
+                    <HalfPage className="mx-auto" />
                   </div>
                 )}
               </React.Fragment>
@@ -936,7 +935,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
           <div className="sticky top-4 space-y-6">
             {/* Publicité Skyscraper */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-              <WideSkyscraper className="mx-auto" />
+              <HalfPage className="mx-auto" />
             </div>
             </div>
         </div>
