@@ -19,7 +19,8 @@ const generateSlug = (title) => {
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    .trim('-');
+    .replace(/^-+|-+$/g, '') // Supprimer tirets début et fin
+    .trim();
 };
 
 // Cache pour 5 minutes (300 secondes)
@@ -267,11 +268,32 @@ const getPostById = async (req, res) => {
     
     // Déterminer si c'est un ObjectId MongoDB ou un slug
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
-    const query = isObjectId ? { _id: id } : { slug: id };
-
-    const post = await Post.findOne(query)
-      .populate('authorId', 'username firstName lastName university isStudent bio profilePicture')
-      .populate('comments.authorId', 'username firstName lastName university isStudent bio profilePicture');
+    
+    let post = null;
+    
+    if (isObjectId) {
+      // Recherche par ID MongoDB
+      post = await Post.findById(id)
+        .populate('authorId', 'username firstName lastName university isStudent bio profilePicture')
+        .populate('comments.authorId', 'username firstName lastName university isStudent bio profilePicture');
+    } else {
+      // Recherche par slug - essayer plusieurs variantes pour compatibilité
+      const slugVariants = [
+        id, // Slug exact
+        id.replace(/^-+|-+$/g, ''), // Sans tirets début/fin
+        id + '-', // Avec tiret à la fin (anciens slugs)
+        id.replace(/-$/, '') // Sans tiret final
+      ];
+      
+      // Essayer chaque variante jusqu'à trouver
+      for (const slug of slugVariants) {
+        post = await Post.findOne({ slug })
+          .populate('authorId', 'username firstName lastName university isStudent bio profilePicture')
+          .populate('comments.authorId', 'username firstName lastName university isStudent bio profilePicture');
+        
+        if (post) break;
+      }
+    }
 
     if (!post) {
       return res.status(404).json({
