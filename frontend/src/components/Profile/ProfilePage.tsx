@@ -939,7 +939,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
 
         {/* Sidebar publicitaire - visible uniquement sur grand écran */}
         <div className="hidden xl:block xl:col-span-1">
-          <div className="sticky top-4 space-y-6">
+          <div className="sticky top-4 bottom-4 space-y-6 h-fit max-h-[calc(100vh-2rem)] overflow-hidden">
             {/* Publicité Skyscraper - Ajusté pour 300x600 */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96">
               <div className="text-xs text-gray-500 mb-2 font-medium">
