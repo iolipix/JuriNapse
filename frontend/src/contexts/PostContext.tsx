@@ -47,10 +47,11 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
   const hasInitializedRef = useRef(false);
   const lastLoadTimeRef = useRef(0);
   
-  // Récupérer le contexte auth de manière sécurisée
-  const authContext = useAuth();
+  // CRITICAL FIX: Ne pas utiliser useAuth() directement pour éviter les hooks conditionnels
+  // Le contexte auth sera géré différemment pour éviter React error #310
 
-  const loadPosts = useCallback(async (page = 1, reset = false) => {
+  // CRITICAL FIX: Simplifier loadPosts sans useCallback pour éviter les dépendances circulaires
+  const loadPosts = async (page = 1, reset = false) => {
     // Éviter les appels trop rapprochés (debounce)
     const now = Date.now();
     if (now - lastLoadTimeRef.current < 2000) { // 2 secondes minimum entre les appels
@@ -181,7 +182,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []); // Pas de dépendances - loadPosts ne dépend que des paramètres
+  }; // REMOVED useCallback to fix React error #310
 
   useEffect(() => {
     // Charger les posts seulement une fois au montage de l'app
@@ -284,7 +285,8 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     }
   }, []); // Pas de dépendances - charge seulement au montage de l'app
 
-  const createPost = useCallback(async (postData: Omit<Post, 'id' | 'authorId' | 'author' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy' | 'comments' | 'likesWithTimestamp' | 'savesWithTimestamp'>) => {
+  // CRITICAL FIX: Supprimer useCallback pour éviter les dépendances circulaires
+  const createPost = async (postData: Omit<Post, 'id' | 'authorId' | 'author' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy' | 'comments' | 'likesWithTimestamp' | 'savesWithTimestamp'>) => {
     setLoading(true);
     setError(null);
     try {
@@ -308,9 +310,9 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [loadPosts]);
+  };
 
-  const updatePost = useCallback(async (postId: string, updates: Partial<Post>) => {
+  const updatePost = async (postId: string, updates: Partial<Post>) => {
     setLoading(true);
     setError(null);
     try {
@@ -326,9 +328,9 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [loadPosts]);
+  };
 
-  const deletePost = useCallback(async (postId: string) => {
+  const deletePost = async (postId: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -344,9 +346,9 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [loadPosts]);
+  };
 
-  const toggleLike = useCallback(async (postId: string) => {
+  const toggleLike = async (postId: string) => {
     try {
       const response = await api.post(`/posts/${postId}/like`);
       
@@ -373,9 +375,9 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
       await loadPosts();
       throw error;
     }
-  }, [loadPosts]);
+  };
 
-  const addComment = useCallback(async (postId: string, content: string) => {
+  const addComment = async (postId: string, content: string) => {
     try {
       const response = await api.post(`/posts/${postId}/comments`, { content });
       if (response.data.success) {
@@ -387,13 +389,13 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
       setError(error.response?.data?.message || 'Erreur lors de l\'ajout du commentaire');
       throw error;
     }
-  }, [loadPosts]);
+  };
 
-  const getPostById = useCallback((postId: string): Post | undefined => {
+  const getPostById = (postId: string): Post | undefined => {
     return posts.find(post => post.id === postId);
-  }, [posts]);
+  };
 
-  const getPostBySlugOrId = useCallback(async (slugOrId: string): Promise<Post | null> => {
+  const getPostBySlugOrId = async (slugOrId: string): Promise<Post | null> => {
     try {
       // D'abord chercher dans les posts en cache
       const cachedPost = posts.find(post => post.id === slugOrId || post.slug === slugOrId);
@@ -441,9 +443,9 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     } catch (error: any) {
       return null;
     }
-  }, [posts]);
+  };
 
-  const getTrendingPosts = useCallback(async (): Promise<Post[]> => {
+  const getTrendingPosts = async (): Promise<Post[]> => {
     try {
       const response = await api.get('/posts/trending');
       if (response.data.success) {
@@ -474,10 +476,10 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     } catch (error: any) {
       return [];
     }
-  }, []);
+  };
 
   // Méthode pour mettre à jour le compteur de sauvegardes
-  const updateSavesCount = useCallback((postId: string, increment: number) => {
+  const updateSavesCount = (postId: string, increment: number) => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
@@ -485,13 +487,13 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
           : post
       )
     );
-  }, []);
+  };
 
-  const refreshPosts = useCallback(async () => {
+  const refreshPosts = async () => {
     await loadPosts(1, true);
-  }, [loadPosts]);
+  };
 
-  const forceReloadPosts = useCallback(async () => {
+  const forceReloadPosts = async () => {
     console.log('📝 POST DEBUG: forceReloadPosts called - bypassing debounce');
     // Force reload without debounce restrictions for logout scenarios
     const originalTime = lastLoadTimeRef.current;
@@ -505,20 +507,21 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
     } finally {
       lastLoadTimeRef.current = originalTime;
     }
-  }, [loadPosts]);
+  };
 
   // Enregistrer le callback de forceReloadPosts auprès d'AuthContext
-  useEffect(() => {
-    if (authContext && authContext.setOnLogoutCallback) {
-      authContext.setOnLogoutCallback(forceReloadPosts);
-    }
-  }, [forceReloadPosts]);
+  // REMOVED: authContext usage to fix React error #310
+  // useEffect(() => {
+  //   if (authContext && authContext.setOnLogoutCallback) {
+  //     authContext.setOnLogoutCallback(forceReloadPosts);
+  //   }
+  // }, [forceReloadPosts]);
 
-  const loadMorePosts = useCallback(async () => {
+  const loadMorePosts = async () => {
     if (hasMore && !loading) {
       await loadPosts(currentPage + 1, false);
     }
-  }, [hasMore, loading, currentPage, loadPosts]);
+  };
 
   return (
     <PostContext.Provider
