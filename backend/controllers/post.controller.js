@@ -320,6 +320,15 @@ const getPostById = async (req, res) => {
     
     // Note: Si une photo est manquante, on garde null (géré par le frontend)
 
+    // Headers pour éviter le cache et assurer le bon fonctionnement après F5
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Surrogate-Control': 'no-store',
+      'X-Timestamp': Date.now().toString()
+    });
+
     res.json({
       success: true,
       post: postObj

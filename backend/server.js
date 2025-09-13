@@ -420,12 +420,27 @@ try {
 app.get('*', (req, res) => {
   try {
     // Éviter d'interférer avec les routes API et SEO
-    if (req.path.startsWith('/api') || req.path.startsWith('/seo') || req.path.startsWith('/robots.txt') || req.path.startsWith('/sitemap.xml')) {
+    if (req.path.startsWith('/api') || 
+        req.path.startsWith('/seo') || 
+        req.path.startsWith('/robots.txt') || 
+        req.path.startsWith('/sitemap.xml') ||
+        req.path.includes('.')) { // Éviter les fichiers statiques (.js, .css, .ico, etc.)
       return res.status(404).send('Not Found');
     }
 
     const path = require('path');
     const fs = require('fs');
+    
+    // Log pour debug des routes fallback
+    console.log(`🔄 Route fallback pour: ${req.path}`);
+    
+    // Headers pour éviter le cache des pages SPA
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     // Chercher le build frontend dans les emplacements probables
     const possibleFrontends = [
       path.join(__dirname, '..', 'frontend', 'dist', 'index.html'),
@@ -436,6 +451,7 @@ app.get('*', (req, res) => {
 
     for (const fp of possibleFrontends) {
       if (fs.existsSync(fp)) {
+        console.log(`📁 Serving frontend from: ${fp}`);
         return res.sendFile(fp);
       }
     }
@@ -443,6 +459,7 @@ app.get('*', (req, res) => {
     // Si pas de build présent, rediriger vers le FRONTEND_URL si configuré
     const frontendUrl = process.env.FRONTEND_URL || process.env.FRONTEND_HOST || 'https://www.jurinapse.com';
     const target = `${frontendUrl.replace(/\/$/, '')}${req.originalUrl}`;
+    console.log(`🔗 Redirect to frontend: ${target}`);
     return res.redirect(302, target);
   } catch (e) {
     console.error('❌ Erreur fallback frontend:', e.message);
