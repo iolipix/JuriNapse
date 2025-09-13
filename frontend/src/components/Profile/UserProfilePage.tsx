@@ -10,7 +10,7 @@ import FollowButton from '../Subscription/FollowButton';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import ProfileSEO from '../SEO/ProfileSEO';
 import DeletedUserPage from './DeletedUserPage';
-import { HalfPage } from '../Ads';
+import { HalfPage, MediumRectangle } from '../Ads';
 import useSEO from '../../hooks/useSEO';
 import api, { postsAPI } from '../../services/api';
 import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
@@ -700,7 +700,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                   {/* Ajouter une pub tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (
                     <div className="flex justify-center my-6">
-                      <HalfPage className="mx-auto" />
+                      <MediumRectangle className="mx-auto" />
                     </div>
                   )}
                 </React.Fragment>
@@ -1012,8 +1012,8 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       {/* Sidebar avec publicités */}
       <div className="hidden xl:block xl:col-span-1">
         <div className="sticky top-20 space-y-6">
-          {/* Publicité Skyscraper */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+          {/* Publicité Skyscraper - Ajusté pour 300x600 */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 w-80">
             <HalfPage className="mx-auto" />
           </div>
         </div>

@@ -9,7 +9,8 @@ import PostCard from '../Post/PostCard';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import FoldersPage from '../Folder/FoldersPage';
 import { 
-  HalfPage
+  HalfPage,
+  MediumRectangle
 } from '../Ads';
 
 interface ProfilePageProps {
@@ -524,7 +525,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
                   {/* Publicité tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < savedPosts.length - 1 && (
                     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-                      <HalfPage className="mx-auto" />
+                      <MediumRectangle className="mx-auto" />
                     </div>
                   )}
                 </React.Fragment>
@@ -574,7 +575,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
                 {/* Publicité tous les 4 posts */}
                 {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (
                   <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-                    <HalfPage className="mx-auto" />
+                    <MediumRectangle className="mx-auto" />
                   </div>
                 )}
               </React.Fragment>
@@ -933,8 +934,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
         {/* Sidebar publicitaire - visible uniquement sur grand écran */}
         <div className="hidden xl:block xl:col-span-1">
           <div className="sticky top-4 space-y-6">
-            {/* Publicité Skyscraper */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+            {/* Publicité Skyscraper - Ajusté pour 300x600 */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 w-80">
               <HalfPage className="mx-auto" />
             </div>
             </div>
