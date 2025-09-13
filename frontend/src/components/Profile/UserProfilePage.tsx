@@ -1016,9 +1016,9 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       
       {/* Sidebar avec publicités */}
       <div className="hidden xl:block xl:col-span-1">
-        <div className="sticky top-20 bottom-4 space-y-6 h-fit max-h-[calc(100vh-6rem)] overflow-hidden">
+        <div className="sticky top-20 space-y-6">
           {/* Publicité Skyscraper - Ajusté pour 300x600 */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 6rem)' }}>
             <div className="text-xs text-gray-500 mb-2 font-medium">
               Contenu sponsorisé
             </div>
