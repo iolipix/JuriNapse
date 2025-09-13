@@ -95,12 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleTerms = () => {
-    onTabChange('terms-of-service');
-    setIsBurgerMenuOpen(false);
-  };
-
-  const handlePrivacyPolicy = () => {
-    onTabChange('privacy-policy');
+    onTabChange('legal');
     setIsBurgerMenuOpen(false);
   };
 
@@ -275,15 +270,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <FileCheck className="h-4 w-4 text-gray-400" />
                 <span>Conditions</span>
-              </button>
-              
-              {/* Charte de confidentialité - Toujours visible */}
-              <button
-                onClick={handlePrivacyPolicy}
-                className="w-full flex items-center space-x-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <Shield className="h-4 w-4 text-gray-400" />
-                <span>Confidentialité</span>
               </button>
               
               {/* Se déconnecter - Seulement si connecté */}

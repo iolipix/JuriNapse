@@ -30,8 +30,6 @@ import SettingsMenu from './components/Settings/SettingsMenu';
 import SuggestedUsers from './components/Subscription/SuggestedUsers';
 import DecisionPage from './components/Decision/DecisionPage';
 import LegalPage from './components/Legal/LegalPage';
-import TermsOfServicePage from './components/Legal/TermsOfServicePage';
-import PrivacyPolicyPage from './components/Legal/PrivacyPolicyPage';
 import CookieConsent from './components/Common/CookieConsent';
 import AdminPage from './components/Admin/AdminPage';
 import AdminMenu from './components/Admin/AdminMenu';
@@ -476,13 +474,8 @@ const MainApp: React.FC = () => {
         }
         window.history.pushState(null, '', '/moderator');
         break;
-      case 'terms':
-      case 'terms-of-service':
+      case 'legal':
         window.history.pushState(null, '', '/conditions-utilisation');
-        break;
-      case 'privacy':
-      case 'privacy-policy':
-        window.history.pushState(null, '', '/charte-confidentialite');
         break;
       default:
         break;
@@ -786,19 +779,8 @@ const MainApp: React.FC = () => {
     }
     
     // Gestion des routes légales
-    if (path === '/conditions-utilisation') {
-      setActiveTab('terms-of-service');
-      setViewingUserId(null);
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setSelectedTag(null);
-      setSettingsTab(null);
-      setAdminTab(null);
-      return;
-    }
-    
-    if (path === '/charte-confidentialite') {
-      setActiveTab('privacy-policy');
+    if (path === '/conditions-utilisation' || path === '/charte-confidentialite') {
+      setActiveTab('legal');
       setViewingUserId(null);
       setViewingPostId(null);
       setViewingDecision(null);
@@ -1052,12 +1034,6 @@ const MainApp: React.FC = () => {
           return <FeedPage activeTab={activeTab} searchQuery={searchQuery} selectedTag={_selectedTag || ''} onTagClick={handleTagClick} onViewUserProfile={handleViewUserProfile} onViewPost={handleViewPost} onViewDecision={handleViewDecision} />;
         }
         return <AdminMenu onNavigateToTab={handleAdminTabNavigation} />;
-      case 'terms':
-      case 'terms-of-service':
-        return <TermsOfServicePage />;
-      case 'privacy':
-      case 'privacy-policy':
-        return <PrivacyPolicyPage />;
       case 'legal':
         return <LegalPage />;
       case 'feed':
