@@ -36,7 +36,7 @@ const prerenderProfile = async (req, res) => {
         
         // Générer les métadonnées optimisées
         const fullName = `${user.firstName} ${user.lastName}`;
-        const title = `${fullName} (@${username}) | Profil Juridique - JuriNapse`;
+        const title = `${fullName} (@${username}) | Profil Juridique - Jurinapse`;
         const description = user.bio 
             ? `${fullName} - ${user.bio} | ${postsCount} publications, ${user.followersCount} abonnés sur JuriNapse, la communauté juridique française.`
             : `Découvrez le profil de ${fullName} sur JuriNapse. ${user.isStudent ? 'Étudiant' : 'Professionnel'} en droit${user.university ? ` à ${user.university}` : ''}. ${postsCount} publications, ${user.followersCount} abonnés.`;
@@ -74,7 +74,7 @@ const prerenderProfile = async (req, res) => {
             } : undefined,
             "memberOf": {
                 "@type": "Organization", 
-                "name": "JuriNapse",
+                "name": "Jurinapse",
                 "url": "https://jurinapse.com"
             },
             "interactionStatistic": [
@@ -179,21 +179,21 @@ const prerenderProfile = async (req, res) => {
         </div>
         
         <p>
-            <strong>${fullName}</strong> fait partie de la communauté JuriNapse, 
+            <strong>${fullName}</strong> fait partie de la communauté Jurinapse, 
             la plateforme sociale dédiée aux professionnels et étudiants en droit.
         </p>
         
         <p>
-            <a href="https://jurinapse.com">🔗 Rejoindre JuriNapse</a>
+            <a href="https://jurinapse.com">🔗 Rejoindre Jurinapse</a>
         </p>
     </div>
     
     <!-- Contenu caché pour SEO -->
     <div style="display: none;">
-        <h2>Profil de ${fullName} sur JuriNapse</h2>
+        <h2>Profil de ${fullName} sur Jurinapse</h2>
         <p>${fullName} est ${user.isStudent ? 'un étudiant' : 'un professionnel'} en droit${user.university ? ` à ${user.university}` : ''}.</p>
         <p>Découvrez ses ${postsCount} publications et connectez-vous avec ses ${user.followersCount} abonnés sur la principale plateforme juridique française.</p>
-        <p>JuriNapse réunit la communauté juridique française : avocats, juristes, étudiants en droit, magistrats et professionnels du secteur.</p>
+        <p>Jurinapse réunit la communauté juridique française : avocats, juristes, étudiants en droit, magistrats et professionnels du secteur.</p>
     </div>
 </body>
 </html>

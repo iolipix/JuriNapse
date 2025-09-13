@@ -153,13 +153,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onLogin }) =>
                 <span>Paramètres</span>
               </button>
               
-              {/* Conditions d'utilisation - Toujours visible */}
+              {/* Conditions - Toujours visible */}
               <button
                 onClick={handleTerms}
                 className="w-full flex items-center space-x-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 <FileCheck className="h-4 w-4 text-gray-400" />
-                <span>Conditions d'utilisation</span>
+                <span>Conditions</span>
               </button>
               
               {/* Se déconnecter - Seulement si connecté */}
