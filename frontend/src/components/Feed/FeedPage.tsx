@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import { usePost } from '../../contexts';
 import { useSubscriptions } from '../../contexts/SubscriptionContext';
@@ -107,13 +107,13 @@ const FeedPage: React.FC<FeedPageProps> = ({
   const effectiveSelectedTag = selectedTag || localSelectedTag;
 
   // Liste des IDs des utilisateurs suivis (amis) pour priorisation dans le fil d'actualité
-  const friendsUserIds = useMemo(() => {
-    if (!subscriptions || !Array.isArray(subscriptions)) return new Set();
-    return new Set(subscriptions.map(friend => friend?.id || (friend as any)?._id).filter(id => id));
-  }, [subscriptions]);
+  // CRITICAL FIX: Simplifier pour éviter React error #310
+  const friendsUserIds = subscriptions && Array.isArray(subscriptions) 
+    ? new Set(subscriptions.map(friend => friend?.id || (friend as any)?._id).filter(id => id))
+    : new Set();
 
-  // Calcul des scores de trending avec mise en cache
-  const postsWithScores = useMemo(() => {
+  // CRITICAL FIX: Supprimer useMemo instable pour éviter React error #310
+  const postsWithScores = posts ? posts.map(post => {
     try {
       // Fonction pour calculer le score de trending basé sur la récence des interactions
       const calculateTrendingScore = (post: any) => {
@@ -195,19 +195,10 @@ const FeedPage: React.FC<FeedPageProps> = ({
       console.error('Error in postsWithScores useMemo:', error);
       return posts || [];
     }
-  }, [posts]);
+  }) : [];
 
-  // Unified filtering system using useMemo
-  const filteredPosts = useMemo(() => {
-    try {
-      let filtered = postsWithScores;
-
-      // Filter by tag first
-      if (effectiveSelectedTag) {
-        filtered = filtered.filter(post => post?.tags?.includes && post.tags.includes(effectiveSelectedTag));
-      }
-
-      // Filter by search query
+  // CRITICAL FIX: Supprimer useMemo pour éviter React error #310
+  const filteredPosts = postsWithScores ? postsWithScores.filter(post => {
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         filtered = filtered.filter(post =>

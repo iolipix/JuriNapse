@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Heart, MessageCircle, Send, User, Clock, FileText, BookOpen, ChevronDown, SortAsc, SortDesc, TrendingUp, MoreVertical, Edit, Trash2, Check, X } from 'lucide-react';
 import { usePost } from '../../contexts';
 import { useAuth } from '../../contexts/AuthContext';
@@ -53,7 +53,8 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
   const post = currentPost || posts.find(p => p.id === postId || p.slug === postId);
 
   // Fonction pour charger le post depuis l'API si pas en cache
-  const loadPost = useCallback(async () => {
+  // CRITICAL FIX: Supprimer useCallback pour éviter React error #310
+  const loadPost = async () => {
     // Si le post est déjà en cache, pas besoin de le recharger
     const cachedPost = posts.find(p => p.id === postId || p.slug === postId);
     if (cachedPost) {
@@ -67,10 +68,11 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
         setCurrentPost(postData);
       }
     } catch (error) {    }
-  }, [postId, getPostBySlugOrId]); // Retirer posts des dépendances pour éviter les boucles
+  };
 
   // Fonction pour charger les commentaires depuis l'API
-  const loadComments = useCallback(async () => {
+  // CRITICAL FIX: Supprimer useCallback pour éviter React error #310
+  const loadComments = async () => {
     if (!post) return;
     
     setLoadingComments(true);
@@ -84,12 +86,28 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
     } catch (error) {    } finally {
       setLoadingComments(false);
     }
-  }, [post?._id, post?.id]); // Utiliser des champs spécifiques et stables
+  };
 
   // Charger le post depuis l'API si nécessaire
   useEffect(() => {
-    loadPost();
-  }, [postId]); // Dépendre seulement de postId, pas de loadPost
+    // Fonction locale pour éviter les dépendances instables
+    const loadPostLocal = async () => {
+      const cachedPost = posts.find(p => p.id === postId || p.slug === postId);
+      if (cachedPost) {
+        setCurrentPost(null);
+        return;
+      }
+
+      try {
+        const postData = await getPostBySlugOrId(postId);
+        if (postData) {
+          setCurrentPost(postData);
+        }
+      } catch (error) {      }
+    };
+    
+    loadPostLocal();
+  }, [postId]); // Seulement postId comme dépendance
 
   // Scroll vers le haut quand on arrive sur la page
   useEffect(() => {
@@ -116,12 +134,12 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
         if (response.success) {
           setCommentsFromAPI(response.comments);
         }
-      } catch (error) {    } finally {
+      } catch (error) {      } finally {
         setLoadingComments(false);
       }
     };
     loadCommentsData();
-  }, [post?._id, post?.id]); // Dépendre des champs stables du post
+  }, [post?._id]); // Utiliser seulement l'ID stable
 
   useEffect(() => {
     if (commentsEndRef.current) {
