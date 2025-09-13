@@ -27,7 +27,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mt-8 mb-4">Article 1 – MENTIONS LÉGALES</h2>
           
           <p className="mb-4">
-            Le présent site, accessible à l'URL <strong>https://www.jurinapse.com/</strong> est édité par <strong>Théophane MAUREY</strong>.
+            Le présent site, accessible à l'URL <strong><a href="https://www.jurinapse.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">https://www.jurinapse.com/</a></strong> est édité par <strong>Théophane MAUREY</strong>.
           </p>
           
           <p className="mb-4">
@@ -39,7 +39,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
           </p>
           
           <p className="mb-4">
-            Le Site est hébergé par la société JuriNapse située PALAIS DE JUSTICE-COURS NATIONAL, CS 30328, 17108 SAINTES CEDEX (mail : jurinapse@gmail.com).
+            Le Site est hébergé par Railway (<a href="https://railway.app" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">https://railway.app</a>), MongoDB Atlas (<a href="https://www.mongodb.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">https://www.mongodb.com</a>) et utilise les services de Vercel (<a href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">https://vercel.com</a>) pour certaines fonctionnalités.
           </p>
           
           <p className="mb-4">
@@ -47,7 +47,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
           </p>
           
           <p className="mb-6">
-            L'Exploitant peut être joint à l'adresse email suivante <strong>jurinapse@gmail.com</strong>.
+            L'Exploitant peut être joint à l'adresse email suivante <strong><a href="mailto:jurinapse@gmail.com" className="text-blue-600 hover:text-blue-800 underline">jurinapse@gmail.com</a></strong>.
           </p>
 
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mt-8 mb-4">Article 2 – DISPOSITIONS GÉNÉRALES RELATIVES AUX PRÉSENTES CONDITIONS GÉNÉRALES</h2>
@@ -152,7 +152,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
           </ul>
           
           <p className="mb-4">
-            L'Exploitant archive les contrats de vente de Services conformément à la législation applicable. En formulant une demande à l'adresse suivante jurinapse@gmail.com, l'Exploitant remettra au Client une copie du contrat objet de la demande.
+            L'Exploitant archive les contrats de vente de Services conformément à la législation applicable. En formulant une demande à l'adresse suivante <a href="mailto:jurinapse@gmail.com" className="text-blue-600 hover:text-blue-800 underline">jurinapse@gmail.com</a>, l'Exploitant remettra au Client une copie du contrat objet de la demande.
           </p>
           
           <p className="mb-4">
@@ -302,7 +302,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mt-8 mb-4">Article 9 – SERVICE CLIENTS</h2>
           
           <p className="mb-6">
-            Le Client peut contacter l'Exploitant par email en s'adressant à <strong>jurinapse@gmail.com</strong> en indiquant son nom, numéro de téléphone, l'objet de sa demande et le numéro de la commande concernée.
+            Le Client peut contacter l'Exploitant par email en s'adressant à <strong><a href="mailto:jurinapse@gmail.com" className="text-blue-600 hover:text-blue-800 underline">jurinapse@gmail.com</a></strong> en indiquant son nom, numéro de téléphone, l'objet de sa demande et le numéro de la commande concernée.
           </p>
 
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mt-8 mb-4">Article 10 – PROPRIÉTÉ INTELLECTUELLE ET LICENCE D'UTILISATION</h2>
@@ -415,8 +415,8 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
             En outre, l'Exploitant se réserve le droit de modifier à tout moment et sans préavis la localisation du Site sur l'Internet, ainsi que les présentes Conditions Générales. Le Client est donc tenu par conséquent de se reporter aux présentes Conditions Générales avant toute utilisation du Site.
           </p>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <p className="font-medium text-yellow-800">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="font-medium text-blue-800">
               EN CAS DE MODIFICATIONS MATÉRIELLES ET DANS L'HYPOTHÈSE DE PRESTATIONS DE SERVICES CONTINUES / EN COURS, L'UTILISATEUR SERA INFORMÉ AU MOYEN D'UN EMAIL ET D'UN AVERTISSEMENT SUR LE SITE AVANT LA MISE EN APPLICATION DE LA MODIFICATION.
             </p>
           </div>
@@ -431,7 +431,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
           
           <h3 className="font-medium mb-2">RÉCLAMATION - MÉDIATION</h3>
           <p className="mb-4">
-            En cas de litige, vous devez vous adresser en priorité au service client de l'entreprise par mail à l'adresse : <strong>jurinapse@gmail.com</strong>
+            En cas de litige, vous devez vous adresser en priorité au service client de l'entreprise par mail à l'adresse : <strong><a href="mailto:jurinapse@gmail.com" className="text-blue-600 hover:text-blue-800 underline">jurinapse@gmail.com</a></strong>
           </p>
           
           <p className="mb-4">
@@ -443,8 +443,8 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
             <p>49 rue de Ponthieu</p>
             <p>75 008 PARIS</p>
             <p>Tel : 01 89 47 00 14</p>
-            <p>Site internet : https://www.cm2c.net/declarer-un-litige.php</p>
-            <p>Mail : litiges@cm2c.net</p>
+            <p>Site internet : <a href="https://www.cm2c.net/declarer-un-litige.php" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">https://www.cm2c.net/declarer-un-litige.php</a></p>
+            <p>Mail : <a href="mailto:litiges@cm2c.net" className="text-blue-600 hover:text-blue-800 underline">litiges@cm2c.net</a></p>
           </div>
           
           <p className="mb-4">

@@ -439,7 +439,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
       )}
 
       {/* Posts */}
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-6 sm:space-y-8">
         {filteredPosts.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
             <p className="text-gray-500 text-sm sm:text-base">Aucun post trouvé</p>
