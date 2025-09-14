@@ -231,6 +231,9 @@ const MainApp: React.FC = () => {
     setSettingsTab(null);
     setAdminTab(null);
     
+    // Réinitialiser le titre à JuriNapse
+    document.title = 'JuriNapse';
+    
     // Utiliser la nouvelle fonction de navigation
     navigateTo('/');
     
