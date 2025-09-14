@@ -25,6 +25,48 @@ router.get('/notification-settings', authenticateToken, getNotificationSettings)
 // PUT /api/users/notification-settings - Mettre à jour les paramètres de notifications
 router.put('/notification-settings', authenticateToken, updateNotificationSettings);
 
+// GET /api/users/premium-info - Récupérer les informations premium de l'utilisateur connecté
+router.get('/premium-info', authenticateToken, async (req, res) => {
+  try {
+    const User = require('../models/user.model');
+    const user = await User.findById(req.user.id)
+      .select('role premiumExpiresAt premiumGrantedBy premiumGrantedAt')
+      .populate('premiumGrantedBy', 'username firstName lastName');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    const isPremium = user.isPremium();
+    const hasRolePremium = user.hasRole('premium');
+    const isPermanent = hasRolePremium && !user.premiumExpiresAt;
+    const isExpired = user.premiumExpiresAt && user.premiumExpiresAt < new Date();
+    
+    let daysRemaining = null;
+    if (isPremium && user.premiumExpiresAt) {
+      const timeDiff = user.premiumExpiresAt.getTime() - new Date().getTime();
+      daysRemaining = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)));
+    }
+
+    res.json({
+      hasPremium: isPremium && !isExpired,
+      isPermanent,
+      isExpired,
+      expiresAt: user.premiumExpiresAt,
+      grantedAt: user.premiumGrantedAt,
+      grantedBy: user.premiumGrantedBy ? {
+        username: user.premiumGrantedBy.username,
+        fullName: `${user.premiumGrantedBy.firstName} ${user.premiumGrantedBy.lastName}`
+      } : null,
+      daysRemaining,
+      role: user.role
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des infos premium:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
 // GET /api/users/username/:username - Récupérer un utilisateur par son username
 router.get('/username/:username', getUserByUsername);
 

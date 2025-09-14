@@ -6,7 +6,13 @@ const cookieParser = require('cookie-parser');
 const http = require('http');
 const { Server } = require('socket.io');
 const cron = require('node-cron');
-require('dotenv').config({ path: './config/.env' });
+
+// Charger .env seulement s'il existe (développement local)
+try {
+  require('dotenv').config({ path: './config/.env' });
+} catch (error) {
+  // Pas de fichier .env, utilise les variables d'environnement (Railway)
+}
 
 // --- Log filtering avancé (LOG_LEVEL = silent|minimal|normal|debug) ---
 // Permet de réduire drastiquement le bruit sans modifier tous les fichiers.
