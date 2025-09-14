@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Calendar, User, Clock, CheckCircle, XCircle, AlertCircle, Search } from 'lucide-react';
+import { Crown, Calendar, User, CheckCircle, XCircle, AlertCircle, Search } from 'lucide-react';
 
 interface PremiumUser {
   id: string;
@@ -249,34 +249,6 @@ const PremiumManagement: React.FC = () => {
     }
   };
 
-  // Nettoyer les premiums expirés
-  const handleCleanupExpired = async () => {
-    if (!confirm('Êtes-vous sûr de vouloir nettoyer tous les premiums expirés ?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/admin/cleanup-expired-premiums', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jurinapse_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors du nettoyage');
-      }
-
-      const data = await response.json();
-      alert(`Nettoyage terminé. ${data.modifiedCount} utilisateurs affectés.`);
-      await loadPremiumUsers();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erreur inconnue');
-    }
-  };
-
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -335,19 +307,16 @@ const PremiumManagement: React.FC = () => {
               <Crown className="h-4 w-4 mr-2" />
               Attribuer Premium
             </button>
-            <button
-              onClick={handleCleanupExpired}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <Clock className="h-4 w-4 mr-2" />
-              Nettoyer expirés
-            </button>
           </div>
         </div>
 
         <p className="text-gray-600">
           Gérez les abonnements premium de vos utilisateurs. Vous pouvez attribuer un premium temporaire ou permanent, 
           consulter les expiration et révoquer les abonnements.
+          <br />
+          <span className="text-sm text-gray-500 mt-1 inline-block">
+            ⏰ Les premiums expirés sont automatiquement nettoyés toutes les heures par le système.
+          </span>
         </p>
 
         {error && (

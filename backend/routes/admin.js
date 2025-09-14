@@ -607,6 +607,8 @@ router.delete('/revoke-premium/:userId', authenticateToken, moderatorAuth, async
 });
 
 // Route pour nettoyer manuellement les premiums expirés (admin uniquement)
+// NOTE: Cette route n'est plus utilisée dans l'interface car le nettoyage 
+// est automatique toutes les heures via cron job
 router.post('/cleanup-expired-premiums', authenticateToken, adminAuth, async (req, res) => {
   try {
     const result = await User.cleanupExpiredPremiums();
