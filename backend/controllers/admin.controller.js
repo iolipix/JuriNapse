@@ -572,8 +572,8 @@ const revokePremium = async (req, res) => {
       });
     }
     
-    // Révoquer le premium
-    targetUser.revokePremium();
+    // Révoquer le premium en passant qui l'a révoqué
+    targetUser.revokePremium(req.user.id);
     await targetUser.save();
     
     res.json({

@@ -30,35 +30,59 @@ router.get('/premium-info', authenticateToken, async (req, res) => {
   try {
     const User = require('../models/user.model');
     const user = await User.findById(req.user.id)
-      .select('role premiumExpiresAt premiumGrantedBy premiumGrantedAt')
-      .populate('premiumGrantedBy', 'username firstName lastName');
+      .populate('premiumGrantedBy', 'username firstName lastName')
+      .populate('premiumHistory.grantedBy', 'username firstName lastName')
+      .populate('premiumHistory.revokedBy', 'username firstName lastName');
 
     if (!user) {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    const isPremium = user.isPremium();
-    const hasRolePremium = user.hasRole('premium');
-    const isPermanent = hasRolePremium && !user.premiumExpiresAt;
-    const isExpired = user.premiumExpiresAt && user.premiumExpiresAt < new Date();
+    // Utiliser la nouvelle méthode getPremiumInfo qui gère l'historique
+    const premiumInfo = user.getPremiumInfo();
     
-    let daysRemaining = null;
-    if (isPremium && user.premiumExpiresAt) {
-      const timeDiff = user.premiumExpiresAt.getTime() - new Date().getTime();
-      daysRemaining = Math.max(0, Math.ceil(timeDiff / (1000 * 60 * 60 * 24)));
+    // Enrichir les informations du grantedBy pour compatibilité
+    if (premiumInfo.grantedBy) {
+      const grantedByUser = await User.findById(premiumInfo.grantedBy)
+        .select('username firstName lastName');
+      
+      if (grantedByUser) {
+        premiumInfo.grantedBy = {
+          username: grantedByUser.username,
+          fullName: `${grantedByUser.firstName} ${grantedByUser.lastName}`
+        };
+      }
+    }
+    
+    // Enrichir l'historique avec les noms d'utilisateurs
+    if (premiumInfo.history && premiumInfo.history.length > 0) {
+      for (let entry of premiumInfo.history) {
+        if (entry.grantedBy) {
+          const grantedByUser = await User.findById(entry.grantedBy)
+            .select('username firstName lastName');
+          if (grantedByUser) {
+            entry.grantedByInfo = {
+              username: grantedByUser.username,
+              fullName: `${grantedByUser.firstName} ${grantedByUser.lastName}`
+            };
+          }
+        }
+        
+        if (entry.revokedBy) {
+          const revokedByUser = await User.findById(entry.revokedBy)
+            .select('username firstName lastName');
+          if (revokedByUser) {
+            entry.revokedByInfo = {
+              username: revokedByUser.username,
+              fullName: `${revokedByUser.firstName} ${revokedByUser.lastName}`
+            };
+          }
+        }
+      }
     }
 
     res.json({
-      hasPremium: isPremium && !isExpired,
-      isPermanent,
-      isExpired,
-      expiresAt: user.premiumExpiresAt,
-      grantedAt: user.premiumGrantedAt,
-      grantedBy: user.premiumGrantedBy ? {
-        username: user.premiumGrantedBy.username,
-        fullName: `${user.premiumGrantedBy.firstName} ${user.premiumGrantedBy.lastName}`
-      } : null,
-      daysRemaining,
+      ...premiumInfo,
       role: user.role
     });
   } catch (error) {

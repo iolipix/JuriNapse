@@ -105,6 +105,35 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  // Historique des premiums (conservé même après expiration)
+  premiumHistory: [{
+    grantedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    grantedAt: {
+      type: Date,
+      required: true
+    },
+    expiresAt: {
+      type: Date,
+      default: null // null = permanent
+    },
+    revokedAt: {
+      type: Date,
+      default: null
+    },
+    revokedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    }
+  }],
   // Champs pour le système d'utilisateur supprimé
   isDeleted: {
     type: Boolean,
@@ -323,11 +352,24 @@ userSchema.methods.isPremium = function() {
   // Vérifier si le premium a expiré
   const now = new Date();
   if (this.premiumExpiresAt <= now) {
-    // Premium expiré, le retirer automatiquement
+    // Premium expiré, le retirer automatiquement et marquer dans l'historique
     this.removeRole('premium');
+    
+    // Marquer l'entrée actuelle comme expirée dans l'historique
+    const currentEntry = this.premiumHistory.find(entry => 
+      entry.isActive && !entry.revokedAt
+    );
+    if (currentEntry) {
+      currentEntry.isActive = false;
+      currentEntry.revokedAt = now;
+      // Ne pas définir revokedBy car c'est une expiration automatique
+    }
+    
+    // Nettoyer les champs actuels mais garder l'historique
     this.premiumExpiresAt = null;
     this.premiumGrantedBy = null;
     this.premiumGrantedAt = null;
+    
     // Sauvegarder les changements
     this.save().catch(err => console.error('Erreur lors de la suppression du premium expiré:', err));
     return false;
@@ -340,9 +382,12 @@ userSchema.methods.isPremium = function() {
 userSchema.methods.grantPremium = function(durationInDays, grantedBy) {
   this.addRole('premium');
   
+  const now = new Date();
+  let expirationDate = null;
+  
   if (durationInDays && durationInDays > 0) {
     // Premium temporaire
-    const expirationDate = new Date();
+    expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + durationInDays);
     this.premiumExpiresAt = expirationDate;
   } else {
@@ -350,14 +395,46 @@ userSchema.methods.grantPremium = function(durationInDays, grantedBy) {
     this.premiumExpiresAt = null;
   }
   
+  // Marquer l'ancienne entrée comme inactive si elle existe
+  const currentEntry = this.premiumHistory.find(entry => 
+    entry.isActive && !entry.revokedAt
+  );
+  if (currentEntry) {
+    currentEntry.isActive = false;
+    currentEntry.revokedAt = now;
+    currentEntry.revokedBy = grantedBy; // Révoqué par le même qui accorde le nouveau
+  }
+  
+  // Ajouter la nouvelle entrée à l'historique
+  this.premiumHistory.push({
+    grantedBy: grantedBy,
+    grantedAt: now,
+    expiresAt: expirationDate,
+    revokedAt: null,
+    revokedBy: null,
+    isActive: true
+  });
+  
   this.premiumGrantedBy = grantedBy;
-  this.premiumGrantedAt = new Date();
+  this.premiumGrantedAt = now;
   
   return this;
 };
 
-userSchema.methods.revokePremium = function() {
+userSchema.methods.revokePremium = function(revokedBy = null) {
   this.removeRole('premium');
+  
+  // Marquer l'entrée actuelle comme révoquée dans l'historique
+  const currentEntry = this.premiumHistory.find(entry => 
+    entry.isActive && !entry.revokedAt
+  );
+  if (currentEntry) {
+    currentEntry.isActive = false;
+    currentEntry.revokedAt = new Date();
+    currentEntry.revokedBy = revokedBy;
+  }
+  
+  // Nettoyer les champs actuels mais garder l'historique
   this.premiumExpiresAt = null;
   this.premiumGrantedBy = null;
   this.premiumGrantedAt = null;
@@ -366,19 +443,46 @@ userSchema.methods.revokePremium = function() {
 };
 
 userSchema.methods.getPremiumInfo = function() {
-  if (!this.hasRole('premium')) {
-    return { hasPremium: false };
-  }
+  const hasPremium = this.hasRole('premium');
   
-  return {
-    hasPremium: true,
-    isPermanent: !this.premiumExpiresAt,
+  // Informations du premium actuel
+  const currentInfo = {
+    hasPremium: hasPremium,
+    isPermanent: hasPremium ? !this.premiumExpiresAt : false,
     expiresAt: this.premiumExpiresAt,
     grantedBy: this.premiumGrantedBy,
     grantedAt: this.premiumGrantedAt,
     daysRemaining: this.premiumExpiresAt ? 
       Math.max(0, Math.ceil((this.premiumExpiresAt - new Date()) / (1000 * 60 * 60 * 24))) : 
       null
+  };
+  
+  // Si pas de premium actuel, chercher le dernier dans l'historique
+  if (!hasPremium && this.premiumHistory && this.premiumHistory.length > 0) {
+    // Trier par date d'attribution (plus récent en premier)
+    const sortedHistory = this.premiumHistory.sort((a, b) => 
+      new Date(b.grantedAt) - new Date(a.grantedAt)
+    );
+    
+    const lastEntry = sortedHistory[0];
+    
+    return {
+      hasPremium: false,
+      isPermanent: !lastEntry.expiresAt,
+      expiresAt: lastEntry.expiresAt,
+      grantedBy: lastEntry.grantedBy,
+      grantedAt: lastEntry.grantedAt,
+      revokedAt: lastEntry.revokedAt,
+      isExpired: lastEntry.expiresAt ? new Date(lastEntry.expiresAt) <= new Date() : false,
+      daysRemaining: null,
+      history: this.premiumHistory
+    };
+  }
+  
+  // Ajouter l'historique aux informations actuelles
+  return {
+    ...currentInfo,
+    history: this.premiumHistory
   };
 };
 
@@ -404,7 +508,17 @@ userSchema.statics.cleanupExpiredPremiums = async function() {
     // Supprimer le rôle premium
     user.removeRole('premium');
     
-    // Nettoyer les champs premium
+    // Marquer l'entrée actuelle comme expirée dans l'historique
+    const currentEntry = user.premiumHistory.find(entry => 
+      entry.isActive && !entry.revokedAt
+    );
+    if (currentEntry) {
+      currentEntry.isActive = false;
+      currentEntry.revokedAt = now;
+      // Ne pas définir revokedBy car c'est une expiration automatique
+    }
+    
+    // Nettoyer les champs actuels mais garder l'historique
     user.premiumExpiresAt = null;
     user.premiumGrantedBy = null;
     user.premiumGrantedAt = null;
@@ -412,7 +526,7 @@ userSchema.statics.cleanupExpiredPremiums = async function() {
     await user.save();
     modifiedCount++;
     
-    console.log(`✅ Premium nettoyé pour ${user.username}. Nouveaux rôles: ${user.role}`);
+    console.log(`✅ Premium nettoyé pour ${user.username}. Nouveaux rôles: ${user.role}. Historique préservé.`);
   }
   
   return { modifiedCount };
