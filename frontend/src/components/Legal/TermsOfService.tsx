@@ -21,7 +21,7 @@ const TermsOfService: React.FC = () => {
           </p>
           
           <p className="mb-4">
-            Le numéro individuel TVA de l'Exploitant est : Le numéro de TVA intracommunautaire sera communiqué dès son attribution par l'administration fiscale.
+            Le numéro individuel TVA de l'Exploitant est : FR14990210080
           </p>
           
           <p className="mb-4">
