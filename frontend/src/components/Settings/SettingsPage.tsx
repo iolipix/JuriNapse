@@ -6,6 +6,7 @@ import { authAPI } from '../../services/api';
 import BlockedUsersPage from './BlockedUsersPage';
 import CookieSettings from './CookieSettings';
 import DeleteAccountModal from './DeleteAccountModal';
+import PremiumManagementPage from './PremiumManagementPage';
 
 interface SettingsPageProps {
   settingsTab: TabType;
@@ -629,6 +630,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             </div>
           </div>
         );
+
+      case 'premium':
+        return <PremiumManagementPage />;
 
       case 'delete-account':
         return (

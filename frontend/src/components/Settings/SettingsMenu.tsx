@@ -59,8 +59,8 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onNavigateToTab }) => {
       id: 'premium',
       label: 'Gestion Premium',
       icon: '👑',
-      description: 'Gérer votre abonnement Premium',
-      available: false
+      description: 'Voir votre statut premium et historique',
+      available: true
     },
     {
       id: 'privacy',
@@ -93,17 +93,35 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onNavigateToTab }) => {
       {/* Menu principal */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid gap-4 grid-cols-1">
+          {/* Bouton de test temporaire */}
+          <button
+            onClick={() => {
+              console.log('TEST: Navigation vers premium');
+              onNavigateToTab('premium');
+            }}
+            className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            🧪 TEST: Aller vers Premium
+          </button>
+          
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => item.available && onNavigateToTab(item.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Clicked on:', item.id, 'Available:', item.available);
+                if (item.available) {
+                  onNavigateToTab(item.id);
+                }
+              }}
               disabled={!item.available}
               className={`
-                p-6 bg-white rounded-lg shadow-sm border transition-all duration-200 text-left
+                p-6 bg-white rounded-lg shadow-sm border transition-all duration-200 text-left cursor-pointer
                 ${item.available
                   ? (item.dangerous 
-                    ? 'hover:shadow-md hover:border-red-200 hover:bg-red-50 cursor-pointer border-red-100'
-                    : 'hover:shadow-md hover:border-blue-200 cursor-pointer'
+                    ? 'hover:shadow-md hover:border-red-200 hover:bg-red-50 border-red-100'
+                    : 'hover:shadow-md hover:border-blue-200'
                   )
                   : 'opacity-60 cursor-not-allowed bg-gray-50'
                 }

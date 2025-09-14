@@ -508,9 +508,11 @@ const MainApp: React.FC = () => {
 
   // Navigation vers un onglet spécifique de paramètres
   const handleSettingsTabNavigation = (settingsTabId: string) => {
+    console.log('handleSettingsTabNavigation called with:', settingsTabId);
     setActiveTab('settings');
     setSettingsTab(settingsTabId);
     window.history.pushState(null, '', `/settings/${settingsTabId}`);
+    scrollToTop(); // Défiler vers le haut après navigation
   };
 
   // Retour au menu principal des paramètres
