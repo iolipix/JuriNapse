@@ -413,6 +413,9 @@ const MainApp: React.FC = () => {
     setActiveTab('feed');
     setSelectedTag(null);
     
+    // Réinitialiser le titre à JuriNapse
+    document.title = 'JuriNapse';
+    
     window.location.hash = '';
     window.history.pushState(null, '', '/');
     scrollToTop(); // Défiler vers le haut
@@ -426,6 +429,9 @@ const MainApp: React.FC = () => {
     setViewingDecision(null);
     setSelectedTag(null);
     window.location.hash = '';
+    
+    // Réinitialiser le titre à JuriNapse pour les pages principales
+    document.title = 'JuriNapse';
     
     // Réinitialiser l'onglet de paramètres quand on change de page
     // ou quand on va vers la page principale des paramètres
