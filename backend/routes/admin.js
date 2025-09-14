@@ -471,13 +471,11 @@ router.get('/users', authenticateToken, moderatorAuth, async (req, res) => {
 // Route pour obtenir la liste des utilisateurs premium
 router.get('/premium-users', authenticateToken, moderatorAuth, async (req, res) => {
   try {
+    // Chercher tous les utilisateurs qui ont le rôle premium
     const premiumUsers = await User.find({
-      $or: [
-        { premiumExpiresAt: { $exists: true, $ne: null } },
-        { premiumExpiresAt: { $gt: new Date() } }
-      ]
+      role: { $regex: 'premium', $options: 'i' }
     })
-      .select('username email firstName lastName premiumExpiresAt premiumGrantedBy premiumGrantedAt')
+      .select('username email firstName lastName role premiumExpiresAt premiumGrantedBy premiumGrantedAt')
       .sort({ premiumGrantedAt: -1 })
       .exec();
 
@@ -502,10 +500,12 @@ router.get('/premium-users', authenticateToken, moderatorAuth, async (req, res) 
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          role: user.role,
           premiumExpiresAt: user.premiumExpiresAt,
           premiumGrantedBy: grantedByUsername,
           premiumGrantedAt: user.premiumGrantedAt,
-          isExpired: user.premiumExpiresAt && user.premiumExpiresAt < new Date()
+          isExpired: user.premiumExpiresAt && user.premiumExpiresAt < new Date(),
+          isPermanent: !user.premiumExpiresAt
         };
       })
     );

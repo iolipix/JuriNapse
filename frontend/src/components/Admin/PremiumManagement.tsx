@@ -67,8 +67,34 @@ const PremiumManagement: React.FC = () => {
       }
 
       const data = await response.json();
-      setPremiumUsers(data.users || []);
+      console.log('📊 Données reçues de l\'API:', data);
+      
+      // Transformer les données pour correspondre au format attendu
+      const transformedUsers = (data.premiumUsers || []).map((user: any) => {
+        const expiresAt = user.premiumExpiresAt ? new Date(user.premiumExpiresAt) : null;
+        const now = new Date();
+        const daysRemaining = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : null;
+        
+        return {
+          id: user._id,
+          username: user.username,
+          fullName: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          premiumInfo: {
+            hasPremium: true,
+            isPermanent: user.isPermanent || !user.premiumExpiresAt,
+            expiresAt: user.premiumExpiresAt,
+            grantedBy: user.premiumGrantedBy ? { id: '', username: user.premiumGrantedBy } : null,
+            grantedAt: user.premiumGrantedAt,
+            daysRemaining: daysRemaining
+          }
+        };
+      });
+      
+      console.log('✅ Utilisateurs transformés:', transformedUsers);
+      setPremiumUsers(transformedUsers);
     } catch (err) {
+      console.error('❌ Erreur lors du chargement:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
