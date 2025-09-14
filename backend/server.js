@@ -61,6 +61,7 @@ const seoRoutes = require('./routes/seo.routes');
 const adminRoutes = require('./routes/admin');
 const prerenderRoutes = require('./routes/prerender.routes');
 const diagnosticRoutes = require('./routes/diagnostic.routes');
+const migrationRoutes = require('./routes/migration');
 
 // Import des middlewares de sécurité
 const { 
@@ -205,6 +206,7 @@ app.use('/api/groups', checkPremiumExpiration, socketMiddleware, groupRoutes); /
 app.use('/api/messages', middlewareMessagesOrphelins, checkPremiumExpiration, socketMiddleware, messageRoutes); // Nettoyage auto + Socket.io pour messages
 app.use('/api/subscriptions', checkPremiumExpiration, subscriptionRoutes); // TEMP: Test sans socketMiddleware pour debug 404
 app.use('/api/admin', checkPremiumExpiration, adminRoutes); // Routes d'administration
+app.use('/api/migration', checkPremiumExpiration, migrationRoutes); // Routes de migration
 app.use('/api/diagnostic', diagnosticRoutes); // Routes de diagnostic
 
 // EMERGENCY: Test route simple pour debug
