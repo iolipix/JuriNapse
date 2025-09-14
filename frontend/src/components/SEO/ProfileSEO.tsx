@@ -28,15 +28,15 @@ const ProfileSEO: React.FC<ProfileSEOProps> = ({
 }) => {
   const fullName = `${user.firstName} ${user.lastName}`;
   
-  const title = `${fullName} (@${user.username}) - Jurinapse`;
+  const title = `${fullName} (@${user.username}) - JuriNapse`;
   const description = user.bio 
-    ? `${user.bio} - ${user.isStudent ? 'Étudiant' : 'Professionnel'} en droit sur Jurinapse`
-    : `Découvrez le profil de ${fullName} sur Jurinapse - ${user.isStudent ? 'Étudiant' : 'Professionnel'} en droit${user.university ? ` à ${user.university}` : ''}. ${postsCount} publications, ${followersCount} abonnés, ${followingCount} abonnements, ${connectionsCount} connexions.`;
+    ? `${user.bio} - ${user.isStudent ? 'Étudiant' : 'Professionnel'} en droit sur JuriNapse`
+    : `Découvrez le profil de ${fullName} sur JuriNapse - ${user.isStudent ? 'Étudiant' : 'Professionnel'} en droit${user.university ? ` à ${user.university}` : ''}. ${postsCount} publications, ${followersCount} abonnés, ${followingCount} abonnements, ${connectionsCount} connexions.`;
   
   const keywords = [
     fullName,
     user.username,
-    'jurinapse',
+    'JuriNapse',
     'droit',
     user.isStudent ? 'étudiant droit' : 'professionnel droit',
     user.university,
@@ -65,7 +65,7 @@ const ProfileSEO: React.FC<ProfileSEOProps> = ({
     } : undefined,
     "memberOf": {
       "@type": "Organization",
-      "name": "Jurinapse",
+      "name": "JuriNapse",
       "url": window.location.origin,
       "description": "Plateforme sociale pour la communauté juridique"
     },
@@ -117,7 +117,7 @@ const ProfileSEO: React.FC<ProfileSEOProps> = ({
       <meta property="og:description" content={description} />
       <meta property="og:image" content={imageUrl} />
       <meta property="og:url" content={profileUrl} />
-      <meta property="og:site_name" content="Jurinapse" />
+      <meta property="og:site_name" content="JuriNapse" />
       
       {/* Profil Facebook spécifique */}
       <meta property="profile:first_name" content={user.firstName} />

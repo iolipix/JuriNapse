@@ -86,15 +86,15 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
   const fullName = userProfile ? `${userProfile.firstName} ${userProfile.lastName}` : '';
   
   const seoData = useMemo(() => ({
-    title: userProfile ? `${fullName} (@${userProfile.username}) - Jurinapse` : 'Profil - Jurinapse',
-    description: userProfile?.bio || `Découvrez le profil de ${fullName} sur Jurinapse`,
+    title: userProfile ? `${fullName} (@${userProfile.username}) - JuriNapse` : 'Profil - JuriNapse',
+    description: userProfile?.bio || `Découvrez le profil de ${fullName} sur JuriNapse`,
     type: 'profile' as const,
   // Canonical profile URL uses /:username (no /profile/ prefix)
   url: userProfile ? `https://jurinapse.com/${userProfile.username}` : undefined,
     username: userProfile?.username,
     fullName: fullName,
     shouldSubmitToGoogle: !!userProfile, // Indexation automatique pour tous les profils
-    keywords: userProfile ? `${fullName}, ${userProfile.username}, jurinapse, juriste, droit, professionnel juridique` : undefined
+    keywords: userProfile ? `${fullName}, ${userProfile.username}, JuriNapse, juriste, droit, professionnel juridique` : undefined
   }), [userProfile, fullName]);
 
   useSEO(seoData);

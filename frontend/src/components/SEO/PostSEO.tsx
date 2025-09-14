@@ -20,20 +20,20 @@ interface PostSEOProps {
 
 const PostSEO: React.FC<PostSEOProps> = ({ post }) => {
   const authorName = `${post.author.firstName} ${post.author.lastName}`;
-  const postTitle = post.title || `Publication de ${authorName} sur Jurinapse`;
+  const postTitle = post.title || `Publication de ${authorName} sur JuriNapse`;
   
   // Créer une description à partir du contenu (limite à 160 caractères)
   const description = post.content.length > 160 
     ? `${post.content.substring(0, 157)}...`
     : post.content;
 
-  const seoTitle = `${postTitle} | ${authorName} - Jurinapse`;
+  const seoTitle = `${postTitle} | ${authorName} - JuriNapse`;
   
   // Mots-clés basés sur les tags et le contenu
   const keywords = [
     authorName,
     post.author.username,
-    'jurinapse',
+    'JuriNapse',
     'droit',
     'publication juridique',
     'communauté juridique',
@@ -97,7 +97,7 @@ const PostSEO: React.FC<PostSEOProps> = ({ post }) => {
       <meta property="og:title" content={seoTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={postUrl} />
-      <meta property="og:site_name" content="Jurinapse" />
+      <meta property="og:site_name" content="JuriNapse" />
       <meta property="og:image" content={`${window.location.origin}/1200x630.png`} />
       
       {/* Article Facebook spécifique */}

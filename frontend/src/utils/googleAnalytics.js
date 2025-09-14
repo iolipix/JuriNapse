@@ -94,7 +94,7 @@ export const setUserId = (userId) => {
 };
 
 // 🏷️ Événements prédéfinis pour JuriNapse
-export const trackJurinapseEvents = {
+export const trackJuriNapseEvents = {
   // Inscription
   register: (method = 'email') => {
     trackEvent('sign_up', { method });
@@ -170,6 +170,6 @@ export const useGoogleAnalytics = () => {
     trackPageView,
     setUserId,
     setConsentMode,
-    events: trackJurinapseEvents
+    events: trackJuriNapseEvents
   };
 };

@@ -96,7 +96,7 @@ const PostSEO: React.FC<PostSEOProps> = ({ post }) => {
   return (
     <Helmet>
       {/* Titre et description de base */}
-      <title>{post.title} - Jurinapse</title>
+      <title>{post.title} - JuriNapse</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="author" content={authorName} />
@@ -109,7 +109,7 @@ const PostSEO: React.FC<PostSEOProps> = ({ post }) => {
       <meta property="og:title" content={post.title} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={postUrl} />
-      <meta property="og:site_name" content="Jurinapse" />
+      <meta property="og:site_name" content="JuriNapse" />
       <meta property="og:image" content={post.author.profilePicture || "https://jurinapse.com/logo-og.png"} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
@@ -126,7 +126,7 @@ const PostSEO: React.FC<PostSEOProps> = ({ post }) => {
       
       {/* Twitter Cards */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@Jurinapse" />
+      <meta name="twitter:site" content="@JuriNapse" />
       <meta name="twitter:creator" content={`@${post.author.username || authorName}`} />
       <meta name="twitter:title" content={post.title} />
       <meta name="twitter:description" content={description} />
