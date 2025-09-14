@@ -385,39 +385,37 @@ userSchema.methods.getPremiumInfo = function() {
 // Méthode statique pour nettoyer les premiums expirés
 userSchema.statics.cleanupExpiredPremiums = async function() {
   const now = new Date();
-  const result = await this.updateMany(
-    {
-      role: { $regex: 'premium' },
-      premiumExpiresAt: { $lte: now, $ne: null }
-    },
-    {
-      $set: {
-        premiumExpiresAt: null,
-        premiumGrantedBy: null,
-        premiumGrantedAt: null
-      },
-      $unset: { 
-        role: 1 // Sera recréé par le middleware pre-save sans premium
-      }
-    }
-  );
+  console.log(`🧹 Recherche des premiums expirés avant ${now.toISOString()}...`);
   
-  // Reconstruire les rôles pour tous les utilisateurs affectés
-  const affectedUsers = await this.find({
-    premiumExpiresAt: null,
-    premiumGrantedBy: null,
-    $or: [
-      { role: { $exists: false } },
-      { role: '' }
-    ]
+  // Trouver les utilisateurs avec premium expiré
+  const expiredUsers = await this.find({
+    role: { $regex: 'premium' },
+    premiumExpiresAt: { $lte: now, $ne: null }
   });
   
-  for (const user of affectedUsers) {
-    user.role = user.parseRoles().filter(role => role !== 'premium').join(';') || 'user';
+  console.log(`📊 Trouvé ${expiredUsers.length} utilisateurs avec premium expiré`);
+  
+  let modifiedCount = 0;
+  
+  // Traiter chaque utilisateur individuellement pour un meilleur contrôle
+  for (const user of expiredUsers) {
+    console.log(`➡️ Nettoyage premium expiré pour ${user.username} (expiré le ${user.premiumExpiresAt.toISOString()})`);
+    
+    // Supprimer le rôle premium
+    user.removeRole('premium');
+    
+    // Nettoyer les champs premium
+    user.premiumExpiresAt = null;
+    user.premiumGrantedBy = null;
+    user.premiumGrantedAt = null;
+    
     await user.save();
+    modifiedCount++;
+    
+    console.log(`✅ Premium nettoyé pour ${user.username}. Nouveaux rôles: ${user.role}`);
   }
   
-  return result;
+  return { modifiedCount };
 };
 
 // Middleware pre-save pour nettoyer automatiquement les rôles

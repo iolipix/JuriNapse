@@ -471,7 +471,14 @@ router.get('/users', authenticateToken, moderatorAuth, async (req, res) => {
 // Route pour obtenir la liste des utilisateurs premium
 router.get('/premium-users', authenticateToken, moderatorAuth, async (req, res) => {
   try {
-    // Chercher tous les utilisateurs qui ont le rôle premium
+    // Nettoyer les premiums expirés avant de récupérer la liste
+    console.log('🧹 Nettoyage des premiums expirés avant récupération de la liste...');
+    const cleanupResult = await User.cleanupExpiredPremiums();
+    if (cleanupResult.modifiedCount > 0) {
+      console.log(`✅ ${cleanupResult.modifiedCount} premiums expirés nettoyés automatiquement`);
+    }
+    
+    // Chercher tous les utilisateurs qui ont encore le rôle premium (non expirés)
     const premiumUsers = await User.find({
       role: { $regex: 'premium', $options: 'i' }
     })
@@ -620,6 +627,32 @@ router.post('/cleanup-expired-premiums', authenticateToken, adminAuth, async (re
   } catch (error) {
     console.error('Erreur lors du nettoyage des premiums expirés:', error);
     res.status(500).json({ message: 'Erreur serveur lors du nettoyage' });
+  }
+});
+
+// Route de test pour vérifier les premiums expirés sans les nettoyer
+router.get('/check-expired-premiums', authenticateToken, adminAuth, async (req, res) => {
+  try {
+    const now = new Date();
+    const expiredUsers = await User.find({
+      role: { $regex: 'premium' },
+      premiumExpiresAt: { $lte: now, $ne: null }
+    }).select('username role premiumExpiresAt');
+
+    res.json({
+      message: 'Vérification des premiums expirés',
+      currentTime: now.toISOString(),
+      expiredCount: expiredUsers.length,
+      expiredUsers: expiredUsers.map(user => ({
+        username: user.username,
+        role: user.role,
+        premiumExpiresAt: user.premiumExpiresAt.toISOString(),
+        minutesExpired: Math.floor((now - user.premiumExpiresAt) / (1000 * 60))
+      }))
+    });
+  } catch (error) {
+    console.error('Erreur lors de la vérification:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la vérification' });
   }
 });
 
