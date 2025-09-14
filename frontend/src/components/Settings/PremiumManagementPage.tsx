@@ -1,18 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Calendar, CheckCircle, XCircle, Clock, User, Star } from 'lucide-react';
 
+interface PremiumHistoryEntry {
+  grantedBy: string;
+  grantedAt: string;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  revokedBy: string | null;
+  isActive: boolean;
+  grantedByInfo?: {
+    username: string;
+    fullName: string;
+  };
+  revokedByInfo?: {
+    username: string;
+    fullName: string;
+  };
+}
+
 interface PremiumInfo {
   hasPremium: boolean;
   isPermanent: boolean;
-  isExpired: boolean;
+  isExpired?: boolean;
   expiresAt: string | null;
   grantedAt: string | null;
+  revokedAt?: string | null;
   grantedBy: {
     username: string;
     fullName: string;
   } | null;
   daysRemaining: number | null;
   role: string;
+  history?: PremiumHistoryEntry[];
 }
 
 const PremiumManagementPage: React.FC = () => {
@@ -248,8 +267,9 @@ const PremiumManagementPage: React.FC = () => {
             </div>
           </div>
 
-          {premiumInfo?.grantedAt ? (
+          {(premiumInfo?.grantedAt || (premiumInfo?.history && premiumInfo.history.length > 0)) ? (
             <div className="space-y-3">
+              {/* Premium actuel ou plus récent */}
               <div className="border-l-4 border-yellow-400 pl-4 py-2">
                 <div className="flex items-center justify-between">
                   <div>
@@ -278,10 +298,59 @@ const PremiumManagementPage: React.FC = () => {
                 </div>
                 {!premiumInfo.isPermanent && premiumInfo.expiresAt && (
                   <p className="text-sm text-gray-500 mt-1">
-                    Expire le {formatDate(premiumInfo.expiresAt)}
+                    {premiumInfo.isExpired ? 'A expiré' : 'Expire'} le {formatDate(premiumInfo.expiresAt)}
+                  </p>
+                )}
+                {premiumInfo.revokedAt && (
+                  <p className="text-sm text-red-500 mt-1">
+                    Révoqué le {formatDate(premiumInfo.revokedAt)}
                   </p>
                 )}
               </div>
+              
+              {/* Historique complet si disponible */}
+              {premiumInfo.history && premiumInfo.history.length > 1 && (
+                <div className="space-y-2">
+                  <h5 className="text-sm font-medium text-gray-700">Historique complet</h5>
+                  {premiumInfo.history
+                    .sort((a, b) => new Date(b.grantedAt).getTime() - new Date(a.grantedAt).getTime())
+                    .map((entry, index) => (
+                    <div key={index} className="border-l-4 border-gray-300 pl-4 py-2 bg-gray-50 rounded">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-800">
+                            Premium {entry.expiresAt ? 'temporaire' : 'permanent'}
+                          </h6>
+                          <p className="text-xs text-gray-600">
+                            Attribué le {formatDate(entry.grantedAt)}
+                            {entry.grantedByInfo && ` par @${entry.grantedByInfo.username}`}
+                          </p>
+                        </div>
+                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          entry.isActive
+                            ? 'bg-green-100 text-green-800'
+                            : entry.revokedAt
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {entry.isActive ? 'Actif' : entry.revokedAt ? 'Révoqué' : 'Expiré'}
+                        </div>
+                      </div>
+                      {entry.expiresAt && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {entry.revokedAt ? 'Devait expirer' : entry.isActive ? 'Expire' : 'A expiré'} le {formatDate(entry.expiresAt)}
+                        </p>
+                      )}
+                      {entry.revokedAt && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Révoqué le {formatDate(entry.revokedAt)}
+                          {entry.revokedByInfo && ` par @${entry.revokedByInfo.username}`}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">
