@@ -84,18 +84,18 @@ const ModeratorMenu: React.FC<ModeratorMenuProps> = ({ user }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-3xl font-bold text-blue-600 mb-1">
-                  {hasRole(user, 'administrator') ? 'ADMIN' : 'MOD'}
+                  {hasRole(user, 'administrator') ? '👑' : '🛡️'}
                 </div>
                 <p className="text-sm text-blue-700 font-medium">
                   {hasRole(user, 'administrator') ? 'Admin + Modérateur' : 'Modérateur'}
                 </p>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-green-600 mb-1">OK</div>
+                <div className="text-3xl font-bold text-green-600 mb-1">✅</div>
                 <p className="text-sm text-green-700 font-medium">Accès accordé</p>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-1">PREMIUM</div>
+                <div className="text-3xl font-bold text-blue-600 mb-1">👑</div>
                 <p className="text-sm text-blue-700 font-medium">Premium disponible</p>
               </div>
             </div>
