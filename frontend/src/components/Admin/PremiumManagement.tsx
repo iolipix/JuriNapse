@@ -79,7 +79,10 @@ const PremiumManagement: React.FC = () => {
 
   // Rechercher des utilisateurs
   const searchUsers = async (query: string) => {
+    console.log('🔍 Recherche d\'utilisateurs avec query:', query);
+    
     if (query.length < 2) {
+      console.log('❌ Query trop courte, arrêt de la recherche');
       setSearchResults([]);
       setShowSearchResults(false);
       return;
@@ -87,23 +90,37 @@ const PremiumManagement: React.FC = () => {
 
     try {
       setIsSearching(true);
-      const response = await fetch(`/api/admin/users?search=${encodeURIComponent(query)}&limit=10`, {
+      const url = `/api/admin/users?search=${encodeURIComponent(query)}&limit=10`;
+      const token = localStorage.getItem('jurinapse_token');
+      
+      console.log('📡 Appel API vers:', url);
+      console.log('🔑 Token présent:', !!token);
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jurinapse_token')}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
+      console.log('📥 Réponse reçue - Status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Erreur lors de la recherche d\'utilisateurs');
+        const errorText = await response.text();
+        console.error('❌ Erreur HTTP:', response.status, errorText);
+        throw new Error(`Erreur ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('✅ Données reçues:', data);
+      console.log('👥 Nombre d\'utilisateurs trouvés:', data.users?.length || 0);
+      
       setSearchResults(data.users || []);
       setShowSearchResults(true);
     } catch (err) {
-      console.error('Erreur de recherche:', err);
+      console.error('💥 Erreur de recherche complète:', err);
+      setError(`Erreur de recherche: ${err.message}`);
       setSearchResults([]);
     } finally {
       setIsSearching(false);
