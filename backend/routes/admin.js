@@ -520,7 +520,7 @@ router.get('/premium-users', authenticateToken, moderatorAuth, async (req, res) 
 // Route pour attribuer un premium temporaire
 router.post('/grant-premium', authenticateToken, moderatorAuth, async (req, res) => {
   try {
-    const { userId, durationInDays } = req.body;
+    const { userId, expiresAt } = req.body;
 
     if (!userId) {
       return res.status(400).json({ message: 'ID utilisateur requis' });
@@ -531,22 +531,25 @@ router.post('/grant-premium', authenticateToken, moderatorAuth, async (req, res)
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    // Calculer la date d'expiration
-    let expiresAt = null;
-    if (durationInDays && durationInDays > 0) {
-      expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + parseInt(durationInDays));
+    // Utiliser la date d'expiration fournie ou null pour permanent
+    let premiumExpiresAt = null;
+    if (expiresAt) {
+      premiumExpiresAt = new Date(expiresAt);
+      // Vérifier que la date est dans le futur
+      if (premiumExpiresAt <= new Date()) {
+        return res.status(400).json({ message: 'La date d\'expiration doit être dans le futur' });
+      }
     }
 
     // Mettre à jour l'utilisateur
-    user.premiumExpiresAt = expiresAt;
+    user.premiumExpiresAt = premiumExpiresAt;
     user.premiumGrantedBy = req.user.id;
     user.premiumGrantedAt = new Date();
     
     await user.save();
 
     res.json({
-      message: `Premium ${expiresAt ? 'temporaire' : 'permanent'} accordé avec succès`,
+      message: `Premium ${premiumExpiresAt ? 'temporaire' : 'permanent'} accordé avec succès`,
       user: {
         _id: user._id,
         username: user.username,

@@ -28,7 +28,8 @@ interface SearchUser {
 
 interface GrantPremiumForm {
   selectedUser: SearchUser | null;
-  durationInDays: number | '';
+  expiresAt: string; // Format datetime-local
+  isPermanent: boolean;
 }
 
 const PremiumManagement: React.FC = () => {
@@ -38,7 +39,8 @@ const PremiumManagement: React.FC = () => {
   const [showGrantForm, setShowGrantForm] = useState(false);
   const [grantForm, setGrantForm] = useState<GrantPremiumForm>({
     selectedUser: null,
-    durationInDays: 30
+    expiresAt: '',
+    isPermanent: false
   });
   const [submitting, setSubmitting] = useState(false);
   
@@ -155,6 +157,13 @@ const PremiumManagement: React.FC = () => {
 
     try {
       setSubmitting(true);
+      
+      // Calculer la date d'expiration ou null pour permanent
+      let expiresAt = null;
+      if (!grantForm.isPermanent && grantForm.expiresAt) {
+        expiresAt = new Date(grantForm.expiresAt).toISOString();
+      }
+      
       const response = await fetch('/api/admin/grant-premium', {
         method: 'POST',
         headers: {
@@ -163,7 +172,7 @@ const PremiumManagement: React.FC = () => {
         },
         body: JSON.stringify({
           userId: grantForm.selectedUser._id,
-          durationInDays: grantForm.durationInDays || null
+          expiresAt: expiresAt
         }),
       });
 
@@ -173,12 +182,12 @@ const PremiumManagement: React.FC = () => {
       }
 
       const data = await response.json();
-      alert(`Premium ${grantForm.durationInDays ? 'temporaire' : 'permanent'} attribué avec succès à ${grantForm.selectedUser.username}`);
+      alert(`Premium ${grantForm.isPermanent ? 'permanent' : 'temporaire'} attribué avec succès à ${grantForm.selectedUser.username}`);
       
       // Recharger la liste et fermer le formulaire
       await loadPremiumUsers();
       setShowGrantForm(false);
-      setGrantForm({ selectedUser: null, durationInDays: 30 });
+      setGrantForm({ selectedUser: null, expiresAt: '', isPermanent: false });
       setSearchQuery('');
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erreur inconnue');
@@ -360,7 +369,7 @@ const PremiumManagement: React.FC = () => {
               
               {/* Résultats de recherche */}
               {showSearchResults && searchResults.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                   {searchResults.map((user) => (
                     <button
                       key={user._id}
@@ -430,24 +439,54 @@ const PremiumManagement: React.FC = () => {
               )}
             </div>
 
-            {/* Durée */}
+            {/* Type de premium */}
             <div>
-              <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
-                Durée (jours)
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Type de premium
               </label>
-              <input
-                type="number"
-                id="duration"
-                value={grantForm.durationInDays}
-                onChange={(e) => setGrantForm({ ...grantForm, durationInDays: e.target.value ? parseInt(e.target.value) : '' })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Nombre de jours (laisser vide pour permanent)"
-                min="1"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Laissez vide ou 0 pour un premium permanent
-              </p>
+              <div className="space-y-3">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="premiumType"
+                    checked={grantForm.isPermanent}
+                    onChange={() => setGrantForm({ ...grantForm, isPermanent: true, expiresAt: '' })}
+                    className="mr-2 text-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">Premium permanent</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="premiumType"
+                    checked={!grantForm.isPermanent}
+                    onChange={() => setGrantForm({ ...grantForm, isPermanent: false })}
+                    className="mr-2 text-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">Premium temporaire</span>
+                </label>
+              </div>
             </div>
+
+            {/* Date et heure d'expiration (si temporaire) */}
+            {!grantForm.isPermanent && (
+              <div>
+                <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 mb-1">
+                  Date et heure d'expiration
+                </label>
+                <input
+                  type="datetime-local"
+                  id="expiresAt"
+                  value={grantForm.expiresAt}
+                  onChange={(e) => setGrantForm({ ...grantForm, expiresAt: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Sélectionnez la date et l'heure exacte d'expiration du premium
+                </p>
+              </div>
+            )}
 
             {/* Boutons */}
             <div className="flex justify-end space-x-3">
@@ -455,7 +494,7 @@ const PremiumManagement: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setShowGrantForm(false);
-                  setGrantForm({ selectedUser: null, durationInDays: 30 });
+                  setGrantForm({ selectedUser: null, expiresAt: '', isPermanent: false });
                   setSearchQuery('');
                 }}
                 className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
