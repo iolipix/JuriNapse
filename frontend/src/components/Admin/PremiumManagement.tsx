@@ -339,11 +339,11 @@ const PremiumManagement: React.FC = () => {
 
       {/* Formulaire d'attribution */}
       {showGrantForm && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 relative overflow-hidden">
           <h4 className="text-lg font-medium text-gray-900 mb-4">Attribuer le Premium</h4>
           <form onSubmit={handleGrantPremium} className="space-y-4">
             {/* Recherche d'utilisateur */}
-            <div>
+            <div className="relative">
               <label htmlFor="userSearch" className="block text-sm font-medium text-gray-700 mb-1">
                 Rechercher un utilisateur
               </label>

@@ -541,6 +541,11 @@ router.post('/grant-premium', authenticateToken, moderatorAuth, async (req, res)
       }
     }
 
+    // Ajouter le rôle premium si pas déjà présent
+    if (!user.hasRole('premium')) {
+      user.addRole('premium');
+    }
+
     // Mettre à jour l'utilisateur
     user.premiumExpiresAt = premiumExpiresAt;
     user.premiumGrantedBy = req.user.id;
@@ -555,7 +560,8 @@ router.post('/grant-premium', authenticateToken, moderatorAuth, async (req, res)
         username: user.username,
         premiumExpiresAt: user.premiumExpiresAt,
         premiumGrantedBy: req.user.username,
-        premiumGrantedAt: user.premiumGrantedAt
+        premiumGrantedAt: user.premiumGrantedAt,
+        role: user.role
       }
     });
   } catch (error) {
@@ -574,6 +580,11 @@ router.delete('/revoke-premium/:userId', authenticateToken, moderatorAuth, async
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
+    // Supprimer le rôle premium
+    if (user.hasRole('premium')) {
+      user.removeRole('premium');
+    }
+
     // Révoquer le premium
     user.premiumExpiresAt = null;
     user.premiumGrantedBy = null;
@@ -585,7 +596,8 @@ router.delete('/revoke-premium/:userId', authenticateToken, moderatorAuth, async
       message: 'Premium révoqué avec succès',
       user: {
         _id: user._id,
-        username: user.username
+        username: user.username,
+        role: user.role
       }
     });
   } catch (error) {
@@ -597,16 +609,7 @@ router.delete('/revoke-premium/:userId', authenticateToken, moderatorAuth, async
 // Route pour nettoyer manuellement les premiums expirés (admin uniquement)
 router.post('/cleanup-expired-premiums', authenticateToken, adminAuth, async (req, res) => {
   try {
-    const result = await User.updateMany(
-      { premiumExpiresAt: { $lt: new Date() } },
-      { 
-        $unset: { 
-          premiumExpiresAt: 1,
-          premiumGrantedBy: 1,
-          premiumGrantedAt: 1
-        } 
-      }
-    );
+    const result = await User.cleanupExpiredPremiums();
 
     res.json({
       message: 'Nettoyage des premiums expirés terminé',
