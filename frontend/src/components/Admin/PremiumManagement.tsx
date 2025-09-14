@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Calendar, User, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Crown, Calendar, User, Clock, CheckCircle, XCircle, AlertCircle, Search } from 'lucide-react';
 
 interface PremiumUser {
   id: string;
@@ -16,9 +16,18 @@ interface PremiumUser {
   };
 }
 
-interface GrantPremiumForm {
-  userId: string;
+interface SearchUser {
+  _id: string;
   username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  isStudent?: boolean;
+  university?: string;
+}
+
+interface GrantPremiumForm {
+  selectedUser: SearchUser | null;
   durationInDays: number | '';
 }
 
@@ -28,11 +37,16 @@ const PremiumManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showGrantForm, setShowGrantForm] = useState(false);
   const [grantForm, setGrantForm] = useState<GrantPremiumForm>({
-    userId: '',
-    username: '',
+    selectedUser: null,
     durationInDays: 30
   });
   const [submitting, setSubmitting] = useState(false);
+  
+  // États pour la recherche d'utilisateurs
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   // Charger la liste des utilisateurs premium
   const loadPremiumUsers = async () => {
@@ -63,10 +77,64 @@ const PremiumManagement: React.FC = () => {
     loadPremiumUsers();
   }, []);
 
+  // Rechercher des utilisateurs
+  const searchUsers = async (query: string) => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const response = await fetch(`/api/admin/users?search=${encodeURIComponent(query)}&limit=10`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('jurinapse_token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la recherche d\'utilisateurs');
+      }
+
+      const data = await response.json();
+      setSearchResults(data.users || []);
+      setShowSearchResults(true);
+    } catch (err) {
+      console.error('Erreur de recherche:', err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Gérer le changement de recherche avec debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery) {
+        searchUsers(searchQuery);
+      } else {
+        setSearchResults([]);
+        setShowSearchResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Sélectionner un utilisateur
+  const selectUser = (user: SearchUser) => {
+    setGrantForm({ ...grantForm, selectedUser: user });
+    setSearchQuery(`${user.firstName} ${user.lastName} (@${user.username})`);
+    setShowSearchResults(false);
+  };
+
   // Attribuer le premium
   const handleGrantPremium = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!grantForm.userId || submitting) return;
+    if (!grantForm.selectedUser || submitting) return;
 
     try {
       setSubmitting(true);
@@ -77,7 +145,7 @@ const PremiumManagement: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: grantForm.userId,
+          userId: grantForm.selectedUser._id,
           durationInDays: grantForm.durationInDays || null
         }),
       });
@@ -88,12 +156,13 @@ const PremiumManagement: React.FC = () => {
       }
 
       const data = await response.json();
-      alert(`Premium ${grantForm.durationInDays ? 'temporaire' : 'permanent'} attribué avec succès à ${grantForm.username}`);
+      alert(`Premium ${grantForm.durationInDays ? 'temporaire' : 'permanent'} attribué avec succès à ${grantForm.selectedUser.username}`);
       
       // Recharger la liste et fermer le formulaire
       await loadPremiumUsers();
       setShowGrantForm(false);
-      setGrantForm({ userId: '', username: '', durationInDays: 30 });
+      setGrantForm({ selectedUser: null, durationInDays: 30 });
+      setSearchQuery('');
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
@@ -247,35 +316,104 @@ const PremiumManagement: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h4 className="text-lg font-medium text-gray-900 mb-4">Attribuer le Premium</h4>
           <form onSubmit={handleGrantPremium} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="userId" className="block text-sm font-medium text-gray-700 mb-1">
-                  ID Utilisateur
-                </label>
+            {/* Recherche d'utilisateur */}
+            <div>
+              <label htmlFor="userSearch" className="block text-sm font-medium text-gray-700 mb-1">
+                Rechercher un utilisateur
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
                 <input
                   type="text"
-                  id="userId"
-                  value={grantForm.userId}
-                  onChange={(e) => setGrantForm({ ...grantForm, userId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="ID de l'utilisateur"
-                  required
+                  id="userSearch"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Tapez le nom, nom d'utilisateur ou email..."
+                  autoComplete="off"
                 />
+                {isSearching && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  </div>
+                )}
               </div>
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom d'utilisateur (référence)
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  value={grantForm.username}
-                  onChange={(e) => setGrantForm({ ...grantForm, username: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Nom d'utilisateur"
-                />
-              </div>
+              
+              {/* Résultats de recherche */}
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {searchResults.map((user) => (
+                    <button
+                      key={user._id}
+                      type="button"
+                      onClick={() => selectUser(user)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-blue-600 text-sm font-medium">
+                              {user.firstName?.[0]?.toUpperCase() || '?'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">@{user.username}</p>
+                          {user.university && (
+                            <p className="text-xs text-gray-400">{user.university}</p>
+                          )}
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            user.isStudent ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {user.isStudent ? 'Étudiant' : 'Professionnel'}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* Utilisateur sélectionné */}
+              {grantForm.selectedUser && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 text-sm font-medium">
+                          {grantForm.selectedUser.firstName?.[0]?.toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {grantForm.selectedUser.firstName} {grantForm.selectedUser.lastName}
+                        </p>
+                        <p className="text-sm text-gray-500">@{grantForm.selectedUser.username}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGrantForm({ ...grantForm, selectedUser: null });
+                        setSearchQuery('');
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Durée */}
             <div>
               <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
                 Durée (jours)
@@ -293,17 +431,23 @@ const PremiumManagement: React.FC = () => {
                 Laissez vide ou 0 pour un premium permanent
               </p>
             </div>
+
+            {/* Boutons */}
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => setShowGrantForm(false)}
+                onClick={() => {
+                  setShowGrantForm(false);
+                  setGrantForm({ selectedUser: null, durationInDays: 30 });
+                  setSearchQuery('');
+                }}
                 className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 Annuler
               </button>
               <button
                 type="submit"
-                disabled={submitting || !grantForm.userId}
+                disabled={submitting || !grantForm.selectedUser}
                 className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? 'Attribution...' : 'Attribuer Premium'}
