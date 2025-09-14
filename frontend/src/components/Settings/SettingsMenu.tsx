@@ -93,17 +93,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onNavigateToTab }) => {
       {/* Menu principal */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid gap-4 grid-cols-1">
-          {/* Bouton de test temporaire */}
-          <button
-            onClick={() => {
-              console.log('TEST: Navigation vers premium');
-              onNavigateToTab('premium');
-            }}
-            className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            🧪 TEST: Aller vers Premium
-          </button>
-          
           {menuItems.map((item) => (
             <button
               key={item.id}

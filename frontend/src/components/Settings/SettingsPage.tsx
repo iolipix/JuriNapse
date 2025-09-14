@@ -138,7 +138,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     language: { title: 'Langue', icon: '🌍' },
     data: { title: 'Données (RGPD)', icon: '📥' },
     cookies: { title: 'Cookies et confidentialité', icon: '🍪' },
-    premium: { title: 'Gestion Premium', icon: '👑' },
+    premium: { title: 'Gestion Premium', icon: '' },
     privacy: { title: 'Confidentialité', icon: '🛡️' },
     'delete-account': { title: 'Supprimer le compte', icon: '⚠️' }
   }[settingsTab];
