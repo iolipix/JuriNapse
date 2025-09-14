@@ -17,7 +17,7 @@ const TermsOfService: React.FC = () => {
           </p>
           
           <p className="mb-4">
-            JuriNapse société au capital de 100 euros, inscrite au R.C.S. de Greffe du Tribunal de Commerce de Saintes sous le numéro 990 210 080 R.C.S. Saintes dont le siège social est situé au PALAIS DE JUSTICE-COURS NATIONAL, CS 30328, 17108 SAINTES CEDEX, représentée par MAUREY Théophane dument habilité.
+            JuriNapse société au capital de 100 euros, inscrite au R.C.S. de Greffe du Tribunal de Commerce de Saintes sous le numéro 990 210 080 R.C.S. Saintes situé au PALAIS DE JUSTICE-COURS NATIONAL, CS 30328, 17108 SAINTES CEDEX, représentée par MAUREY Théophane dument habilité, dont le siège social est au 10 LOTISSEMENT COEUR DE BOURG, 17100 VENERAND.
           </p>
           
           <p className="mb-4">
