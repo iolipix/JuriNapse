@@ -412,4 +412,207 @@ router.post('/demote-administrator/:userId', authenticateToken, adminAuth, async
   }
 });
 
+// === NOUVELLES ROUTES POUR GESTION PREMIUM ET RECHERCHE UTILISATEURS ===
+
+// Middleware pour vérifier que l'utilisateur est modérateur ou admin
+const moderatorAuth = (req, res, next) => {
+  const userRoles = req.user.role ? req.user.role.split(';').map(r => r.trim()) : [];
+  const hasModeratorRole = userRoles.includes('moderator') || userRoles.includes('administrator');
+  
+  if (!hasModeratorRole) {
+    return res.status(403).json({ message: 'Accès refusé. Permissions modérateur requises.' });
+  }
+  next();
+};
+
+// Route pour obtenir tous les utilisateurs avec recherche (pour autocomplete)
+router.get('/users', authenticateToken, moderatorAuth, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '', role = '' } = req.query;
+    
+    // Construire le filtre de recherche
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } }
+      ];
+    }
+    if (role && ['user', 'moderator', 'administrator'].includes(role)) {
+      filter.role = role;
+    }
+
+    const users = await User.find(filter)
+      .select('username email firstName lastName role isActive createdAt university')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .exec();
+
+    const total = await User.countDocuments(filter);
+
+    res.json({
+      users,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des utilisateurs' });
+  }
+});
+
+// Route pour obtenir la liste des utilisateurs premium
+router.get('/premium-users', authenticateToken, moderatorAuth, async (req, res) => {
+  try {
+    const premiumUsers = await User.find({
+      $or: [
+        { premiumExpiresAt: { $exists: true, $ne: null } },
+        { premiumExpiresAt: { $gt: new Date() } }
+      ]
+    })
+      .select('username email firstName lastName premiumExpiresAt premiumGrantedBy premiumGrantedAt')
+      .sort({ premiumGrantedAt: -1 })
+      .exec();
+
+    // Enrichir avec les informations du modérateur qui a accordé le premium
+    const enrichedUsers = await Promise.all(
+      premiumUsers.map(async (user) => {
+        let grantedByUsername = 'Système';
+        if (user.premiumGrantedBy) {
+          try {
+            const grantor = await User.findById(user.premiumGrantedBy).select('username');
+            if (grantor) {
+              grantedByUsername = grantor.username;
+            }
+          } catch (e) {
+            console.log('Utilisateur qui a accordé le premium introuvable:', user.premiumGrantedBy);
+          }
+        }
+
+        return {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          premiumExpiresAt: user.premiumExpiresAt,
+          premiumGrantedBy: grantedByUsername,
+          premiumGrantedAt: user.premiumGrantedAt,
+          isExpired: user.premiumExpiresAt && user.premiumExpiresAt < new Date()
+        };
+      })
+    );
+
+    res.json({ premiumUsers: enrichedUsers });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs premium:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la récupération des utilisateurs premium' });
+  }
+});
+
+// Route pour attribuer un premium temporaire
+router.post('/grant-premium', authenticateToken, moderatorAuth, async (req, res) => {
+  try {
+    const { userId, durationInDays } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'ID utilisateur requis' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    // Calculer la date d'expiration
+    let expiresAt = null;
+    if (durationInDays && durationInDays > 0) {
+      expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + parseInt(durationInDays));
+    }
+
+    // Mettre à jour l'utilisateur
+    user.premiumExpiresAt = expiresAt;
+    user.premiumGrantedBy = req.user.id;
+    user.premiumGrantedAt = new Date();
+    
+    await user.save();
+
+    res.json({
+      message: `Premium ${expiresAt ? 'temporaire' : 'permanent'} accordé avec succès`,
+      user: {
+        _id: user._id,
+        username: user.username,
+        premiumExpiresAt: user.premiumExpiresAt,
+        premiumGrantedBy: req.user.username,
+        premiumGrantedAt: user.premiumGrantedAt
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de l\'attribution du premium:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de l\'attribution du premium' });
+  }
+});
+
+// Route pour révoquer le premium d'un utilisateur
+router.delete('/revoke-premium/:userId', authenticateToken, moderatorAuth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    // Révoquer le premium
+    user.premiumExpiresAt = null;
+    user.premiumGrantedBy = null;
+    user.premiumGrantedAt = null;
+    
+    await user.save();
+
+    res.json({
+      message: 'Premium révoqué avec succès',
+      user: {
+        _id: user._id,
+        username: user.username
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de la révocation du premium:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la révocation du premium' });
+  }
+});
+
+// Route pour nettoyer manuellement les premiums expirés (admin uniquement)
+router.post('/cleanup-expired-premiums', authenticateToken, adminAuth, async (req, res) => {
+  try {
+    const result = await User.updateMany(
+      { premiumExpiresAt: { $lt: new Date() } },
+      { 
+        $unset: { 
+          premiumExpiresAt: 1,
+          premiumGrantedBy: 1,
+          premiumGrantedAt: 1
+        } 
+      }
+    );
+
+    res.json({
+      message: 'Nettoyage des premiums expirés terminé',
+      deletedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error('Erreur lors du nettoyage des premiums expirés:', error);
+    res.status(500).json({ message: 'Erreur serveur lors du nettoyage' });
+  }
+});
+
 module.exports = router;
