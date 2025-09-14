@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Shield, Users, Settings, BarChart3, FileText, AlertTriangle } from 'lucide-react';
+import { Shield, Users, Settings, BarChart3, FileText, AlertTriangle, Crown } from 'lucide-react';
+import PremiumManagement from './PremiumManagement';
 
 interface AdminPageProps {
   activeSubTab?: string;
@@ -19,6 +20,7 @@ const AdminPage: React.FC<AdminPageProps> = ({ activeSubTab = 'moderators', onSu
   // Définition des sous-onglets d'administration
   const adminSubTabs = [
     { id: 'moderators', label: 'Gestion des modérateurs', icon: Users, description: 'Gérer les rôles et permissions des modérateurs' },
+    { id: 'premium', label: 'Gestion Premium', icon: Crown, description: 'Attribuer et gérer les abonnements premium' },
     { id: 'users', label: 'Gestion des utilisateurs', icon: Shield, description: 'Modérer et gérer tous les utilisateurs' },
     { id: 'content', label: 'Modération du contenu', icon: FileText, description: 'Gérer les posts, commentaires et signalements' },
     { id: 'analytics', label: 'Statistiques', icon: BarChart3, description: 'Statistiques détaillées de la plateforme' },
@@ -89,6 +91,8 @@ const AdminPage: React.FC<AdminPageProps> = ({ activeSubTab = 'moderators', onSu
     switch (currentSubTab) {
       case 'moderators':
         return renderModeratorsTab();
+      case 'premium':
+        return <PremiumManagement />;
       case 'users':
         return renderPlaceholderTab('Gestion des utilisateurs');
       case 'content':

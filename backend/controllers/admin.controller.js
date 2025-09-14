@@ -459,6 +459,230 @@ const toggleUserActive = async (req, res) => {
   }
 };
 
+/**
+ * Attribuer un premium temporaire à un utilisateur
+ * Route: POST /api/admin/grant-premium
+ */
+const grantPremium = async (req, res) => {
+  try {
+    const { userId, durationInDays } = req.body;
+    
+    // Vérification des permissions - modérateur ou admin requis
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || (!currentUser.isModerator() && !currentUser.isAdmin())) {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé - Modérateur ou Administrateur requis'
+      });
+    }
+    
+    // Validation des données
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID utilisateur requis'
+      });
+    }
+    
+    if (durationInDays && (isNaN(durationInDays) || durationInDays < 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Durée invalide (doit être un nombre positif de jours)'
+      });
+    }
+    
+    // Trouver l'utilisateur cible
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+    
+    // Vérifier qu'on ne peut pas s'auto-attribuer le premium (sauf admin)
+    if (userId === req.user.id && !currentUser.isAdmin()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Vous ne pouvez pas vous attribuer le premium à vous-même'
+      });
+    }
+    
+    // Attribuer le premium
+    targetUser.grantPremium(durationInDays, req.user.id);
+    await targetUser.save();
+    
+    // Préparer la réponse
+    const premiumInfo = targetUser.getPremiumInfo();
+    
+    res.json({
+      success: true,
+      message: `Premium ${durationInDays ? 'temporaire' : 'permanent'} attribué avec succès`,
+      user: {
+        id: targetUser._id,
+        username: targetUser.username,
+        premiumInfo
+      },
+      grantedBy: {
+        id: currentUser._id,
+        username: currentUser.username
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'attribution du premium:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur'
+    });
+  }
+};
+
+/**
+ * Révoquer le premium d'un utilisateur
+ * Route: DELETE /api/admin/revoke-premium/:userId
+ */
+const revokePremium = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Vérification des permissions - modérateur ou admin requis
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || (!currentUser.isModerator() && !currentUser.isAdmin())) {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé - Modérateur ou Administrateur requis'
+      });
+    }
+    
+    // Trouver l'utilisateur cible
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
+    
+    // Vérifier si l'utilisateur a le premium
+    if (!targetUser.hasRole('premium')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cet utilisateur n\'a pas le premium'
+      });
+    }
+    
+    // Révoquer le premium
+    targetUser.revokePremium();
+    await targetUser.save();
+    
+    res.json({
+      success: true,
+      message: 'Premium révoqué avec succès',
+      user: {
+        id: targetUser._id,
+        username: targetUser.username,
+        premiumInfo: targetUser.getPremiumInfo()
+      },
+      revokedBy: {
+        id: currentUser._id,
+        username: currentUser.username
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de la révocation du premium:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur'
+    });
+  }
+};
+
+/**
+ * Obtenir la liste des utilisateurs premium avec leurs informations d'expiration
+ * Route: GET /api/admin/premium-users
+ */
+const getPremiumUsers = async (req, res) => {
+  try {
+    // Vérification des permissions - modérateur ou admin requis
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || (!currentUser.isModerator() && !currentUser.isAdmin())) {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé - Modérateur ou Administrateur requis'
+      });
+    }
+    
+    // Trouver tous les utilisateurs premium
+    const premiumUsers = await User.find({
+      role: { $regex: 'premium' }
+    })
+    .select('username firstName lastName email premiumExpiresAt premiumGrantedBy premiumGrantedAt')
+    .populate('premiumGrantedBy', 'username')
+    .sort({ premiumGrantedAt: -1 });
+    
+    // Formater les données
+    const formattedUsers = premiumUsers.map(user => ({
+      id: user._id,
+      username: user.username,
+      fullName: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      premiumInfo: user.getPremiumInfo(),
+      grantedBy: user.premiumGrantedBy ? {
+        id: user.premiumGrantedBy._id,
+        username: user.premiumGrantedBy.username
+      } : null
+    }));
+    
+    res.json({
+      success: true,
+      users: formattedUsers,
+      count: formattedUsers.length
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs premium:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur'
+    });
+  }
+};
+
+/**
+ * Nettoyer manuellement les premiums expirés
+ * Route: POST /api/admin/cleanup-expired-premiums
+ */
+const cleanupExpiredPremiums = async (req, res) => {
+  try {
+    // Vérification des permissions - admin requis
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser || !currentUser.isAdmin()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Accès refusé - Administrateur requis'
+      });
+    }
+    
+    // Nettoyer les premiums expirés
+    const result = await User.cleanupExpiredPremiums();
+    
+    res.json({
+      success: true,
+      message: 'Nettoyage des premiums expirés terminé',
+      modifiedCount: result.modifiedCount
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors du nettoyage des premiums expirés:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur interne du serveur'
+    });
+  }
+};
+
 module.exports = { 
   repairSubscriptionCounters, 
   quickRepairCounters, 
@@ -466,5 +690,9 @@ module.exports = {
   updateUserRole, 
   getRoleStats, 
   toggleUserActive, 
-  initializeDefaultAdmin 
+  initializeDefaultAdmin,
+  grantPremium,
+  revokePremium,
+  getPremiumUsers,
+  cleanupExpiredPremiums
 };

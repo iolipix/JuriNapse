@@ -178,6 +178,9 @@ const socketMiddleware = (req, res, next) => {
   next();
 };
 
+// Middleware pour vérifier l'expiration du premium
+const { checkPremiumExpiration } = require('./middleware/premiumCheck.middleware');
+
 // Utilisation des routes
 // 🛡️ Protection renforcée pour l'authentification
 app.use('/api/auth/login', authLimiter);
@@ -194,14 +197,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.use('/api/posts', postRoutes); // Pas de Socket.io pour les posts
-app.use('/api/folders', folderRoutes);
-app.use('/api/notifications', socketMiddleware, notificationRoutes); // Socket.io pour les notifications en temps réel
-app.use('/api/users', userRoutes);
-app.use('/api/groups', socketMiddleware, groupRoutes); // Socket.io seulement pour les groupes
-app.use('/api/messages', middlewareMessagesOrphelins, socketMiddleware, messageRoutes); // Nettoyage auto + Socket.io pour messages
-app.use('/api/subscriptions', subscriptionRoutes); // TEMP: Test sans socketMiddleware pour debug 404
-app.use('/api/admin', adminRoutes); // Routes d'administration
+app.use('/api/posts', checkPremiumExpiration, postRoutes); // Pas de Socket.io pour les posts
+app.use('/api/folders', checkPremiumExpiration, folderRoutes);
+app.use('/api/notifications', checkPremiumExpiration, socketMiddleware, notificationRoutes); // Socket.io pour les notifications en temps réel
+app.use('/api/users', checkPremiumExpiration, userRoutes);
+app.use('/api/groups', checkPremiumExpiration, socketMiddleware, groupRoutes); // Socket.io seulement pour les groupes
+app.use('/api/messages', middlewareMessagesOrphelins, checkPremiumExpiration, socketMiddleware, messageRoutes); // Nettoyage auto + Socket.io pour messages
+app.use('/api/subscriptions', checkPremiumExpiration, subscriptionRoutes); // TEMP: Test sans socketMiddleware pour debug 404
+app.use('/api/admin', checkPremiumExpiration, adminRoutes); // Routes d'administration
 app.use('/api/diagnostic', diagnosticRoutes); // Routes de diagnostic
 
 // EMERGENCY: Test route simple pour debug
@@ -409,6 +412,27 @@ try {
   console.log('⏲️  Tâche planifiée: maintenance cleanup ALL tous les jours à 00:01 (Europe/Paris)');
 } catch (e) {
   console.error('⚠️ Impossible de programmer la tâche maintenance cleanup ALL:', e.message);
+}
+
+// Cron: nettoyage des premiums expirés toutes les heures
+try {
+  cron.schedule('0 * * * *', async () => {
+    try {
+      console.log('👑 [CRON] Nettoyage des premiums expirés');
+      const User = require('./models/user.model');
+      const result = await User.cleanupExpiredPremiums();
+      if (result.modifiedCount > 0) {
+        console.log(`✅ [CRON] ${result.modifiedCount} premiums expirés nettoyés`);
+      } else {
+        console.log('ℹ️ [CRON] Aucun premium expiré à nettoyer');
+      }
+    } catch (err) {
+      console.error('❌ [CRON] Erreur nettoyage premiums expirés:', err.message);
+    }
+  }, { timezone: 'Europe/Paris' });
+  console.log('⏲️  Tâche planifiée: nettoyage premiums expirés toutes les heures (Europe/Paris)');
+} catch (e) {
+  console.error('⚠️ Impossible de programmer le nettoyage des premiums expirés:', e.message);
 }
 
 // -------------------------

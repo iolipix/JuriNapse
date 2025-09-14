@@ -90,6 +90,21 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'user'
   },
+  // Champs pour la gestion du premium temporaire
+  premiumExpiresAt: {
+    type: Date,
+    default: null,
+    index: true // Pour optimiser la recherche des premiums expirés
+  },
+  premiumGrantedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  premiumGrantedAt: {
+    type: Date,
+    default: null
+  },
   // Champs pour le système d'utilisateur supprimé
   isDeleted: {
     type: Boolean,
@@ -295,7 +310,114 @@ userSchema.methods.isModerator = function() {
 };
 
 userSchema.methods.isPremium = function() {
-  return this.hasRole('premium');
+  // Vérifier si l'utilisateur a le rôle premium
+  if (!this.hasRole('premium')) {
+    return false;
+  }
+  
+  // Si pas de date d'expiration définie, premium permanent
+  if (!this.premiumExpiresAt) {
+    return true;
+  }
+  
+  // Vérifier si le premium a expiré
+  const now = new Date();
+  if (this.premiumExpiresAt <= now) {
+    // Premium expiré, le retirer automatiquement
+    this.removeRole('premium');
+    this.premiumExpiresAt = null;
+    this.premiumGrantedBy = null;
+    this.premiumGrantedAt = null;
+    // Sauvegarder les changements
+    this.save().catch(err => console.error('Erreur lors de la suppression du premium expiré:', err));
+    return false;
+  }
+  
+  return true;
+};
+
+// Méthodes pour gérer le premium temporaire
+userSchema.methods.grantPremium = function(durationInDays, grantedBy) {
+  this.addRole('premium');
+  
+  if (durationInDays && durationInDays > 0) {
+    // Premium temporaire
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + durationInDays);
+    this.premiumExpiresAt = expirationDate;
+  } else {
+    // Premium permanent
+    this.premiumExpiresAt = null;
+  }
+  
+  this.premiumGrantedBy = grantedBy;
+  this.premiumGrantedAt = new Date();
+  
+  return this;
+};
+
+userSchema.methods.revokePremium = function() {
+  this.removeRole('premium');
+  this.premiumExpiresAt = null;
+  this.premiumGrantedBy = null;
+  this.premiumGrantedAt = null;
+  
+  return this;
+};
+
+userSchema.methods.getPremiumInfo = function() {
+  if (!this.hasRole('premium')) {
+    return { hasPremium: false };
+  }
+  
+  return {
+    hasPremium: true,
+    isPermanent: !this.premiumExpiresAt,
+    expiresAt: this.premiumExpiresAt,
+    grantedBy: this.premiumGrantedBy,
+    grantedAt: this.premiumGrantedAt,
+    daysRemaining: this.premiumExpiresAt ? 
+      Math.max(0, Math.ceil((this.premiumExpiresAt - new Date()) / (1000 * 60 * 60 * 24))) : 
+      null
+  };
+};
+
+// Méthode statique pour nettoyer les premiums expirés
+userSchema.statics.cleanupExpiredPremiums = async function() {
+  const now = new Date();
+  const result = await this.updateMany(
+    {
+      role: { $regex: 'premium' },
+      premiumExpiresAt: { $lte: now, $ne: null }
+    },
+    {
+      $set: {
+        premiumExpiresAt: null,
+        premiumGrantedBy: null,
+        premiumGrantedAt: null
+      },
+      $unset: { 
+        role: 1 // Sera recréé par le middleware pre-save sans premium
+      }
+    }
+  );
+  
+  // Reconstruire les rôles pour tous les utilisateurs affectés
+  const affectedUsers = await this.find({
+    premiumExpiresAt: null,
+    premiumGrantedBy: null,
+    $or: [
+      { role: { $exists: false } },
+      { role: '' }
+    ]
+  });
+  
+  for (const user of affectedUsers) {
+    user.role = user.parseRoles().filter(role => role !== 'premium').join(';') || 'user';
+    await user.save();
+  }
+  
+  return result;
 };
 
 // Middleware pre-save pour nettoyer automatiquement les rôles

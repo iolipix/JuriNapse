@@ -8,7 +8,11 @@ const {
   getAllUsers,
   updateUserRole,
   getRoleStats,
-  toggleUserActive
+  toggleUserActive,
+  grantPremium,
+  revokePremium,
+  getPremiumUsers,
+  cleanupExpiredPremiums
 } = require('../controllers/admin.controller');
 
 // Route pour réparer les compteurs d'abonnements (admin seulement)
@@ -29,5 +33,18 @@ router.put('/users/:userId/role', authenticateToken, requireAdmin, updateUserRol
 
 // Activer/désactiver un utilisateur (modérateur/admin)
 router.put('/users/:userId/toggle-active', authenticateToken, requireModerator, toggleUserActive);
+
+// === Routes de gestion du premium ===
+// Obtenir la liste des utilisateurs premium (modérateur/admin)
+router.get('/premium-users', authenticateToken, requireModerator, getPremiumUsers);
+
+// Attribuer un premium temporaire (modérateur/admin)
+router.post('/grant-premium', authenticateToken, requireModerator, grantPremium);
+
+// Révoquer le premium d'un utilisateur (modérateur/admin)
+router.delete('/revoke-premium/:userId', authenticateToken, requireModerator, revokePremium);
+
+// Nettoyer manuellement les premiums expirés (admin uniquement)
+router.post('/cleanup-expired-premiums', authenticateToken, requireAdmin, cleanupExpiredPremiums);
 
 module.exports = router;
