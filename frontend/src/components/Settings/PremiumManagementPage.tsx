@@ -360,21 +360,6 @@ const PremiumManagementPage: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Information système */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <Crown className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <h4 className="text-blue-800 font-medium">Information</h4>
-              <p className="text-blue-700 text-sm mt-1">
-                Les abonnements premium sont attribués par les modérateurs. 
-                Si vous pensez avoir droit au premium ou si vous avez des questions, 
-                contactez un modérateur.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

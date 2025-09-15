@@ -1,15 +1,14 @@
-const mongoose = require('mongoose');
-const User = require('./backend/models/user.model');
+﻿const mongoose = require('mongoose');
+require('dotenv').config({ path: 'config/.env' });
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/jurinapse';
+const User = require('./backend/models/user.model');
 
 const migratePremiumHistory = async () => {
   try {
-    console.log('🔗 Connexion à MongoDB...');
-    await mongoose.connect(MONGODB_URI);
-    console.log('✅ Connecté à MongoDB');
+    console.log('Connexion à MongoDB...');
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('Connecté à MongoDB');
 
-    // Trouver tous les utilisateurs avec des informations premium
     const usersWithPremiumData = await User.find({
       $or: [
         { premiumGrantedAt: { $exists: true, $ne: null } },
@@ -18,53 +17,55 @@ const migratePremiumHistory = async () => {
       ]
     });
 
-    console.log(`📊 Trouvé ${usersWithPremiumData.length} utilisateurs avec des données premium`);
+    console.log(`Trouvé ${usersWithPremiumData.length} utilisateurs avec des données premium`);
 
     let migratedCount = 0;
 
     for (const user of usersWithPremiumData) {
-      // Vérifier si l'utilisateur a déjà un historique
-      if (user.premiumHistory && user.premiumHistory.length > 0) {
-        console.log(`⏭️ ${user.username} a déjà un historique, ignoré`);
-        continue;
-      }
-
-      // Créer une entrée d'historique basée sur les données actuelles
-      if (user.premiumGrantedAt && user.premiumGrantedBy) {
-        const isActive = user.hasRole('premium');
-        let revokedAt = null;
+      try {
+        console.log(`Migration pour ${user.username}...`);
         
-        // Si le premium a expiré, calculer quand il a expiré
-        if (!isActive && user.premiumExpiresAt && user.premiumExpiresAt < new Date()) {
-          revokedAt = user.premiumExpiresAt;
+        if (!user.premiumHistory || user.premiumHistory.length === 0) {
+          const historyEntry = {
+            grantedBy: user.premiumGrantedBy || null,
+            grantedAt: user.premiumGrantedAt || new Date('2024-01-01'),
+            expiresAt: user.premiumExpiresAt || null,
+            revokedAt: null,
+            revokedBy: null,
+            isActive: user.hasRole('premium')
+          };
+
+          if (!user.hasRole('premium')) {
+            if (user.premiumExpiresAt && user.premiumExpiresAt <= new Date()) {
+              historyEntry.revokedAt = user.premiumExpiresAt;
+            } else {
+              historyEntry.revokedAt = new Date();
+            }
+            historyEntry.isActive = false;
+          }
+
+          user.premiumHistory = [historyEntry];
+          
+          await user.save();
+          migratedCount++;
+          
+          console.log(`Migré pour ${user.username} - Actif: ${historyEntry.isActive}`);
+        } else {
+          console.log(`${user.username} a déjà un historique`);
         }
-
-        const historyEntry = {
-          grantedBy: user.premiumGrantedBy,
-          grantedAt: user.premiumGrantedAt,
-          expiresAt: user.premiumExpiresAt,
-          revokedAt: revokedAt,
-          revokedBy: null, // Expiration automatique
-          isActive: isActive && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
-        };
-
-        user.premiumHistory = [historyEntry];
-        await user.save();
-        
-        console.log(`✅ Historique migré pour ${user.username} - Actif: ${historyEntry.isActive}`);
-        migratedCount++;
+      } catch (error) {
+        console.error(`Erreur pour ${user.username}:`, error.message);
       }
     }
 
-    console.log(`🎉 Migration terminée ! ${migratedCount} utilisateurs migrés`);
-    
+    console.log(`Migration terminée ! ${migratedCount} utilisateurs migrés`);
+
   } catch (error) {
-    console.error('❌ Erreur lors de la migration:', error);
+    console.error('Erreur lors de la migration:', error);
   } finally {
+    console.log('Déconnexion de MongoDB');
     await mongoose.disconnect();
-    console.log('🔌 Déconnecté de MongoDB');
   }
 };
 
-// Exécuter la migration
 migratePremiumHistory();
