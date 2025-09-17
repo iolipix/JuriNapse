@@ -1,33 +1,29 @@
 import React from 'react';
-import CustomAdBanner from './CustomAdBanner';
+import { RandomAdBanner } from './RandomAdBanner';
 
-// Composants prédéfinis pour les publicités Prestige Photo
+// Composants prédéfinis pour les publicités avec rotation aléatoire
+// Note: Ces composants utilisent maintenant le système de rotation aléatoire
+// qui inclut Prestige Photo et les nouvelles publicités
 
-// Publicité Prestige Photo format rectangulaire 300x250
+// Publicité format rectangulaire 300x250 (rotation aléatoire)
 export const PrestigePhotoMedium: React.FC<{ className?: string }> = ({ className }) => (
-  <CustomAdBanner 
+  <RandomAdBanner 
     width={300}
     height={250}
-    imageUrl="/ads/prestige-photo-300x250.jpg"
-    clickUrl="https://prestige-photo.fr/"
-    altText="Prestige Photo - Services photographiques professionnels"
     className={className}
   />
 );
 
-// Publicité Prestige Photo format vertical 300x600
+// Publicité format vertical 300x600 (rotation aléatoire)
 export const PrestigePhotoHalf: React.FC<{ className?: string }> = ({ className }) => (
-  <CustomAdBanner 
+  <RandomAdBanner 
     width={300}
     height={600}
-    imageUrl="/ads/prestige-photo-300x600.jpg"
-    clickUrl="https://prestige-photo.fr/"
-    altText="Prestige Photo - Photographie professionnelle de qualité"
     className={className}
   />
 );
 
-// Composant adaptable qui choisit le bon format selon la taille
+// Composant adaptable qui choisit le bon format selon la taille (rotation aléatoire)
 export const PrestigePhotoAd: React.FC<{ 
   format: 'medium' | 'half';
   className?: string;

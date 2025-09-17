@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useAds } from './AdProvider';
 import { AdProps } from './types';
-import { PrestigePhotoMedium, PrestigePhotoHalf } from './PrestigePhotoAds';
+import { RandomAdBanner } from './RandomAdBanner';
 
 const AdBanner: React.FC<AdProps> = ({ 
   slot, 
@@ -32,17 +32,10 @@ const AdBanner: React.FC<AdProps> = ({
   // Si les ads sont désactivées ou en cas d'erreur, ne rien afficher
   if (!config.enabled) return null;
 
-  // Afficher les publicités Prestige Photo à la place des tests
+  // Afficher les publicités aléatoires à la place des tests
   if (isTestMode) {
-    // Choisir le bon format selon la taille
-    if (width === 300 && height === 600) {
-      return <PrestigePhotoHalf className={className} />;
-    } else if (width === 300 && height === 250) {
-      return <PrestigePhotoMedium className={className} />;
-    } else {
-      // Pour les autres tailles, afficher Prestige Photo Medium par défaut
-      return <PrestigePhotoMedium className={className} />;
-    }
+    // Utiliser le système de publicités aléatoires
+    return <RandomAdBanner width={width} height={height} className={className} />;
   }
 
   return (
