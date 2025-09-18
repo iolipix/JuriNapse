@@ -5,6 +5,7 @@ export { default as AdFeedNative } from './AdFeedNative';
 export { default as AdSidebar } from './AdSidebar';
 export { default as SimpleAdBanner } from './SimpleAdBanner';
 export { default as CustomAdBanner } from './CustomAdBanner';
+export { RandomAdBanner, RandomAd, useRandomAd, ALL_ADS } from './RandomAdBanner';
 export { 
   AdSidebarProfile, 
   AdSidebarPost, 
