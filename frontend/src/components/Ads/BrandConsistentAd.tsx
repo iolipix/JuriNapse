@@ -57,13 +57,11 @@ type AdBrand = 'prestige-photo' | 'ai-web';
 
 // Hook pour générer une marque aléatoire stable par instance
 const useRandomBrand = (): AdBrand => {
-  const [brand, setBrand] = useState<AdBrand>('prestige-photo');
-
-  useEffect(() => {
+  // CRITICAL FIX: Utiliser useMemo au lieu de useState/useEffect pour éviter React error #310
+  const brand = React.useMemo(() => {
     // Générer aléatoirement une marque pour cette instance (50/50)
-    const randomBrand = Math.random() < 0.5 ? 'prestige-photo' : 'ai-web';
-    setBrand(randomBrand);
-  }, []); // Le tableau vide assure que c'est généré une seule fois au mount
+    return Math.random() < 0.5 ? 'prestige-photo' : 'ai-web';
+  }, []); // Le tableau vide assure que c'est généré une seule fois
 
   return brand;
 };
@@ -74,21 +72,24 @@ const useAdByBrand = (
   preferredWidth?: number,
   preferredHeight?: number
 ): AdConfig => {
-  const adsCollection = brand === 'prestige-photo' ? PRESTIGE_PHOTO_ADS : AI_WEB_ADS;
-  
-  // Filtrer par taille si spécifiée
-  let availableAds = adsCollection;
-  if (preferredWidth && preferredHeight) {
-    const filtered = adsCollection.filter(ad => 
-      ad.width === preferredWidth && ad.height === preferredHeight
-    );
-    if (filtered.length > 0) {
-      availableAds = filtered;
+  // CRITICAL FIX: Utiliser useMemo pour éviter React error #310
+  return React.useMemo(() => {
+    const adsCollection = brand === 'prestige-photo' ? PRESTIGE_PHOTO_ADS : AI_WEB_ADS;
+    
+    // Filtrer par taille si spécifiée
+    let availableAds = adsCollection;
+    if (preferredWidth && preferredHeight) {
+      const filtered = adsCollection.filter(ad => 
+        ad.width === preferredWidth && ad.height === preferredHeight
+      );
+      if (filtered.length > 0) {
+        availableAds = filtered;
+      }
     }
-  }
-  
-  // Prendre la première publicité correspondante (ou la première si aucune ne correspond)
-  return availableAds[0] || adsCollection[0];
+    
+    // Prendre la première publicité correspondante (ou la première si aucune ne correspond)
+    return availableAds[0] || adsCollection[0];
+  }, [brand, preferredWidth, preferredHeight]);
 };
 
 // Session storage key pour maintenir la cohérence sur une session
