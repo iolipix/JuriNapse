@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import CustomAdBanner from './CustomAdBanner';
 
 // Configuration des publicités par marque
@@ -54,10 +54,17 @@ const AI_WEB_ADS: AdConfig[] = [
 // Types de marques disponibles
 type AdBrand = 'prestige-photo' | 'ai-web';
 
-// Hook pour sélectionner une marque aléatoirement
+// Hook pour générer une marque aléatoire stable par instance
 const useRandomBrand = (): AdBrand => {
-  // Choix aléatoire entre les deux marques (50/50)
-  return Math.random() < 0.5 ? 'prestige-photo' : 'ai-web';
+  const [brand, setBrand] = useState<AdBrand>('prestige-photo');
+
+  useEffect(() => {
+    // Générer aléatoirement une marque pour cette instance (50/50)
+    const randomBrand = Math.random() < 0.5 ? 'prestige-photo' : 'ai-web';
+    setBrand(randomBrand);
+  }, []); // Le tableau vide assure que c'est généré une seule fois au mount
+
+  return brand;
 };
 
 // Hook pour obtenir une publicité d'une marque spécifique selon la taille
@@ -108,24 +115,20 @@ const useSessionBrand = (): AdBrand => {
   return sessionBrand;
 };
 
-// Composant principal pour publicité avec marque cohérente
-interface BrandConsistentAdProps {
+// Composant principal pour publicité aléatoire par instance
+interface RandomInstanceAdProps {
   width?: number;
   height?: number;
   className?: string;
-  forceRandomBrand?: boolean; // Pour forcer un nouveau choix aléatoire
 }
 
-export const BrandConsistentAd: React.FC<BrandConsistentAdProps> = ({
+export const RandomInstanceAd: React.FC<RandomInstanceAdProps> = ({
   width,
   height,
-  className,
-  forceRandomBrand = false
+  className
 }) => {
-  // Choisir la marque (cohérente pour la session ou aléatoire)
-  const sessionBrand = useSessionBrand();
-  const randomBrand = useRandomBrand();
-  const selectedBrand = forceRandomBrand ? randomBrand : sessionBrand;
+  // Chaque instance génère sa propre marque aléatoire stable
+  const selectedBrand = useRandomBrand();
   
   // Obtenir la publicité correspondante
   const selectedAd = useAdByBrand(selectedBrand, width, height);
@@ -179,4 +182,7 @@ export const AIWebOnlyAd: React.FC<{ width?: number; height?: number; className?
   );
 };
 
-export default BrandConsistentAd;
+// Alias pour la compatibilité (utilise le même système aléatoire)
+export const BrandConsistentAd = RandomInstanceAd;
+
+export default RandomInstanceAd;
