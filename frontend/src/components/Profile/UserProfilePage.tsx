@@ -10,7 +10,7 @@ import FollowButton from '../Subscription/FollowButton';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import ProfileSEO from '../SEO/ProfileSEO';
 import DeletedUserPage from './DeletedUserPage';
-import { BrandConsistentAd } from '../Ads';
+import { MediumRectangle, HalfPage, BrandConsistentAd, SponsoredContent } from '../Ads';
 import useSEO from '../../hooks/useSEO';
 import api, { postsAPI } from '../../services/api';
 import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
@@ -699,14 +699,14 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                   />
                   {/* Ajouter une pub tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (
-                    <div className="flex justify-center my-6">
+                    <SponsoredContent className="flex justify-center my-6">
                       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
                         <div className="text-xs text-gray-500 mb-2 font-medium">
                           Contenu sponsorisé
                         </div>
                         <BrandConsistentAd width={300} height={250} className="mx-auto" />
                       </div>
-                    </div>
+                    </SponsoredContent>
                   )}
                 </React.Fragment>
               ))}
@@ -1018,12 +1018,14 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       <div className="hidden xl:block xl:col-span-1">
         <div className="sticky top-32 space-y-6">
           {/* Publicité Skyscraper - Ajusté pour 300x600 */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 10rem)' }}>
-            <div className="text-xs text-gray-500 mb-2 font-medium">
-              Contenu sponsorisé
+          <SponsoredContent>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 10rem)' }}>
+              <div className="text-xs text-gray-500 mb-2 font-medium">
+                Contenu sponsorisé
+              </div>
+              <BrandConsistentAd width={300} height={600} className="mx-auto" />
             </div>
-            <BrandConsistentAd width={300} height={600} className="mx-auto" />
-          </div>
+          </SponsoredContent>
         </div>
       </div>
     </div>

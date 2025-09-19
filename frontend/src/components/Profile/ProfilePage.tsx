@@ -10,7 +10,8 @@ import SubscriptionModal from '../Subscription/SubscriptionModal';
 import FoldersPage from '../Folder/FoldersPage';
 import { 
   HalfPage,
-  MediumRectangle
+  MediumRectangle,
+  SponsoredContent
 } from '../Ads';
 
 interface ProfilePageProps {
@@ -524,12 +525,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
                   />
                   {/* Publicité tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < savedPosts.length - 1 && (
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-                      <div className="text-xs text-gray-500 mb-2 font-medium">
-                        Contenu sponsorisé
+                    <SponsoredContent>
+                      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+                        <div className="text-xs text-gray-500 mb-2 font-medium">
+                          Contenu sponsorisé
+                        </div>
+                        <MediumRectangle className="mx-auto" />
                       </div>
-                      <MediumRectangle className="mx-auto" />
-                    </div>
+                    </SponsoredContent>
                   )}
                 </React.Fragment>
               ))}
@@ -941,12 +944,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
         <div className="hidden xl:block xl:col-span-1">
           <div className="sticky top-24 space-y-6">
             {/* Publicité Skyscraper - Ajusté pour 300x600 */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
-              <div className="text-xs text-gray-500 mb-2 font-medium">
-                Contenu sponsorisé
+            <SponsoredContent>
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
+                <div className="text-xs text-gray-500 mb-2 font-medium">
+                  Contenu sponsorisé
+                </div>
+                <HalfPage className="mx-auto" />
               </div>
-              <HalfPage className="mx-auto" />
-            </div>
+            </SponsoredContent>
             </div>
         </div>
       </div>

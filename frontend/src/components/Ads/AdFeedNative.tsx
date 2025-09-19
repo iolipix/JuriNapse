@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAds } from './AdProvider';
 import { AdProps } from './types';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 
 interface AdFeedNativeProps extends Omit<AdProps, 'format'> {
   title?: string;
@@ -14,9 +15,15 @@ const AdFeedNative: React.FC<AdFeedNativeProps> = ({
   title = "Contenu sponsorisé",
   index = 0
 }) => {
+  const { isPremium } = usePremiumStatus();
   const { config, isLoaded } = useAds();
   const adRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  // Ne pas afficher de pub pour les utilisateurs premium
+  if (isPremium) {
+    return null;
+  }
 
   // Déterminer si on est en mode test
   const isTestMode = testMode ?? config.testMode;
