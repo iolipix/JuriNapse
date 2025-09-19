@@ -3,10 +3,18 @@
  */
 const Stripe = require('stripe');
 
-// Initialiser Stripe avec la clé secrète
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Initialiser Stripe avec la clé secrète (avec fallback pour éviter les crashes)
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder';
+const stripe = stripeSecretKey !== 'sk_test_placeholder' ? new Stripe(stripeSecretKey) : null;
 
 class StripeService {
+  /**
+   * Vérifier si Stripe est configuré
+   */
+  isConfigured() {
+    return stripe !== null && process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PREMIUM_PRICE_ID;
+  }
+
   /**
    * Créer une session de checkout pour l'abonnement premium
    * @param {string} userId - ID de l'utilisateur
@@ -16,6 +24,10 @@ class StripeService {
    * @returns {Object} Session de checkout Stripe
    */
   async createCheckoutSession(userId, userEmail, successUrl, cancelUrl) {
+    if (!this.isConfigured()) {
+      throw new Error('Stripe n\'est pas configuré. Vérifiez les variables d\'environnement STRIPE_SECRET_KEY et STRIPE_PREMIUM_PRICE_ID.');
+    }
+
     try {
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],

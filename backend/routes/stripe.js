@@ -10,6 +10,14 @@ const User = require('../models/user.model');
 // Route pour créer une session de checkout Stripe
 router.post('/create-checkout-session', authenticateToken, async (req, res) => {
   try {
+    // Vérifier si Stripe est configuré
+    if (!stripeService.isConfigured()) {
+      return res.status(503).json({ 
+        message: 'Service de paiement temporairement indisponible. Veuillez réessayer plus tard.',
+        error: 'STRIPE_NOT_CONFIGURED'
+      });
+    }
+
     const userId = req.user.id;
     const user = await User.findById(userId);
 
