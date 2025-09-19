@@ -101,8 +101,12 @@ export function handleProfileClick(
     return;
   }
   
-  if (user.id && onViewUserProfile) {
-    onViewUserProfile(user.id);
+  // CRITICAL FIX: Supporter _id et id pour la compatibilité
+  const userId = user.id || user._id || user.userId;
+  if (userId && onViewUserProfile) {
+    onViewUserProfile(userId);
+  } else {
+    console.warn('handleProfileClick: No valid user ID found', user);
   }
 }
 

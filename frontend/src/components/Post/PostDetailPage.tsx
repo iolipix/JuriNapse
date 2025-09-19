@@ -110,16 +110,26 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
 
   // Scroll vers le haut quand on arrive sur la page
   useEffect(() => {
-    // Scroll immédiat vers le haut
+    // CRITICAL FIX: Scroll vers le haut à chaque chargement de la page (y compris F5)
     window.scrollTo({ top: 0, behavior: 'instant' });
     
     // Puis un scroll plus doux après un petit délai pour s'assurer que le contenu est rendu
     const timer = setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
+    }, 100); // Augmenté à 100ms pour laisser plus de temps au rendering
     
     return () => clearTimeout(timer);
-  }, [postId]);
+  }, [postId]); // Se déclenche à chaque changement de postId ET au mount initial
+
+  // CRITICAL FIX: Scroll additionnel après chargement du post pour F5
+  useEffect(() => {
+    if (post) {
+      // Scroll vers le haut une fois que le post est chargé
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 0);
+    }
+  }, [post?.id]); // Se déclenche quand le post est disponible
 
   // Charger les commentaires quand le post change
   useEffect(() => {
