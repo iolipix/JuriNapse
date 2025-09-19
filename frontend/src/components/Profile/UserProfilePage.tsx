@@ -10,7 +10,7 @@ import FollowButton from '../Subscription/FollowButton';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import ProfileSEO from '../SEO/ProfileSEO';
 import DeletedUserPage from './DeletedUserPage';
-import { RandomAdBanner } from '../Ads';
+import { BrandConsistentAd } from '../Ads';
 import useSEO from '../../hooks/useSEO';
 import api, { postsAPI } from '../../services/api';
 import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
@@ -704,7 +704,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                         <div className="text-xs text-gray-500 mb-2 font-medium">
                           Contenu sponsorisé
                         </div>
-                        <RandomAdBanner width={300} height={250} className="mx-auto" />
+                        <BrandConsistentAd width={300} height={250} className="mx-auto" />
                       </div>
                     </div>
                   )}
@@ -1022,7 +1022,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
             <div className="text-xs text-gray-500 mb-2 font-medium">
               Contenu sponsorisé
             </div>
-            <RandomAdBanner width={300} height={600} className="mx-auto" />
+            <BrandConsistentAd width={300} height={600} className="mx-auto" />
           </div>
         </div>
       </div>

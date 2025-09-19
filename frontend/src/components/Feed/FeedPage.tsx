@@ -5,7 +5,7 @@ import { useSubscriptions } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAnalytics } from '../../hooks/useCookieConsent';
 import PostCard from '../Post/PostCard';
-import { RandomAdBanner } from '../Ads';
+import { BrandConsistentAd } from '../Ads';
 
 interface FeedPageProps {
   activeTab?: string;
@@ -499,7 +499,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
                 {(index + 1) % 4 === 0 && (
                   <div className="my-6">
                     <div className="text-xs text-gray-400 text-center mb-2">Contenu sponsorisé</div>
-                    <RandomAdBanner width={300} height={250} className="mx-auto" />
+                    <BrandConsistentAd width={300} height={250} className="mx-auto" />
                   </div>
                 )}
               </React.Fragment>

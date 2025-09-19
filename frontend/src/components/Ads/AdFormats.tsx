@@ -1,12 +1,12 @@
 import React from 'react';
 import AdBanner from './AdBanner';
-import { RandomAdBanner } from './RandomAdBanner';
+import { BrandConsistentAd } from './BrandConsistentAd';
 
 // Composants prédéfinis pour différents formats publicitaires
 
-// Format rectangulaire standard (fil d'actualité) - ROTATION ALÉATOIRE
+// Format rectangulaire standard (fil d'actualité) - MARQUE COHÉRENTE
 export const MediumRectangle: React.FC<{ className?: string }> = ({ className }) => (
-  <RandomAdBanner width={300} height={250} className={className} />
+  <BrandConsistentAd width={300} height={250} className={className} />
 );
 
 // Bannière horizontale (en haut/bas de page)
@@ -41,9 +41,9 @@ export const WideSkyscraper: React.FC<{ className?: string }> = ({ className }) 
   />
 );
 
-// Demi-page pour sidebar - ROTATION ALÉATOIRE
+// Demi-page pour sidebar - MARQUE COHÉRENTE
 export const HalfPage: React.FC<{ className?: string }> = ({ className }) => (
-  <RandomAdBanner width={300} height={600} className={className} />
+  <BrandConsistentAd width={300} height={600} className={className} />
 );
 
 // Grand rectangle

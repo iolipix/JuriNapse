@@ -6,7 +6,7 @@ import { postsAPI } from '../../services/api';
 import PostCard from './PostCard';
 import PostSEO from './PostSEO';
 import SimpleAdBanner from '../Ads/SimpleAdBanner';
-import { RandomAdBanner } from '../Ads';
+import { BrandConsistentAd } from '../Ads';
 import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
 
 interface PostDetailPageProps {
@@ -863,7 +863,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
         {/* Sidebar publicitaire - visible uniquement sur grand écran */}
         <div className="hidden xl:block xl:col-span-1">
           <div className="sticky top-4 space-y-4">
-            <RandomAdBanner width={300} height={600} className="mx-auto" />
+            <BrandConsistentAd width={300} height={600} className="mx-auto" />
           </div>
         </div>
       </div>

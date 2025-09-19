@@ -6,6 +6,7 @@ export { default as AdSidebar } from './AdSidebar';
 export { default as SimpleAdBanner } from './SimpleAdBanner';
 export { default as CustomAdBanner } from './CustomAdBanner';
 export { RandomAdBanner, RandomAd, useRandomAd, ALL_ADS } from './RandomAdBanner';
+export { BrandConsistentAd, PrestigePhotoOnlyAd, AIWebOnlyAd } from './BrandConsistentAd';
 export { 
   AdSidebarProfile, 
   AdSidebarPost, 
