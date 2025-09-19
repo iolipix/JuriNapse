@@ -1,5 +1,6 @@
 import React from 'react';
 import CustomAdBanner from './CustomAdBanner';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 
 // Configuration des publicités disponibles
 export interface AdConfig {
@@ -116,6 +117,14 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
   excludeIds,
   fallbackToAnySize = true
 }) => {
+  // Vérifier si l'utilisateur est premium
+  const { isPremium } = usePremiumStatus();
+  
+  // Si l'utilisateur est premium, ne pas afficher de publicité
+  if (isPremium) {
+    return null;
+  }
+
   // Sélectionner une publicité aléatoire à chaque rendu
   const selectedAd = useRandomAd(width, height, excludeIds);
 

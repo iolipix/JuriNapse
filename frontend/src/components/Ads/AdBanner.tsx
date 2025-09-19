@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useAds } from './AdProvider';
 import { AdProps } from './types';
 import { RandomAdBanner } from './RandomAdBanner';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 
 const AdBanner: React.FC<AdProps> = ({ 
   slot, 
@@ -14,6 +15,14 @@ const AdBanner: React.FC<AdProps> = ({
   const { config, isLoaded } = useAds();
   const adRef = useRef<HTMLDivElement>(null);
   const [width, height] = size;
+  
+  // Vérifier si l'utilisateur est premium
+  const { isPremium } = usePremiumStatus();
+  
+  // Si l'utilisateur est premium, ne pas afficher de publicité
+  if (isPremium) {
+    return null;
+  }
 
   // Déterminer si on est en mode test
   const isTestMode = testMode ?? config.testMode;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CustomAdBanner from './CustomAdBanner';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 
 // Configuration des publicités par marque
 interface AdConfig {
@@ -127,6 +128,14 @@ export const RandomInstanceAd: React.FC<RandomInstanceAdProps> = ({
   height,
   className
 }) => {
+  // Vérifier si l'utilisateur est premium
+  const { isPremium } = usePremiumStatus();
+  
+  // Si l'utilisateur est premium, ne pas afficher de publicité
+  if (isPremium) {
+    return null;
+  }
+
   // Chaque instance génère sa propre marque aléatoire stable
   const selectedBrand = useRandomBrand();
   
@@ -153,6 +162,14 @@ export const RandomInstanceAd: React.FC<RandomInstanceAdProps> = ({
 export const PrestigePhotoOnlyAd: React.FC<{ width?: number; height?: number; className?: string }> = ({ 
   width, height, className 
 }) => {
+  // Vérifier si l'utilisateur est premium
+  const { isPremium } = usePremiumStatus();
+  
+  // Si l'utilisateur est premium, ne pas afficher de publicité
+  if (isPremium) {
+    return null;
+  }
+
   const selectedAd = useAdByBrand('prestige-photo', width, height);
   return (
     <CustomAdBanner
@@ -169,6 +186,14 @@ export const PrestigePhotoOnlyAd: React.FC<{ width?: number; height?: number; cl
 export const AIWebOnlyAd: React.FC<{ width?: number; height?: number; className?: string }> = ({ 
   width, height, className 
 }) => {
+  // Vérifier si l'utilisateur est premium
+  const { isPremium } = usePremiumStatus();
+  
+  // Si l'utilisateur est premium, ne pas afficher de publicité
+  if (isPremium) {
+    return null;
+  }
+
   const selectedAd = useAdByBrand('ai-web', width, height);
   return (
     <CustomAdBanner
