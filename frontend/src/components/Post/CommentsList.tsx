@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, User } from 'lucide-react';
 import { postsAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -42,12 +42,20 @@ const CommentsList: React.FC<CommentsListProps> = ({
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  
+  // CRITICAL FIX: Refs pour éviter dependencies instables dans useCallback
+  const loadingRef = useRef(false);
+  const initialLoadDoneRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const pageRef = useRef(1);
 
   // Fonction pour charger les commentaires
   const loadComments = useCallback(async (pageNumber: number = 1, reset: boolean = false) => {
-    if (loading || (initialLoadDone && pageNumber === 1)) return;
+    // CRITICAL FIX: Utiliser des refs pour éviter dependencies instables
+    if (loadingRef.current || (initialLoadDoneRef.current && pageNumber === 1)) return;
     
     setLoading(true);
+    loadingRef.current = true;
     setError(null);
     
     try {
@@ -59,6 +67,7 @@ const CommentsList: React.FC<CommentsListProps> = ({
         // Marquer le chargement initial comme terminé
         if (pageNumber === 1) {
           setInitialLoadDone(true);
+          initialLoadDoneRef.current = true;
         }
         
         // Si aucun nouveau commentaire, arrêter le chargement
@@ -74,24 +83,31 @@ const CommentsList: React.FC<CommentsListProps> = ({
         }
         
         setHasMore(response.pagination.hasMore);
+        hasMoreRef.current = response.pagination.hasMore;
         setPage(pageNumber);
+        pageRef.current = pageNumber;
       } else {
         setError(response.message || 'Erreur lors du chargement des commentaires');
         setHasMore(false);
+        hasMoreRef.current = false;
         if (pageNumber === 1) {
           setInitialLoadDone(true);
+          initialLoadDoneRef.current = true;
         }
       }
     } catch (err) {
       setError('Erreur lors du chargement des commentaires');
       setHasMore(false);
+      hasMoreRef.current = false;
       if (pageNumber === 1) {
         setInitialLoadDone(true);
+        initialLoadDoneRef.current = true;
       }
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  }, [postId, loading, initialLoadDone]);
+  }, [postId]); // CRITICAL FIX: Seulement postId comme dependency stable
 
   // Fonction pour liker/déliker un commentaire
   const handleLikeComment = async (commentId: string) => {
@@ -138,10 +154,11 @@ const CommentsList: React.FC<CommentsListProps> = ({
 
   // Charger plus de commentaires
   const loadMoreComments = useCallback(() => {
-    if (hasMore && !loading) {
-      loadComments(page + 1, false);
+    // CRITICAL FIX: Utiliser des références pour éviter dependencies instables
+    if (hasMoreRef.current && !loadingRef.current) {
+      loadComments(pageRef.current + 1, false);
     }
-  }, [hasMore, loading, page, loadComments]);
+  }, [loadComments]);
 
   // Gestionnaire de scroll
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {

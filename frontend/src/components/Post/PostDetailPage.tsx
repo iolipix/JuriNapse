@@ -456,18 +456,26 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
     }
   };
 
-  const recommendedPosts = React.useMemo(() => {
+  // CRITICAL FIX: Supprimer useMemo temporairement pour debug React error #310
+  // Calcul direct des posts recommandés
+  const getRecommendedPostsDirectly = () => {
     try {
-      // Vérifications de sécurité pour éviter React error #310
-      if (!post || !post.id || !posts || !Array.isArray(posts) || posts.length === 0) {
+      if (!post || !posts || !Array.isArray(posts) || posts.length === 0) {
         return [];
       }
-      return getRecommendedPosts();
+      
+      // Filtrer les posts publics et exclure le post actuel
+      const availablePosts = posts.filter(p => p && p.id !== post.id && !p.isPrivate);
+      
+      // Prendre juste les 3 premiers pour simplifier
+      return availablePosts.slice(0, 3);
     } catch (error) {
-      console.error('Error in recommendedPosts useMemo:', error);
+      console.error('Error in getRecommendedPostsDirectly:', error);
       return [];
     }
-  }, [post?.id, posts?.length]); // Utiliser posts.length au lieu de posts pour éviter les rerenders
+  };
+
+  const recommendedPosts = getRecommendedPostsDirectly();
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
