@@ -11,9 +11,9 @@ export interface AdConfig {
   height: number;
 }
 
-// Liste de toutes les publicités disponibles
+// Liste de toutes les publicités disponibles - ROTATION ALÉATOIRE
 export const ALL_ADS: AdConfig[] = [
-  // Prestige Photo - format rectangulaire
+  // 🎯 PRESTIGE PHOTO - format rectangulaire
   {
     id: 'prestige-photo-medium',
     imageUrl: '/ads/prestige-photo-300x250.jpg',
@@ -22,7 +22,7 @@ export const ALL_ADS: AdConfig[] = [
     width: 300,
     height: 250
   },
-  // Prestige Photo - format vertical
+  // 🎯 PRESTIGE PHOTO - format vertical
   {
     id: 'prestige-photo-half',
     imageUrl: '/ads/prestige-photo-300x600.jpg',
@@ -31,7 +31,25 @@ export const ALL_ADS: AdConfig[] = [
     width: 300,
     height: 600
   },
-  // Nouvelle publicité - Format post
+  // 🤖 AI WEB - format rectangulaire
+  {
+    id: 'ai-web-medium',
+    imageUrl: '/ads/ai-web-300x250.jpg',
+    clickUrl: 'https://ai-web.fr/', // URL AI Web
+    altText: 'AI Web - Solutions intelligence artificielle web',
+    width: 300,
+    height: 250
+  },
+  // 🤖 AI WEB - format vertical
+  {
+    id: 'ai-web-half',
+    imageUrl: '/ads/ai-web-300x600.jpg',
+    clickUrl: 'https://ai-web.fr/', // URL AI Web
+    altText: 'AI Web - Développement web avec intelligence artificielle',
+    width: 300,
+    height: 600
+  },
+  // 📱 Format post générique
   {
     id: 'format-post',
     imageUrl: '/ads/format-post.png',
@@ -40,7 +58,7 @@ export const ALL_ADS: AdConfig[] = [
     width: 300,
     height: 250
   },
-  // Nouvelle publicité - Format profil
+  // 👤 Format profil générique
   {
     id: 'format-profil',
     imageUrl: '/ads/format-profil.png',

@@ -18,6 +18,11 @@ export {
   PrestigePhotoAd
 } from './PrestigePhotoAds';
 export {
+  AIWebMedium,
+  AIWebHalf,
+  AIWebAd
+} from './AIWebAds';
+export {
   MediumRectangle,
   Leaderboard,
   MobileBanner,
