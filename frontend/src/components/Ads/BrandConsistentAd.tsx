@@ -35,17 +35,17 @@ const PRESTIGE_PHOTO_ADS: AdConfig[] = [
 const AI_WEB_ADS: AdConfig[] = [
   {
     id: 'ai-web-medium',
-    imageUrl: '/ads/ai-web-300x250.jpg',
-    clickUrl: 'https://ai-web.fr/',
-    altText: 'AI Web - Solutions intelligence artificielle web',
+    imageUrl: '/ads/ai-web-300x250.png',
+    clickUrl: 'https://www.aiaweb.fr/',
+    altText: 'AIAWEB - Consulting, Web développement, IA & Automatisation',
     width: 300,
     height: 250
   },
   {
     id: 'ai-web-half',
-    imageUrl: '/ads/ai-web-300x600.jpg',
-    clickUrl: 'https://ai-web.fr/',
-    altText: 'AI Web - Développement web avec intelligence artificielle',
+    imageUrl: '/ads/ai-web-300x600.png',
+    clickUrl: 'https://www.aiaweb.fr/',
+    altText: 'AIAWEB - Révélez tout le potentiel digital de votre entreprise',
     width: 300,
     height: 600
   }
