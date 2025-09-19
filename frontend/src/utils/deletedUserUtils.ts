@@ -80,7 +80,11 @@ export function getDisplayProfilePicture(user: any): string | null {
  * @returns {boolean} - true si le profil est cliquable
  */
 export function isProfileClickable(user: any): boolean {
-  return !isUserDeleted(user) && user.id && user.id !== 'unknown';
+  if (isUserDeleted(user)) return false;
+  
+  // CRITICAL FIX: Supporter _id, id, et userId pour la compatibilité
+  const userId = user.id || user._id || user.userId;
+  return Boolean(userId && userId !== 'unknown');
 }
 
 /**
