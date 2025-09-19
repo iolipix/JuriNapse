@@ -539,36 +539,33 @@ router.post('/grant-premium', authenticateToken, moderatorAuth, async (req, res)
     }
 
     // Utiliser la date d'expiration fournie ou null pour permanent
-    let premiumExpiresAt = null;
+    let durationInDays = null;
     if (expiresAt) {
-      premiumExpiresAt = new Date(expiresAt);
+      const expirationDate = new Date(expiresAt);
       // Vérifier que la date est dans le futur
-      if (premiumExpiresAt <= new Date()) {
+      if (expirationDate <= new Date()) {
         return res.status(400).json({ message: 'La date d\'expiration doit être dans le futur' });
       }
+      
+      // Calculer la durée en jours
+      const diffTime = expirationDate - new Date();
+      durationInDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     }
 
-    // Ajouter le rôle premium si pas déjà présent
-    if (!user.hasRole('premium')) {
-      user.addRole('premium');
-    }
-
-    // Mettre à jour l'utilisateur
-    user.premiumExpiresAt = premiumExpiresAt;
-    user.premiumGrantedBy = req.user.id;
-    user.premiumGrantedAt = new Date();
-    
+    // CRITICAL FIX: Utiliser la méthode grantPremium qui gère l'historique
+    user.grantPremium(durationInDays, req.user.id);
     await user.save();
 
     res.json({
-      message: `Premium ${premiumExpiresAt ? 'temporaire' : 'permanent'} accordé avec succès`,
+      message: `Premium ${expiresAt ? 'temporaire' : 'permanent'} accordé avec succès`,
       user: {
         _id: user._id,
         username: user.username,
         premiumExpiresAt: user.premiumExpiresAt,
         premiumGrantedBy: req.user.username,
         premiumGrantedAt: user.premiumGrantedAt,
-        role: user.role
+        role: user.role,
+        premiumHistory: user.premiumHistory
       }
     });
   } catch (error) {
@@ -587,16 +584,8 @@ router.delete('/revoke-premium/:userId', authenticateToken, moderatorAuth, async
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    // Supprimer le rôle premium
-    if (user.hasRole('premium')) {
-      user.removeRole('premium');
-    }
-
-    // Révoquer le premium
-    user.premiumExpiresAt = null;
-    user.premiumGrantedBy = null;
-    user.premiumGrantedAt = null;
-    
+    // CRITICAL FIX: Utiliser la méthode revokePremium qui gère l'historique
+    user.revokePremium(req.user.id);
     await user.save();
 
     res.json({
@@ -604,7 +593,8 @@ router.delete('/revoke-premium/:userId', authenticateToken, moderatorAuth, async
       user: {
         _id: user._id,
         username: user.username,
-        role: user.role
+        role: user.role,
+        premiumHistory: user.premiumHistory
       }
     });
   } catch (error) {
