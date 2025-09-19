@@ -19,32 +19,44 @@ const PremiumSubscriptionPage: React.FC = () => {
     try {
       setLoadingInfo(true);
       const response = await stripeAPI.getSubscriptionInfo();
+      console.log('Response subscription info:', response); // Debug log
       if (response.success) {
         setSubscriptionInfo(response.subscription);
+        console.log('Subscription info loaded:', response.subscription); // Debug log
+      } else {
+        console.log('No subscription info or error:', response); // Debug log
+        // Si pas d'info d'abonnement, on considère que l'utilisateur n'a pas de premium
+        setSubscriptionInfo({ hasPremium: false });
       }
     } catch (error: any) {
       console.error('Erreur chargement info abonnement:', error);
-      setError('Erreur lors du chargement des informations d\'abonnement');
+      // En cas d'erreur, on considère que l'utilisateur n'a pas de premium
+      setSubscriptionInfo({ hasPremium: false });
+      setError('Impossible de charger les informations d\'abonnement. Vous pouvez tout de même souscrire.');
     } finally {
       setLoadingInfo(false);
     }
   };
 
   const handleSubscribe = async () => {
+    console.log('🔄 Tentative d\'abonnement...'); // Debug log
     try {
       setLoading(true);
       setError(null);
 
       const response = await stripeAPI.createCheckoutSession();
+      console.log('🔗 Réponse checkout session:', response); // Debug log
       
       if (response.success && response.url) {
+        console.log('✅ Redirection vers Stripe:', response.url); // Debug log
         // Rediriger vers Stripe Checkout
         window.location.href = response.url;
       } else {
+        console.error('❌ Pas d\'URL de checkout:', response); // Debug log
         throw new Error('Impossible de créer la session de paiement');
       }
     } catch (error: any) {
-      console.error('Erreur lors de la création de l\'abonnement:', error);
+      console.error('❌ Erreur lors de la création de l\'abonnement:', error);
       setError(error.message || 'Une erreur est survenue lors de la création de l\'abonnement');
     } finally {
       setLoading(false);
@@ -192,7 +204,7 @@ const PremiumSubscriptionPage: React.FC = () => {
         )}
 
         {/* Plan d'abonnement */}
-        {!subscriptionInfo?.hasPremium && (
+        {(!subscriptionInfo?.hasPremium || !subscriptionInfo) && (
           <div className="bg-white rounded-xl shadow-lg border-2 border-yellow-200 p-8 mb-8">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full mb-4">
