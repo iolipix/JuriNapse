@@ -861,9 +861,9 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
 
         {/* Sidebar publicitaire - visible uniquement sur grand écran */}
         <div className="hidden xl:block xl:col-span-1">
-          <div className="sticky top-4 space-y-4">
+          <div className="sticky top-32 space-y-6">
             <SponsoredContent>
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 10rem)' }}>
                 <div className="text-xs text-gray-500 mb-2 font-medium">
                   Contenu sponsorisé
                 </div>
