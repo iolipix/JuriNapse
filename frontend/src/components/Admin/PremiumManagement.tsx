@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, Calendar, User, CheckCircle, XCircle, AlertCircle, Search } from 'lucide-react';
+import { Crown, Calendar, User, CheckCircle, XCircle, AlertCircle, Search, Check, X } from 'lucide-react';
 
 interface PremiumUser {
   id: string;
@@ -49,6 +49,29 @@ const PremiumManagement: React.FC = () => {
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+
+  // États pour les notifications
+  const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
+  const [showErrorMessage, setShowErrorMessage] = useState<string | null>(null);
+
+  // Auto-suppression des notifications après 4 secondes
+  useEffect(() => {
+    if (showSuccessMessage) {
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessMessage]);
+
+  useEffect(() => {
+    if (showErrorMessage) {
+      const timer = setTimeout(() => {
+        setShowErrorMessage(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [showErrorMessage]);
 
   // Charger la liste des utilisateurs premium
   const loadPremiumUsers = async () => {
@@ -208,7 +231,7 @@ const PremiumManagement: React.FC = () => {
       }
 
       const data = await response.json();
-      alert(`Premium ${grantForm.isPermanent ? 'permanent' : 'temporaire'} attribué avec succès à ${grantForm.selectedUser.username}`);
+      setShowSuccessMessage(`Premium ${grantForm.isPermanent ? 'permanent' : 'temporaire'} attribué avec succès à ${grantForm.selectedUser.username}`);
       
       // Recharger la liste et fermer le formulaire
       await loadPremiumUsers();
@@ -216,7 +239,7 @@ const PremiumManagement: React.FC = () => {
       setGrantForm({ selectedUser: null, expiresAt: '', isPermanent: false });
       setSearchQuery('');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erreur inconnue');
+      setShowErrorMessage(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setSubmitting(false);
     }
@@ -242,10 +265,10 @@ const PremiumManagement: React.FC = () => {
         throw new Error(errorData.message || 'Erreur lors de la révocation du premium');
       }
 
-      alert(`Premium révoqué avec succès pour ${username}`);
+      setShowSuccessMessage(`Premium révoqué avec succès pour ${username}`);
       await loadPremiumUsers();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erreur inconnue');
+      setShowErrorMessage(err instanceof Error ? err.message : 'Erreur inconnue');
     }
   };
 
@@ -570,6 +593,42 @@ const PremiumManagement: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Message de succès */}
+      {showSuccessMessage && (
+        <div className="fixed top-24 right-6 z-50 transform transition-all">
+          <div className="bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg flex items-center space-x-3">
+            <div className="bg-white/20 p-1 rounded-full">
+              <Check className="h-4 w-4" />
+            </div>
+            <span className="font-medium">{showSuccessMessage}</span>
+            <button 
+              onClick={() => setShowSuccessMessage(null)}
+              className="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Message d'erreur */}
+      {showErrorMessage && (
+        <div className="fixed top-24 right-6 z-50 transform transition-all">
+          <div className="bg-red-500 text-white px-6 py-4 rounded-xl shadow-lg flex items-center space-x-3">
+            <div className="bg-white/20 p-1 rounded-full">
+              <X className="h-4 w-4" />
+            </div>
+            <span className="font-medium">{showErrorMessage}</span>
+            <button 
+              onClick={() => setShowErrorMessage(null)}
+              className="ml-2 hover:bg-white/20 rounded-full p-1 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
