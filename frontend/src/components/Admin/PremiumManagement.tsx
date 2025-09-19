@@ -54,6 +54,9 @@ const PremiumManagement: React.FC = () => {
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [showErrorMessage, setShowErrorMessage] = useState<string | null>(null);
 
+  // États pour la confirmation de révocation
+  const [showRevokeConfirm, setShowRevokeConfirm] = useState<{userId: string, username: string} | null>(null);
+
   // Auto-suppression des notifications après 4 secondes
   useEffect(() => {
     if (showSuccessMessage) {
@@ -247,9 +250,14 @@ const PremiumManagement: React.FC = () => {
 
   // Révoquer le premium
   const handleRevokePremium = async (userId: string, username: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir révoquer le premium de ${username} ?`)) {
-      return;
-    }
+    setShowRevokeConfirm({ userId, username });
+  };
+
+  // Confirmer la révocation
+  const confirmRevokePremium = async () => {
+    if (!showRevokeConfirm) return;
+
+    const { userId, username } = showRevokeConfirm;
 
     try {
       const response = await fetch(`/api/admin/revoke-premium/${userId}`, {
@@ -267,8 +275,10 @@ const PremiumManagement: React.FC = () => {
 
       setShowSuccessMessage(`Premium révoqué avec succès pour ${username}`);
       await loadPremiumUsers();
+      setShowRevokeConfirm(null);
     } catch (err) {
       setShowErrorMessage(err instanceof Error ? err.message : 'Erreur inconnue');
+      setShowRevokeConfirm(null);
     }
   };
 
@@ -593,6 +603,43 @@ const PremiumManagement: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modale de confirmation de révocation */}
+      {showRevokeConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="bg-red-100 p-2 rounded-full">
+                <Crown className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Révoquer le Premium
+              </h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              Êtes-vous sûr de vouloir révoquer le premium de{' '}
+              <span className="font-semibold text-gray-900">{showRevokeConfirm.username}</span> ?
+              Cette action est immédiate et irréversible.
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowRevokeConfirm(null)}
+                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmRevokePremium}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium"
+              >
+                Révoquer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Message de succès */}
       {showSuccessMessage && (
