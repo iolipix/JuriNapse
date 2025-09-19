@@ -3,7 +3,7 @@
  */
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth.middleware');
 const stripeService = require('../services/stripe.service');
 const User = require('../models/user.model');
 
