@@ -110,24 +110,28 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
 
   // Scroll vers le haut quand on arrive sur la page
   useEffect(() => {
-    // CRITICAL FIX: Scroll vers le haut à chaque chargement de la page (y compris F5)
+    // CRITICAL FIX: Scroll immédiat et agressif vers le haut
     window.scrollTo({ top: 0, behavior: 'instant' });
     
-    // Puis un scroll plus doux après un petit délai pour s'assurer que le contenu est rendu
-    const timer = setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100); // Augmenté à 100ms pour laisser plus de temps au rendering
+    // Scroll multiple avec délais progressifs pour s'assurer que ça marche
+    const timers = [
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 50),
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 150),
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 300),
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 500)
+    ];
     
-    return () => clearTimeout(timer);
+    return () => timers.forEach(timer => clearTimeout(timer));
   }, [postId]); // Se déclenche à chaque changement de postId ET au mount initial
 
   // CRITICAL FIX: Scroll additionnel après chargement du post pour F5
   useEffect(() => {
     if (post) {
-      // Scroll vers le haut une fois que le post est chargé
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      }, 0);
+      // Série de scrolls agressifs pour forcer la position en haut
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 10);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 100);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 250);
     }
   }, [post?.id]); // Se déclenche quand le post est disponible
 
