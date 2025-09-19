@@ -386,79 +386,8 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
     }
   };
 
-  // Fonction pour obtenir des posts recommandés
-  const getRecommendedPosts = () => {
-    try {
-      if (!post || !posts || !Array.isArray(posts)) return [];
-      
-      // Filtrer les posts publics et exclure le post actuel
-      const availablePosts = posts.filter(p => p && p.id !== post.id && !p.isPrivate);
-      
-      // Algorithme de recommandation simple basé sur :
-      // 1. Même type de post
-      // 2. Tags similaires
-      // 3. Même auteur
-      // 4. Posts populaires (plus de likes)
-      
-      const scoredPosts = availablePosts.map(p => {
-        try {
-          let score = 0;
-          
-          // Bonus pour le même type
-          if (p?.type === post?.type) score += 3;
-          
-          // Bonus pour les tags similaires
-          const commonTags = (p?.tags && post?.tags && Array.isArray(p.tags) && Array.isArray(post.tags)) ? 
-            p.tags.filter(tag => post.tags.includes(tag)) : [];
-          score += commonTags.length * 2;
-          
-          // Bonus pour le même auteur
-          if (p?.authorId === post?.authorId) score += 1;
-          
-          // Bonus pour la popularité (likes)
-          const likes = typeof p?.likes === 'number' ? p.likes : 0;
-          score += Math.min(likes / 5, 2); // Max 2 points pour les likes
-          
-          // Bonus pour les posts récents - avec validation sécurisée
-          try {
-            const postDate = p?.createdAt ? new Date(p.createdAt) : null;
-            const daysSinceCreation = (postDate && !isNaN(postDate.getTime())) ? 
-              (Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24) : 
-              Infinity;
-            if (daysSinceCreation < 7) score += 1; // Bonus pour les posts de moins d'une semaine
-          } catch (dateError) {
-            console.warn('Error calculating post date for recommendation:', p?.id, dateError);
-          }
-          
-          return { post: p, score: isNaN(score) || !isFinite(score) ? 0 : score };
-        } catch (error) {
-          console.warn('Error scoring post for recommendation:', p?.id, error);
-          return { post: p, score: 0 };
-        }
-      });
-      
-      // Trier par score décroissant et prendre les 3 premiers
-      const recommended = scoredPosts
-        .sort((a, b) => (b?.score || 0) - (a?.score || 0))
-        .slice(0, 3)
-        .map(item => item?.post)
-        .filter(Boolean);
-      
-      // Déduplication basée sur l'ID pour éviter les clés dupliquées
-      const uniqueRecommended = recommended.filter((recPost, index, self) => 
-        recPost && index === self.findIndex(p => p && p.id === recPost.id)
-      );
-      
-      return Array.isArray(uniqueRecommended) ? uniqueRecommended : [];
-    } catch (error) {
-      console.error('Error in getRecommendedPosts:', error);
-      return [];
-    }
-  };
-
-  // CRITICAL FIX: Supprimer useMemo temporairement pour debug React error #310
-  // Calcul direct des posts recommandés
-  const getRecommendedPostsDirectly = () => {
+  // CRITICAL FIX FINAL: useMemo avec dependencies vraiment stables pour éviter React error #310
+  const recommendedPosts = React.useMemo(() => {
     try {
       if (!post || !posts || !Array.isArray(posts) || posts.length === 0) {
         return [];
@@ -467,15 +396,49 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
       // Filtrer les posts publics et exclure le post actuel
       const availablePosts = posts.filter(p => p && p.id !== post.id && !p.isPrivate);
       
-      // Prendre juste les 3 premiers pour simplifier
-      return availablePosts.slice(0, 3);
+      // Algorithme de recommandation simple mais stable
+      const scoredPosts = availablePosts.map(p => {
+        let score = 0;
+        
+        // Bonus pour le même type
+        if (p?.type === post?.type) score += 3;
+        
+        // Bonus pour les tags similaires
+        if (p?.tags && post?.tags && Array.isArray(p.tags) && Array.isArray(post.tags)) {
+          const commonTags = p.tags.filter(tag => post.tags.includes(tag));
+          score += commonTags.length * 2;
+        }
+        
+        // Bonus pour le même auteur
+        if (p?.authorId === post?.authorId) score += 1;
+        
+        // Bonus pour la popularité (likes)
+        const likes = typeof p?.likes === 'number' ? p.likes : 0;
+        score += Math.min(likes / 5, 2);
+        
+        return { post: p, score };
+      });
+      
+      // Trier par score décroissant et prendre les 3 premiers
+      return scoredPosts
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map(item => item.post)
+        .filter(Boolean);
+        
     } catch (error) {
-      console.error('Error in getRecommendedPostsDirectly:', error);
+      console.error('Error in recommendedPosts useMemo:', error);
       return [];
     }
-  };
-
-  const recommendedPosts = getRecommendedPostsDirectly();
+  }, [
+    // Dependencies ULTRA stables - seulement les IDs et valeurs primitives
+    post?.id,
+    post?.type, 
+    post?.authorId,
+    post?.tags?.join(','), // Convertir array en string stable
+    posts?.length,
+    // Pas de référence à l'objet posts complet pour éviter rerenders
+  ]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
