@@ -1,12 +1,12 @@
 import React from 'react';
 import AdBanner from './AdBanner';
-import { PrestigePhotoMedium, PrestigePhotoHalf } from './PrestigePhotoAds';
+import { RandomAdBanner } from './RandomAdBanner';
 
 // Composants prédéfinis pour différents formats publicitaires
 
-// Format rectangulaire standard (fil d'actualité) - Prestige Photo
+// Format rectangulaire standard (fil d'actualité) - ROTATION ALÉATOIRE
 export const MediumRectangle: React.FC<{ className?: string }> = ({ className }) => (
-  <PrestigePhotoMedium className={className} />
+  <RandomAdBanner width={300} height={250} className={className} />
 );
 
 // Bannière horizontale (en haut/bas de page)
@@ -41,9 +41,9 @@ export const WideSkyscraper: React.FC<{ className?: string }> = ({ className }) 
   />
 );
 
-// Demi-page pour sidebar - Prestige Photo
+// Demi-page pour sidebar - ROTATION ALÉATOIRE
 export const HalfPage: React.FC<{ className?: string }> = ({ className }) => (
-  <PrestigePhotoHalf className={className} />
+  <RandomAdBanner width={300} height={600} className={className} />
 );
 
 // Grand rectangle
