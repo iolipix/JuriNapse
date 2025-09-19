@@ -386,8 +386,9 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
     }
   };
 
-  // CRITICAL FIX FINAL: useMemo avec dependencies vraiment stables pour éviter React error #310
-  const recommendedPosts = React.useMemo(() => {
+  // SOLUTION ULTIME: Pas de useMemo du tout - calcul direct à chaque render
+  // React error #310 se produit avec TOUT useMemo sur cette logique
+  const getRecommendedPosts = () => {
     try {
       if (!post || !posts || !Array.isArray(posts) || posts.length === 0) {
         return [];
@@ -396,7 +397,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
       // Filtrer les posts publics et exclure le post actuel
       const availablePosts = posts.filter(p => p && p.id !== post.id && !p.isPrivate);
       
-      // Algorithme de recommandation simple mais stable
+      // Algorithme de recommandation simple
       const scoredPosts = availablePosts.map(p => {
         let score = 0;
         
@@ -427,18 +428,13 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
         .filter(Boolean);
         
     } catch (error) {
-      console.error('Error in recommendedPosts useMemo:', error);
+      console.error('Error in getRecommendedPosts:', error);
       return [];
     }
-  }, [
-    // Dependencies ULTRA stables - seulement les IDs et valeurs primitives
-    post?.id,
-    post?.type, 
-    post?.authorId,
-    post?.tags?.join(','), // Convertir array en string stable
-    posts?.length,
-    // Pas de référence à l'objet posts complet pour éviter rerenders
-  ]);
+  };
+
+  // Calcul direct sans useMemo - plus stable
+  const recommendedPosts = getRecommendedPosts();
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
