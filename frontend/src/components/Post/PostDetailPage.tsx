@@ -458,13 +458,16 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
 
   const recommendedPosts = React.useMemo(() => {
     try {
-      if (!post || !posts) return [];
+      // Vérifications de sécurité pour éviter React error #310
+      if (!post || !post.id || !posts || !Array.isArray(posts) || posts.length === 0) {
+        return [];
+      }
       return getRecommendedPosts();
     } catch (error) {
       console.error('Error in recommendedPosts useMemo:', error);
       return [];
     }
-  }, [post?.id, posts]);
+  }, [post?.id, posts?.length]); // Utiliser posts.length au lieu de posts pour éviter les rerenders
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
