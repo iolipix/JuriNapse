@@ -12,7 +12,7 @@ class StripeService {
    * Vérifier si Stripe est configuré
    */
   isConfigured() {
-    return stripe !== null && process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PREMIUM_PRICE_ID;
+    return stripe !== null && process.env.STRIPE_SECRET_KEY && (process.env.STRIPE_PREMIUM_PRICE_ID || process.env.STRIPE_PREMIUM_LOOKUP_KEY);
   }
 
   /**
@@ -25,18 +25,39 @@ class StripeService {
    */
   async createCheckoutSession(userId, userEmail, successUrl, cancelUrl) {
     if (!this.isConfigured()) {
-      throw new Error('Stripe n\'est pas configuré. Vérifiez les variables d\'environnement STRIPE_SECRET_KEY et STRIPE_PREMIUM_PRICE_ID.');
+      throw new Error('Stripe n\'est pas configuré. Vérifiez les variables d\'environnement STRIPE_SECRET_KEY et STRIPE_PREMIUM_LOOKUP_KEY.');
     }
 
     try {
+      let lineItems;
+      
+      // Utiliser lookup_key si disponible (recommandé par Stripe)
+      if (process.env.STRIPE_PREMIUM_LOOKUP_KEY) {
+        const prices = await stripe.prices.list({
+          lookup_keys: [process.env.STRIPE_PREMIUM_LOOKUP_KEY],
+          expand: ['data.product'],
+        });
+        
+        if (!prices.data || prices.data.length === 0) {
+          throw new Error(`Aucun prix trouvé pour le lookup_key: ${process.env.STRIPE_PREMIUM_LOOKUP_KEY}`);
+        }
+        
+        lineItems = [{
+          price: prices.data[0].id,
+          quantity: 1,
+        }];
+      } else {
+        // Fallback vers price_id direct
+        lineItems = [{
+          price: process.env.STRIPE_PREMIUM_PRICE_ID,
+          quantity: 1,
+        }];
+      }
+
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
-        line_items: [
-          {
-            price: process.env.STRIPE_PREMIUM_PRICE_ID,
-            quantity: 1,
-          },
-        ],
+        billing_address_collection: 'auto',
+        line_items: lineItems,
         mode: 'subscription',
         success_url: successUrl,
         cancel_url: cancelUrl,

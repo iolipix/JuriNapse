@@ -202,7 +202,7 @@ const PremiumSubscriptionPage: React.FC = () => {
                 Plan Premium
               </h2>
               <div className="flex items-center justify-center space-x-2 mb-4">
-                <span className="text-4xl font-bold text-gray-900">9,99€</span>
+                <span className="text-4xl font-bold text-gray-900">3,00€</span>
                 <span className="text-gray-600">/mois</span>
               </div>
               <div className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
@@ -282,7 +282,7 @@ const PremiumSubscriptionPage: React.FC = () => {
               </h4>
               <p className="text-sm text-gray-600">
                 Après 7 jours d'essai gratuit, votre abonnement se renouvelle automatiquement 
-                à 9,99€/mois sauf si vous l'annulez avant la fin de la période d'essai.
+                à 3,00€/mois sauf si vous l'annulez avant la fin de la période d'essai.
               </p>
             </div>
             <div>
