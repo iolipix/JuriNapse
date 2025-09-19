@@ -35,6 +35,9 @@ import AdminPage from './components/Admin/AdminPage';
 import AdminMenu from './components/Admin/AdminMenu';
 import ModeratorsManagement from './components/Admin/ModeratorsManagement';
 import ModeratorMenu from './components/Moderator/ModeratorMenu';
+import PremiumSubscriptionPage from './components/Premium/PremiumSubscriptionPage';
+import PremiumSuccessPage from './components/Premium/PremiumSuccessPage';
+import PremiumCancelPage from './components/Premium/PremiumCancelPage';
 
 const MainApp: React.FC = () => {
   const { user, isLoading, needsEmailVerification, pendingVerificationUserId } = useAuth();
@@ -688,6 +691,48 @@ const MainApp: React.FC = () => {
       return;
     }
     
+    // Routes pour premium
+    if (path === '/premium') {
+      if (!user) {
+        setIsAuthOpen(true);
+        return;
+      }
+      setActiveTab('premium');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setSettingsTab(null);
+      setAdminTab(null);
+      return;
+    }
+
+    if (path === '/premium/success') {
+      if (!user) {
+        setIsAuthOpen(true);
+        return;
+      }
+      setActiveTab('premium-success');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setSettingsTab(null);
+      setAdminTab(null);
+      return;
+    }
+
+    if (path === '/premium/cancel') {
+      setActiveTab('premium-cancel');
+      setViewingUserId(null);
+      setViewingPostId(null);
+      setViewingDecision(null);
+      setSelectedTag(null);
+      setSettingsTab(null);
+      setAdminTab(null);
+      return;
+    }
+    
     // Routes pour les paramètres
     if (path === '/settings') {
       if (!user) {
@@ -987,6 +1032,12 @@ const MainApp: React.FC = () => {
             }}
           />
         );
+      case 'premium':
+        return <PremiumSubscriptionPage />;
+      case 'premium-success':
+        return <PremiumSuccessPage />;
+      case 'premium-cancel':
+        return <PremiumCancelPage />;
       case 'messages':
         return <MessagingPage onViewPost={handleViewPost} onViewUserProfile={handleViewUserProfile} targetUserId={targetMessageUserId || undefined} />;
   case 'profile':

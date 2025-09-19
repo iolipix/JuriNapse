@@ -178,6 +178,20 @@ const userSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  // Intégration Stripe pour les abonnements
+  stripeCustomerId: {
+    type: String,
+    default: null
+  },
+  stripeSubscriptionId: {
+    type: String,
+    default: null
+  },
+  stripeSubscriptionStatus: {
+    type: String,
+    enum: ['active', 'past_due', 'canceled', 'unpaid', 'incomplete', 'incomplete_expired', 'trialing', null],
+    default: null
+  },
   postsCount: {
     type: Number,
     default: 0

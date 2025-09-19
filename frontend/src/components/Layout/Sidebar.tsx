@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FileText, TrendingUp, LogIn, Bell, Menu, LogOut, Settings, FileCheck, BookOpen, Scroll, Edit, X, Shield } from 'lucide-react';
+import { FileText, TrendingUp, LogIn, Bell, Menu, LogOut, Settings, FileCheck, BookOpen, Scroll, Edit, X, Shield, Crown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { isAdministratorMultiple, isModeratorMultiple } from '../../utils/roles';
@@ -61,6 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const authTabs = [
     { id: 'notifications', label: 'Notifications', icon: Bell, requiresAuth: true },
+    { id: 'premium', label: 'Premium', icon: Crown, requiresAuth: true },
   ];
 
   // Onglets administrateur (visibles uniquement pour les admins)

@@ -704,4 +704,37 @@ export const savedPostsAPI = {
   }
 };
 
+// API pour Stripe et abonnements premium
+export const stripeAPI = {
+  // Créer une session de checkout Stripe
+  createCheckoutSession: async () => {
+    const response = await api.post('/stripe/create-checkout-session');
+    return response.data;
+  },
+
+  // Créer une session du portail client Stripe
+  createPortalSession: async () => {
+    const response = await api.post('/stripe/create-portal-session');
+    return response.data;
+  },
+
+  // Récupérer les informations d'abonnement
+  getSubscriptionInfo: async () => {
+    const response = await api.get('/stripe/subscription-info');
+    return response.data;
+  },
+
+  // Annuler un abonnement
+  cancelSubscription: async () => {
+    const response = await api.post('/stripe/cancel-subscription');
+    return response.data;
+  },
+
+  // Vérifier une session de checkout
+  verifySession: async (sessionId: string) => {
+    const response = await api.get(`/stripe/verify-session/${sessionId}`);
+    return response.data;
+  }
+};
+
 export default api;

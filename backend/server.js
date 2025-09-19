@@ -68,6 +68,8 @@ const adminRoutes = require('./routes/admin');
 const prerenderRoutes = require('./routes/prerender.routes');
 const diagnosticRoutes = require('./routes/diagnostic.routes');
 const migrationRoutes = require('./routes/migration');
+const stripeRoutes = require('./routes/stripe');
+const stripeWebhookRoutes = require('./routes/stripe-webhook');
 
 // Import des middlewares de sécurité
 const { 
@@ -214,6 +216,8 @@ app.use('/api/subscriptions', checkPremiumExpiration, subscriptionRoutes); // TE
 app.use('/api/admin', checkPremiumExpiration, adminRoutes); // Routes d'administration
 app.use('/api/migration', checkPremiumExpiration, migrationRoutes); // Routes de migration
 app.use('/api/diagnostic', diagnosticRoutes); // Routes de diagnostic
+app.use('/api/stripe', stripeRoutes); // Routes Stripe pour abonnements premium
+app.use('/stripe', stripeWebhookRoutes); // Webhooks Stripe (sans /api car Stripe attend une URL spécifique)
 
 // EMERGENCY: Test route simple pour debug
 app.get('/api/test-subscriptions', (req, res) => {
