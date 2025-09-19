@@ -436,6 +436,40 @@ const MainApp: React.FC = () => {
     setSelectedTag(null);
     window.location.hash = '';
     
+    // Mettre à jour l'URL selon l'onglet
+    let newUrl = '/';
+    switch (tab) {
+      case 'premium':
+        newUrl = '/premium';
+        break;
+      case 'notifications':
+        newUrl = '/notifications';
+        break;
+      case 'messages':
+        newUrl = '/messages';
+        break;
+      case 'settings':
+        newUrl = '/settings';
+        break;
+      case 'admin':
+        newUrl = '/admin';
+        break;
+      case 'moderator':
+        newUrl = '/moderator';
+        break;
+      case 'legal':
+        newUrl = '/legal';
+        break;
+      default:
+        newUrl = '/';
+        break;
+    }
+    
+    // Mettre à jour l'URL sans recharger la page
+    if (window.location.pathname !== newUrl) {
+      window.history.pushState({}, '', newUrl);
+    }
+    
     // Réinitialiser le titre à JuriNapse pour les pages principales
     document.title = 'JuriNapse';
     
@@ -1185,7 +1219,7 @@ const MainApp: React.FC = () => {
                 
                 {/* SUGGESTIONS SIDEBAR - REAL COMPONENT */}
                 {(() => {
-                  const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu', 'admin', 'profile', 'user-profile', 'settings', 'terms', 'privacy', 'legal'];
+                  const noSuggestionsPages = ['post-detail', 'messages', 'settings-menu', 'admin', 'profile', 'user-profile', 'settings', 'terms', 'privacy', 'legal', 'premium', 'premium-success', 'premium-cancel'];
                   const shouldShow = !noSuggestionsPages.includes(activeTab) && !!user;
                   
                   if (!shouldShow) return null;
