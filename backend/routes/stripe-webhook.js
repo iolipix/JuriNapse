@@ -12,6 +12,10 @@ router.use(express.raw({ type: 'application/json' }));
 router.post('/webhook', async (req, res) => {
   const signature = req.headers['stripe-signature'];
   
+  console.log('🔍 DEBUG Webhook - Signature reçue:', signature ? 'Présente' : 'Manquante');
+  console.log('🔍 DEBUG Webhook - Body length:', req.body ? req.body.length : 'Pas de body');
+  console.log('🔍 DEBUG Webhook - STRIPE_WEBHOOK_SECRET:', process.env.STRIPE_WEBHOOK_SECRET ? 'Configuré' : 'Manquant');
+  
   try {
     // Vérifier et construire l'événement
     const event = stripeService.constructWebhookEvent(req.body, signature);
