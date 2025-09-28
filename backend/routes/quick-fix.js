@@ -171,6 +171,111 @@ router.get('/webhook-health', async (req, res) => {
   }
 });
 
+// Route pour analyser un paiement spécifique
+router.get('/analyze-payment/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = {
+      timestamp: new Date().toISOString(),
+      userId: userId,
+      analysis: {},
+      stripeData: {},
+      problems: [],
+      solutions: []
+    };
+
+    console.log(`🔍 Analyse du paiement pour userId: ${userId}`);
+
+    // 1. Vérifier l'utilisateur
+    const user = await User.findById(userId);
+    if (!user) {
+      result.problems.push('Utilisateur introuvable dans la base');
+      return res.status(404).json(result);
+    }
+
+    result.analysis.user = {
+      email: user.email,
+      roles: user.roles,
+      isPremium: user.isPremium(),
+      premiumExpiresAt: user.premiumExpiresAt,
+      premiumGrantedAt: user.premiumGrantedAt,
+      stripeCustomerId: user.stripeCustomerId,
+      stripeSubscriptionId: user.stripeSubscriptionId
+    };
+
+    // 2. Analyser Stripe si configuré
+    if (process.env.STRIPE_SECRET_KEY) {
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+      // Chercher les sessions avec ce userId
+      const sessions = await stripe.checkout.sessions.list({
+        limit: 100,
+        expand: ['data.subscription']
+      });
+
+      const userSessions = sessions.data.filter(session => 
+        session.client_reference_id === userId
+      );
+
+      result.stripeData.sessionsFound = userSessions.length;
+      result.stripeData.sessions = userSessions.map(session => ({
+        id: session.id,
+        status: session.status,
+        mode: session.mode,
+        email: session.customer_email,
+        created: new Date(session.created * 1000).toISOString(),
+        subscriptionId: session.subscription,
+        metadata: session.metadata
+      }));
+
+      // Chercher les événements webhook pour ce user
+      const events = await stripe.events.list({
+        type: 'checkout.session.completed',
+        limit: 50
+      });
+
+      const userEvents = events.data.filter(event => {
+        const session = event.data.object;
+        return session.client_reference_id === userId;
+      });
+
+      result.stripeData.webhookEvents = userEvents.map(event => ({
+        id: event.id,
+        created: new Date(event.created * 1000).toISOString(),
+        type: event.type,
+        livemode: event.livemode,
+        sessionId: event.data.object.id,
+        sessionStatus: event.data.object.status
+      }));
+
+      // Analyser les problèmes
+      if (userSessions.length > 0 && !user.isPremium()) {
+        result.problems.push('Paiement effectué mais premium pas accordé');
+        result.solutions.push('Webhook checkout.session.completed pas traité correctement');
+      }
+
+      if (userEvents.length === 0 && userSessions.length > 0) {
+        result.problems.push('Sessions trouvées mais aucun webhook reçu');
+        result.solutions.push('Webhooks pas configurés dans Stripe Dashboard');
+      }
+
+      // Solution automatique : accorder le premium
+      if (userSessions.some(s => s.status === 'complete') && !user.isPremium()) {
+        user.grantPremium(365, `Fix automatique - paiement ${userSessions[0].id}`);
+        await user.save();
+        result.solutions.push('Premium accordé automatiquement');
+        result.analysis.premiumFixed = true;
+      }
+    }
+
+    res.json(result);
+
+  } catch (error) {
+    console.error('❌ Erreur analyze-payment:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Route pour diagnostiquer les webhooks
 router.get('/webhook-diagnostic', async (req, res) => {
   try {
