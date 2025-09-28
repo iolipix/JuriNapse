@@ -223,9 +223,11 @@ app.use('/stripe', stripeWebhookRoutes); // Webhooks Stripe (sans /api car Strip
 const debugPremiumRoutes = require('./routes/debug-premium');
 const webhookDiagnosticRoutes = require('./routes/webhook-diagnostic');
 const emergencyStripeRoutes = require('./routes/emergency-stripe');
+const quickFixRoutes = require('./routes/quick-fix');
 app.use('/api/debug', debugPremiumRoutes);
 app.use('/api/diagnostic', webhookDiagnosticRoutes);
 app.use('/api/emergency', emergencyStripeRoutes);
+app.use('/api/fix', quickFixRoutes);
 
 // EMERGENCY: Test route simple pour debug
 app.get('/api/test-subscriptions', (req, res) => {
