@@ -3,7 +3,6 @@ import { Flame } from 'lucide-react';
 import { usePost } from '../../contexts';
 import { useSubscriptions } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useAnalytics } from '../../hooks/useCookieConsent';
 import PostCard from '../Post/PostCard';
 import { MediumRectangle, BrandConsistentAd, SponsoredContent } from '../Ads';
 
@@ -30,13 +29,9 @@ const FeedPage: React.FC<FeedPageProps> = ({
   
   const { subscriptions } = useSubscriptions();
   const { user } = useAuth();
-  const { trackEvent, trackPageView } = useAnalytics();
   const [localSelectedTag, setLocalSelectedTag] = useState<string>('');
 
-  // Track page views
-  useEffect(() => {
-    trackPageView(`/feed/${activeTab}`);
-  }, [activeTab]); // Supprimer trackPageView pour éviter les boucles
+  // Page views (handled by Google Analytics now)
 
   // Infinite scroll avec préservation de position
   useEffect(() => {
@@ -91,17 +86,13 @@ const FeedPage: React.FC<FeedPageProps> = ({
           console.error('Erreur lors du chargement des posts:', error);
         });
         
-        // Track infinite scroll
-        trackEvent('feed_load_more', { 
-          tab: activeTab, 
-          posts_loaded: posts.length 
-        });
+        // Infinite scroll tracking (handled by Google Analytics now)
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, loading]); // Supprimer trackEvent et loadMorePosts pour éviter les boucles
+  }, [hasMore, loading]);
 
   // Determine which tag to use for filtering
   const effectiveSelectedTag = selectedTag || localSelectedTag;

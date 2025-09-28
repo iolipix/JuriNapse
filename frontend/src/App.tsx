@@ -8,7 +8,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import { SavedPostsProvider } from './contexts/SavedPostsContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { CookieProvider } from './hooks/useCookieConsent';
+
 import { AdProvider } from './components/Ads';
 import AuthForm from './components/Auth/AuthForm';
 import EmailVerificationPage from './components/Auth/EmailVerificationPage';
@@ -30,7 +30,7 @@ import SettingsMenu from './components/Settings/SettingsMenu';
 import SuggestedUsers from './components/Subscription/SuggestedUsers';
 import DecisionPage from './components/Decision/DecisionPage';
 import LegalPage from './components/Legal/LegalPage';
-import CookieConsent from './components/Common/CookieConsent';
+
 import AdminPage from './components/Admin/AdminPage';
 import AdminMenu from './components/Admin/AdminMenu';
 import ModeratorsManagement from './components/Admin/ModeratorsManagement';
@@ -1273,7 +1273,6 @@ const MainApp: React.FC = () => {
 function App() {
   return (
     <ThemeProvider>
-      <CookieProvider>
         <AuthProvider>
           <SocketProvider>
             <SubscriptionProvider>
@@ -1284,7 +1283,6 @@ function App() {
                       <MessagingProvider>
                         <NotificationProvider>
                           <MainApp />
-                          <CookieConsent />
                         </NotificationProvider>
                       </MessagingProvider>
                     </FolderProvider>
@@ -1294,7 +1292,6 @@ function App() {
             </SubscriptionProvider>
           </SocketProvider>
         </AuthProvider>
-      </CookieProvider>
     </ThemeProvider>
   );
 }
