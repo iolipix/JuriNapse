@@ -93,15 +93,20 @@ async function handleCheckoutSessionCompleted(session) {
       console.log(`💾 Customer ID Stripe sauvé: ${session.customer}`);
     }
 
-    // Si c'est un abonnement ET qu'il n'y a pas d'essai, accorder le premium immédiatement
+    // Si c'est un abonnement, accorder le premium immédiatement pour tous les statuts payés
     if (session.subscription && session.mode === 'subscription') {
       // Récupérer les détails de l'abonnement
       const subscription = await stripeService.retrieveSubscription(session.subscription);
-      if (subscription && subscription.status === 'active') {
-        await updateUserSubscription(user, subscription, 'created');
-        console.log(`🎉 Premium accordé immédiatement via checkout pour ${user.username}`);
+      if (subscription) {
+        const premiumStatuses = ['active', 'trialing', 'past_due'];
+        if (premiumStatuses.includes(subscription.status)) {
+          await updateUserSubscription(user, subscription, 'checkout_completed');
+          console.log(`🎉 Premium accordé immédiatement via checkout pour ${user.username} (statut: ${subscription.status})`);
+        } else {
+          console.log(`⏳ Abonnement pas encore prêt, statut: ${subscription?.status}`);
+        }
       } else {
-        console.log(`⏳ Abonnement en attente, statut: ${subscription?.status}`);
+        console.log(`❌ Impossible de récupérer les détails de l'abonnement ${session.subscription}`);
       }
     }
 
@@ -206,14 +211,32 @@ async function handleInvoicePaymentSucceeded(invoice) {
       return;
     }
 
-    console.log(`✅ Paiement réussi pour ${user.username} - montant: ${invoice.amount_paid / 100}€`);
+    console.log(`💰 Paiement réussi pour ${user.username} - montant: ${invoice.amount_paid / 100}€`);
 
-    // Si ce n'est pas le premier paiement et que l'utilisateur n'a pas premium, le réactiver
-    if (!user.hasRole('premium') && user.stripeSubscriptionId) {
-      user.addRole('premium');
-      // Note: L'historique sera géré par handleSubscriptionUpdated
-      await user.save();
-      console.log(`🔄 Premium réactivé pour ${user.username}`);
+    // Dès qu'un paiement réussit, s'assurer que l'utilisateur a premium
+    if (!user.hasRole('premium')) {
+      // Si l'utilisateur a un abonnement actif, lui accorder le premium
+      if (user.stripeSubscriptionId) {
+        try {
+          const subscription = await stripeService.retrieveSubscription(user.stripeSubscriptionId);
+          if (subscription) {
+            await updateUserSubscription(user, subscription, 'payment_succeeded');
+            console.log(`🔄 Premium réactivé automatiquement pour ${user.username} après paiement`);
+          }
+        } catch (error) {
+          // Fallback: accorder premium même sans récupérer l'abonnement
+          user.grantPremium(30, null); // 30 jours par défaut
+          await user.save();
+          console.log(`🔄 Premium accordé par fallback pour ${user.username} après paiement réussi`);
+        }
+      } else {
+        // Pas d'abonnement connu, accorder premium quand même (paiement unique?)
+        user.grantPremium(30, null);
+        await user.save();
+        console.log(`🎁 Premium accordé pour ${user.username} après paiement (pas d'abonnement connu)`);
+      }
+    } else {
+      console.log(`✅ ${user.username} a déjà premium - paiement confirmé`);
     }
 
   } catch (error) {
@@ -254,8 +277,15 @@ async function updateUserSubscription(user, subscription, action) {
     user.stripeSubscriptionStatus = subscription.status;
 
     // Gérer le premium selon le statut de l'abonnement
-    const activeStatuses = ['active', 'trialing'];
-    const shouldHavePremium = activeStatuses.includes(subscription.status);
+    // Statuts qui donnent droit au premium (tous les statuts payés/actifs)
+    const premiumStatuses = ['active', 'trialing', 'past_due'];
+    // Statuts qui révoquent le premium (annulés, expirés, impayés définitivement)
+    const revokedStatuses = ['canceled', 'incomplete_expired', 'unpaid'];
+    
+    const shouldHavePremium = premiumStatuses.includes(subscription.status);
+    const shouldRevokePremium = revokedStatuses.includes(subscription.status);
+
+    console.log(`🔍 Statut abonnement: ${subscription.status} - Premium: ${shouldHavePremium ? 'OUI' : 'NON'}`);
 
     if (shouldHavePremium && !user.hasRole('premium')) {
       // Calculer la durée jusqu'à la prochaine facturation
@@ -266,13 +296,17 @@ async function updateUserSubscription(user, subscription, action) {
       // Accorder le premium avec l'historique
       user.grantPremium(durationInDays > 0 ? durationInDays : 30, null); // null = accordé par Stripe
       
-      console.log(`✅ Premium accordé à ${user.username} via Stripe (${action}) - expire: ${periodEnd.toISOString()}`);
+      console.log(`🎉 Premium accordé à ${user.username} via Stripe (${action}) - expire: ${periodEnd.toISOString()}`);
       
-    } else if (!shouldHavePremium && user.hasRole('premium')) {
-      // Révoquer le premium si l'abonnement n'est plus actif
+    } else if (shouldRevokePremium && user.hasRole('premium')) {
+      // Révoquer le premium seulement si vraiment annulé/expiré
       user.revokePremium(null); // null = révoqué par Stripe
       
       console.log(`❌ Premium révoqué pour ${user.username} - statut abonnement: ${subscription.status}`);
+      
+    } else if (shouldHavePremium && user.hasRole('premium')) {
+      // L'utilisateur a déjà premium et l'abonnement est toujours valide
+      console.log(`✅ Premium maintenu pour ${user.username} - statut: ${subscription.status}`);
     }
 
     await user.save();
