@@ -65,10 +65,19 @@ router.post('/webhook', async (req, res) => {
  */
 async function handleCheckoutSessionCompleted(session) {
   try {
+    console.log('🔍 SESSION DEBUG:', JSON.stringify({
+      client_reference_id: session.client_reference_id,
+      metadata: session.metadata,
+      customer: session.customer,
+      subscription: session.subscription,
+      mode: session.mode
+    }, null, 2));
+
     const userId = session.client_reference_id || session.metadata?.userId;
     
     if (!userId) {
       console.error('❌ User ID manquant dans la session checkout');
+      console.error('Session complète:', JSON.stringify(session, null, 2));
       return;
     }
 
@@ -81,11 +90,22 @@ async function handleCheckoutSessionCompleted(session) {
     // Mettre à jour l'ID client Stripe
     if (session.customer && !user.stripeCustomerId) {
       user.stripeCustomerId = session.customer;
+      console.log(`💾 Customer ID Stripe sauvé: ${session.customer}`);
     }
 
-    // Si c'est un abonnement, l'ID sera mis à jour dans subscription.created
-    await user.save();
+    // Si c'est un abonnement ET qu'il n'y a pas d'essai, accorder le premium immédiatement
+    if (session.subscription && session.mode === 'subscription') {
+      // Récupérer les détails de l'abonnement
+      const subscription = await stripeService.retrieveSubscription(session.subscription);
+      if (subscription && subscription.status === 'active') {
+        await updateUserSubscription(user, subscription, 'created');
+        console.log(`🎉 Premium accordé immédiatement via checkout pour ${user.username}`);
+      } else {
+        console.log(`⏳ Abonnement en attente, statut: ${subscription?.status}`);
+      }
+    }
 
+    await user.save();
     console.log(`✅ Session checkout complétée pour ${user.username}`);
 
   } catch (error) {

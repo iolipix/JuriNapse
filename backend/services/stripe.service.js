@@ -3,7 +3,35 @@
  */
 const Stripe = require('stripe');
 
-// Initialiser Stripe avec la clé secrète (avec fallback pour éviter les crashes)
+// Initialiser Stripe avec la clé secr  /**
+   * Vérifier une session de checkout
+   * @param {string} sessionId - ID de la session
+   * @returns {Object} Détails de la session
+   */
+  async verifySession(sessionId) {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      return session;
+    } catch (error) {
+      console.error('Erreur lors de la vérification de la session:', error);
+      throw new Error(`Erreur vérification session: ${error.message}`);
+    }
+  }
+
+  /**
+   * Récupérer un abonnement par son ID
+   * @param {string} subscriptionId - ID de l'abonnement
+   * @returns {Object} Détails de l'abonnement
+   */
+  async retrieveSubscription(subscriptionId) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      return subscription;
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'abonnement:', error);
+      throw new Error(`Erreur récupération abonnement: ${error.message}`);
+    }
+  }back pour éviter les crashes)
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder';
 const stripe = stripeSecretKey !== 'sk_test_placeholder' ? new Stripe(stripeSecretKey) : null;
 
@@ -74,15 +102,7 @@ class StripeService {
           }
         },
         // Permettre les codes de réduction
-        allow_promotion_codes: true,
-        // Configuration des essais gratuits si nécessaire
-        subscription_data: {
-          trial_period_days: 7, // 7 jours d'essai gratuit
-          metadata: {
-            userId: userId,
-            type: 'premium_subscription'
-          }
-        }
+        allow_promotion_codes: true
       });
 
       return session;
@@ -162,6 +182,21 @@ class StripeService {
     } catch (error) {
       console.error('Erreur lors de la vérification de la session:', error);
       throw new Error(`Erreur vérification session: ${error.message}`);
+    }
+  }
+
+  /**
+   * Récupérer un abonnement par son ID
+   * @param {string} subscriptionId - ID de l'abonnement
+   * @returns {Object} Détails de l'abonnement
+   */
+  async retrieveSubscription(subscriptionId) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      return subscription;
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'abonnement:', error);
+      throw new Error(`Erreur récupération abonnement: ${error.message}`);
     }
   }
 
