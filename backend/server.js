@@ -219,6 +219,10 @@ app.use('/api/diagnostic', diagnosticRoutes); // Routes de diagnostic
 app.use('/api/stripe', stripeRoutes); // Routes Stripe pour abonnements premium
 app.use('/stripe', stripeWebhookRoutes); // Webhooks Stripe (sans /api car Stripe attend une URL spécifique)
 
+// TEMPORAIRE: Route de debug premium (à supprimer après résolution)
+const debugPremiumRoutes = require('./routes/debug-premium');
+app.use('/api/debug', debugPremiumRoutes);
+
 // EMERGENCY: Test route simple pour debug
 app.get('/api/test-subscriptions', (req, res) => {
   res.json({ 
