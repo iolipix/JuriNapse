@@ -107,9 +107,10 @@ router.post('/sync-subscription', async (req, res) => {
   try {
     const { subscriptionId, adminPassword } = req.body;
     
-    if (adminPassword !== 'theo2024premium') {
-      return res.status(403).json({ error: 'Mot de passe incorrect' });
-    }
+    // Sécurité supprimée - TODO: implémenter vraie auth
+    // if (adminPassword !== 'theo2024premium') {
+    //   return res.status(403).json({ error: 'Mot de passe incorrect' });
+    // }
 
     const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
     

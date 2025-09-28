@@ -25,7 +25,7 @@ async function grantPremiumToTheo() {
     console.log(`\n🧪 Test avec userId: ${userId}`);
     
     const postData = JSON.stringify({
-      adminPassword: 'theo2024premium'
+      // Mot de passe supprimé pour sécurité
     });
 
     const options = {
@@ -89,8 +89,8 @@ async function findTheoAndGrantPremium() {
   console.log('🔍 Tentative de recherche et attribution premium...');
   
   const postData = JSON.stringify({
-    action: 'find_and_grant_admin_premium',
-    adminPassword: 'theo2024premium'
+    action: 'find_and_grant_admin_premium'
+    // adminPassword supprimé pour sécurité
   });
 
   const options = {

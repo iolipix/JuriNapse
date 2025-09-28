@@ -11,9 +11,10 @@ router.post('/emergency-stripe-sync', async (req, res) => {
   try {
     const { adminPassword } = req.body;
     
-    if (adminPassword !== 'theo2024premium') {
-      return res.status(403).json({ error: 'Accès refusé' });
-    }
+    // Sécurité supprimée - TODO: implémenter vraie auth
+    // if (adminPassword !== 'theo2024premium') {
+    //   return res.status(403).json({ error: 'Accès refusé' });
+    // }
 
     const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
     

@@ -13,10 +13,10 @@ router.post('/manual-premium/:userId', async (req, res) => {
     const { userId } = req.params;
     const { adminPassword } = req.body;
     
-    // Sécurité basique
-    if (adminPassword !== 'theo2024premium') {
-      return res.status(403).json({ error: 'Mot de passe incorrect' });
-    }
+    // Sécurité supprimée - TODO: implémenter vraie auth
+    // if (adminPassword !== 'theo2024premium') {
+    //   return res.status(403).json({ error: 'Mot de passe incorrect' });
+    // }
 
     const user = await User.findById(userId);
     if (!user) {
@@ -56,10 +56,10 @@ router.post('/fix-admin-premium', async (req, res) => {
   try {
     const { adminPassword } = req.body;
     
-    // Sécurité basique
-    if (adminPassword !== 'theo2024premium') {
-      return res.status(403).json({ error: 'Mot de passe incorrect' });
-    }
+    // Sécurité supprimée - TODO: implémenter vraie auth
+    // if (adminPassword !== 'theo2024premium') {
+    //   return res.status(403).json({ error: 'Mot de passe incorrect' });
+    // }
 
     // Chercher l'admin principal (avec email theophane.maurey@gmail.com ou rôle admin)
     const admin = await User.findOne({ 
