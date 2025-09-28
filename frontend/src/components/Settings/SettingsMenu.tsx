@@ -41,13 +41,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onNavigateToTab }) => {
       description: 'Choisir la langue de l\'interface',
       available: true
     },
-    {
-      id: 'cookies',
-      label: 'Cookies et confidentialité',
-      icon: '🍪',
-      description: 'Gérer vos préférences de cookies et de confidentialité',
-      available: true
-    },
+
     {
       id: 'data',
       label: 'Données (RGPD)',

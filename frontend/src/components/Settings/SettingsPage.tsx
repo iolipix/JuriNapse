@@ -4,7 +4,6 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { authAPI } from '../../services/api';
 import BlockedUsersPage from './BlockedUsersPage';
-import CookieSettings from './CookieSettings';
 import DeleteAccountModal from './DeleteAccountModal';
 import PremiumManagementPage from './PremiumManagementPage';
 
@@ -16,7 +15,7 @@ interface SettingsPageProps {
   onViewUserProfile?: (userId: string) => void;
 }
 
-type TabType = 'blocked' | 'password' | 'notifications' | 'appearance' | 'language' | 'data' | 'premium' | 'privacy' | 'cookies' | 'delete-account';
+type TabType = 'blocked' | 'password' | 'notifications' | 'appearance' | 'language' | 'data' | 'premium' | 'privacy' | 'delete-account';
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ 
   settingsTab,
@@ -137,7 +136,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     appearance: { title: 'Apparence', icon: '🎨' },
     language: { title: 'Langue', icon: '🌍' },
     data: { title: 'Données (RGPD)', icon: '📥' },
-    cookies: { title: 'Cookies et confidentialité', icon: '🍪' },
     premium: { title: 'Gestion Premium', icon: '' },
     privacy: { title: 'Confidentialité', icon: '🛡️' },
     'delete-account': { title: 'Supprimer le compte', icon: '⚠️' }
@@ -246,13 +244,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         return (
           <div className="settings-tab-content">
             <BlockedUsersPage />
-          </div>
-        );
-
-      case 'cookies':
-        return (
-          <div className="settings-tab-content">
-            <CookieSettings />
           </div>
         );
 
