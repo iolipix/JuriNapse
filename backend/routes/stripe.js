@@ -25,11 +25,59 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    // Vérifier si l'utilisateur a déjà un abonnement actif
-    if (user.hasRole('premium') && user.stripeSubscriptionStatus === 'active') {
+    // Vérifier si l'utilisateur a déjà un abonnement actif ou premium
+    if (user.hasRole('premium')) {
+      // Si l'utilisateur a déjà premium, vérifier son statut Stripe
+      if (user.stripeCustomerId) {
+        try {
+          // Vérifier les abonnements actifs
+          const subscriptions = await stripeService.getCustomerSubscriptions(user.stripeCustomerId);
+          const activeSubscriptions = subscriptions.data.filter(sub => 
+            ['active', 'trialing', 'past_due'].includes(sub.status)
+          );
+          
+          if (activeSubscriptions.length > 0) {
+            return res.status(400).json({ 
+              message: 'Vous avez déjà un abonnement premium actif',
+              redirectToPortal: true,
+              subscriptionId: activeSubscriptions[0].id
+            });
+          }
+        } catch (error) {
+          console.log('Erreur vérification abonnements:', error.message);
+        }
+      }
+      
+      // L'utilisateur a premium mais pas d'abonnement Stripe actif
       return res.status(400).json({ 
-        message: 'Vous avez déjà un abonnement premium actif' 
+        message: 'Vous avez déjà un accès premium actif' 
       });
+    }
+
+    // Vérifier s'il y a déjà un customer Stripe avec abonnements actifs
+    if (user.stripeCustomerId) {
+      try {
+        const subscriptions = await stripeService.getCustomerSubscriptions(user.stripeCustomerId);
+        const activeSubscriptions = subscriptions.data.filter(sub => 
+          ['active', 'trialing', 'past_due'].includes(sub.status)
+        );
+        
+        if (activeSubscriptions.length > 0) {
+          // Il a des abonnements actifs mais pas premium dans l'app - corriger ça
+          const subscription = activeSubscriptions[0];
+          user.stripeSubscriptionId = subscription.id;
+          user.stripeSubscriptionStatus = subscription.status;
+          user.grantPremium(365, 'Abonnement Stripe existant détecté');
+          await user.save();
+          
+          return res.status(400).json({ 
+            message: 'Abonnement existant détecté et réactivé',
+            premiumGranted: true
+          });
+        }
+      } catch (error) {
+        console.log('Erreur vérification customer:', error.message);
+      }
     }
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
