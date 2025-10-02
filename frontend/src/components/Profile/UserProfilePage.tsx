@@ -763,9 +763,9 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       />
       
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="grid grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Contenu principal */}
-          <div>
+          <div className="xl:col-span-3">
             {/* Profile Header */}
             <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 lg:p-10 mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row items-start justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
@@ -1014,7 +1014,24 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
         </div>
       </div>
       
-      {/* Sidebar supprimée pour éviter les problèmes CSS/responsive */}
+      {/* Sidebar avec publicités verticales */}
+      <div className="hidden xl:block xl:col-span-1 space-y-6 sticky top-6">
+        {/* Publicité verticale 1 */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+          <div className="text-xs text-gray-500 mb-2 font-medium text-center">
+            Contenu sponsorisé
+          </div>
+          <BrandConsistentAd width={300} height={600} className="mx-auto" />
+        </div>
+        
+        {/* Publicité verticale 2 */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+          <div className="text-xs text-gray-500 mb-2 font-medium text-center">
+            Contenu sponsorisé
+          </div>
+          <BrandConsistentAd width={300} height={600} className="mx-auto" />
+        </div>
+      </div>
     </div>
 
       {/* Modal des abonnements */}
