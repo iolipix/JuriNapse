@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePremiumStatus } from '../../hooks/usePremiumStatus';
+import useAdSenseCleanup from '../../hooks/useAdSenseCleanup';
 
 // Déclaration pour AdSense
 declare global {
@@ -96,6 +97,7 @@ export const RectangleAd: React.FC<Omit<AdProps, 'width' | 'height'> & { classNa
   className = '' 
 }) => {
   const { isPremium } = usePremiumStatus();
+  useAdSenseCleanup(); // Nettoyer les styles AdSense automatiquement
   
   if (isPremium) {
     return null;
@@ -115,14 +117,18 @@ export const RectangleAd: React.FC<Omit<AdProps, 'width' | 'height'> & { classNa
   );
 
   return (
-    <div className={`google-adsense flex justify-center items-center w-full ${className}`}>
+    <div className={`w-full flex justify-center items-center ${className}`} style={{ maxWidth: '100%', overflow: 'hidden' }}>
       <ins 
         className="adsbygoogle"
         style={{ 
-          display: 'inline-block', 
+          display: 'block', 
           width: '300px', 
           height: '250px',
-          margin: '0 auto'
+          margin: '0 auto',
+          border: 'none',
+          background: 'transparent',
+          boxShadow: 'none',
+          outline: 'none'
         }}
         data-ad-client="ca-pub-1676150794227736"
         data-ad-slot="7585008486"

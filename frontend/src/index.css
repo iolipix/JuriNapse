@@ -32,10 +32,29 @@ iframe[src*="googlesyndication"] {
 }
 
 /* Enlever tous les contours des iframes AdSense */
-div[id*="google_ads_iframe"] {
+div[id*="google_ads_iframe"],
+iframe[id*="google_ads_iframe"],
+ins.adsbygoogle,
+ins.adsbygoogle > *,
+[data-ad-client] {
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
+  background: transparent !important;
+  max-width: 300px !important;
+  overflow: hidden !important;
+}
+
+/* Forcer la limitation de largeur pour éviter les débordements */
+body {
+  overflow-x: hidden !important;
+}
+
+.google-adsense,
+.adsbygoogle {
+  max-width: 300px !important;
+  width: 300px !important;
+  margin: 0 auto !important;
 }
 
 /* Scrollbar utilities for responsive design */
