@@ -7,7 +7,7 @@ export { default as SimpleAdBanner } from './SimpleAdBanner';
 export { default as CustomAdBanner } from './CustomAdBanner';
 export { default as SponsoredContent } from './SponsoredContent';
 export { RandomAdBanner, RandomAd, useRandomAd, ALL_ADS } from './RandomAdBanner';
-export { BrandConsistentAd, RandomInstanceAd, PrestigePhotoOnlyAd, AIWebOnlyAd } from './BrandConsistentAd';
+export { BrandConsistentAd, RandomInstanceAd, PrestigePhotoOnlyAd, AIWebOnlyAd, RectangleAd, VerticalAd } from './BrandConsistentAd';
 export { 
   AdSidebarProfile, 
   AdSidebarPost, 

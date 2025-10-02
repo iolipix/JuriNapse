@@ -10,7 +10,7 @@ import FollowButton from '../Subscription/FollowButton';
 import SubscriptionModal from '../Subscription/SubscriptionModal';
 import ProfileSEO from '../SEO/ProfileSEO';
 import DeletedUserPage from './DeletedUserPage';
-import { MediumRectangle, HalfPage, BrandConsistentAd, SponsoredContent } from '../Ads';
+import { MediumRectangle, HalfPage, BrandConsistentAd, SponsoredContent, RectangleAd, VerticalAd } from '../Ads';
 import useSEO from '../../hooks/useSEO';
 import api, { postsAPI } from '../../services/api';
 import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
@@ -700,7 +700,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                   {/* Ajouter une pub tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (
                     <SponsoredContent className="flex justify-center my-6">
-                      <BrandConsistentAd width={300} height={250} className="mx-auto" />
+                      <RectangleAd className="mx-auto" />
                     </SponsoredContent>
                   )}
                 </React.Fragment>
@@ -1012,10 +1012,10 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       {/* Sidebar avec publicités verticales */}
       <div className="hidden xl:block xl:col-span-1 space-y-6 sticky top-6">
         {/* Publicité verticale 1 */}
-        <BrandConsistentAd width={300} height={600} className="mx-auto" />
+        <VerticalAd className="mx-auto" />
         
         {/* Publicité verticale 2 */}
-        <BrandConsistentAd width={300} height={600} className="mx-auto" />
+        <VerticalAd className="mx-auto" />
       </div>
     </div>
 

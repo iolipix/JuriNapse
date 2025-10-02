@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { postsAPI } from '../../services/api';
 import PostCard from './PostCard';
 import PostSEO from './PostSEO';
-import { RandomInstanceAd, SponsoredContent } from '../Ads';
+import { RandomInstanceAd, SponsoredContent, RectangleAd } from '../Ads';
 import { fixProfilePictureUrl } from '../../utils/apiUrlFixer';
 
 interface PostDetailPageProps {
@@ -847,7 +847,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
         <div className="hidden xl:block xl:col-span-1">
           <div className="sticky top-32 space-y-6">
             <SponsoredContent>
-              <RandomInstanceAd width={300} height={250} className="mx-auto" />
+              <RectangleAd className="mx-auto" />
             </SponsoredContent>
           </div>
         </div>

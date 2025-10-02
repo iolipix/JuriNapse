@@ -4,7 +4,7 @@ import { usePost } from '../../contexts';
 import { useSubscriptions } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
 import PostCard from '../Post/PostCard';
-import { MediumRectangle, BrandConsistentAd, SponsoredContent } from '../Ads';
+import { MediumRectangle, BrandConsistentAd, SponsoredContent, RectangleAd } from '../Ads';
 
 interface FeedPageProps {
   activeTab?: string;
@@ -489,8 +489,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
                 {/* Injecter une publicité après les posts 4, 8, 12, etc. */}
                 {(index + 1) % 4 === 0 && (
                   <SponsoredContent className="my-6">
-                    <div className="text-xs text-gray-400 text-center mb-2">Contenu sponsorisé</div>
-                    <BrandConsistentAd width={300} height={250} className="mx-auto" />
+                    <RectangleAd className="mx-auto" />
                   </SponsoredContent>
                 )}
               </React.Fragment>
