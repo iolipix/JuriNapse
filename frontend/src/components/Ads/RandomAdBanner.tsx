@@ -1,6 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import CustomAdBanner from './CustomAdBanner';
 import { usePremiumStatus } from '../../hooks/usePremiumStatus';
+
+// Déclaration pour AdSense
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
 
 // Configuration des publicités disponibles
 export interface AdConfig {
@@ -111,11 +118,9 @@ interface RandomAdBannerProps {
 }
 
 export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
-  width,
-  height,
-  className,
-  excludeIds,
-  fallbackToAnySize = true
+  width = 300,
+  height = 250,
+  className
 }) => {
   // Vérifier si l'utilisateur est premium
   const { isPremium } = usePremiumStatus();
@@ -125,23 +130,35 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
     return null;
   }
 
-  // Sélectionner une publicité aléatoire à chaque rendu
-  const selectedAd = useRandomAd(width, height, excludeIds);
+  // Déterminer le slot AdSense basé sur la taille
+  const getAdSlot = () => {
+    // Format vertical/sidebar (300x600 ou similaire)
+    if (height >= 500) {
+      return '8064995414'; // Slot vertical
+    }
+    // Format rectangle/feed (300x250 ou similaire)
+    return '7585008486'; // Slot feed native
+  };
 
-  // Si on a des dimensions spécifiques mais que l'ad sélectionnée ne correspond pas,
-  // utiliser les dimensions demandées
-  const finalWidth = width || selectedAd.width;
-  const finalHeight = height || selectedAd.height;
+  useEffect(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (err) {
+      console.error('❌ Erreur AdSense:', err);
+    }
+  }, []);
 
   return (
-    <CustomAdBanner
-      width={finalWidth}
-      height={finalHeight}
-      imageUrl={selectedAd.imageUrl}
-      clickUrl={selectedAd.clickUrl}
-      altText={selectedAd.altText}
-      className={className}
-    />
+    <div className={`google-adsense ${className || ''}`}>
+      <ins 
+        className="adsbygoogle"
+        style={{ display: 'block', width: `${width}px`, height: `${height}px` }}
+        data-ad-client="ca-pub-1676150794227736"
+        data-ad-slot={getAdSlot()}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </div>
   );
 };
 
