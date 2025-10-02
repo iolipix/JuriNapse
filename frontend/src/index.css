@@ -6,18 +6,36 @@
 .google-adsense,
 .google-adsense *,
 .adsbygoogle,
-.adsbygoogle * {
+.adsbygoogle *,
+iframe[src*="googleads"],
+iframe[src*="googlesyndication"] {
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  padding: 0 !important;
-  margin: 0 !important;
+  outline: none !important;
+  box-sizing: border-box !important;
 }
 
 .google-adsense {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.adsbygoogle {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Enlever tous les contours des iframes AdSense */
+div[id*="google_ads_iframe"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Scrollbar utilities for responsive design */

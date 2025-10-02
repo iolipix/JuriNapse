@@ -115,13 +115,14 @@ export const RectangleAd: React.FC<Omit<AdProps, 'width' | 'height'> & { classNa
   );
 
   return (
-    <div className={`google-adsense ${className}`} style={{ width: '300px', margin: '0 auto' }}>
+    <div className={`google-adsense flex justify-center items-center w-full ${className}`}>
       <ins 
         className="adsbygoogle"
         style={{ 
           display: 'inline-block', 
           width: '300px', 
-          height: '250px'
+          height: '250px',
+          margin: '0 auto'
         }}
         data-ad-client="ca-pub-1676150794227736"
         data-ad-slot="7585008486"
@@ -157,13 +158,17 @@ export const VerticalAd: React.FC<Omit<AdProps, 'width' | 'height'> & { classNam
   );
 
   return (
-    <div className={`google-adsense ${className}`} style={{ width: '300px', margin: '0 auto' }}>
+    <div className={`google-adsense flex justify-center items-center w-full ${className}`}>
       <ins 
         className="adsbygoogle"
         style={{ 
           display: 'inline-block', 
           width: '300px', 
-          height: '600px'
+          height: '600px',
+          margin: '0 auto',
+          border: 'none',
+          boxShadow: 'none',
+          background: 'transparent'
         }}
         data-ad-client="ca-pub-1676150794227736"
         data-ad-slot="8064995414"

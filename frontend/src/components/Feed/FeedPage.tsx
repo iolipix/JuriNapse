@@ -488,7 +488,7 @@ const FeedPage: React.FC<FeedPageProps> = ({
                 
                 {/* Injecter une publicité après les posts 4, 8, 12, etc. */}
                 {(index + 1) % 4 === 0 && (
-                  <SponsoredContent className="my-6">
+                  <SponsoredContent className="my-6 flex justify-center">
                     <RectangleAd className="mx-auto" />
                   </SponsoredContent>
                 )}
