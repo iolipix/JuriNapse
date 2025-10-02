@@ -125,10 +125,13 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
   // Vérifier si l'utilisateur est premium
   const { isPremium } = usePremiumStatus();
   
-  // Si l'utilisateur est premium, ne pas afficher de publicité
-  if (isPremium) {
-    return null;
-  }
+  // DEBUG : Toujours afficher pour tester AdSense
+  console.log('🔍 DEBUG RandomAdBanner - isPremium:', isPremium, 'width:', width, 'height:', height);
+  
+  // TEMPORAIRE : Commenter pour tester
+  // if (isPremium) {
+  //   return null;
+  // }
 
   // TOUJOURS utiliser le slot FEED comme demandé
   const getAdSlot = () => {
@@ -137,10 +140,14 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
   };
 
   useEffect(() => {
+    console.log('🚀 RandomAdBanner - Initialisation AdSense...');
     try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      if (typeof window !== 'undefined') {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        console.log('✅ RandomAdBanner - AdSense push réussi');
+      }
     } catch (err) {
-      console.error('❌ Erreur AdSense:', err);
+      console.error('❌ RandomAdBanner - Erreur AdSense:', err);
     }
   }, []);
 
@@ -148,7 +155,19 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
   const adId = React.useMemo(() => `adsense-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, []);
 
   return (
-    <div className={`google-adsense ${className || ''}`} key={adId}>
+    <div 
+      className={`google-adsense ${className || ''}`} 
+      key={adId}
+      style={{ 
+        border: '2px dashed #4444ff', 
+        padding: '10px', 
+        margin: '10px 0',
+        backgroundColor: '#eeeeff'
+      }}
+    >
+      <div style={{ fontSize: '12px', color: '#4444ff', marginBottom: '5px' }}>
+        🐛 DEBUG: RandomAdBanner {width}x{height} - Slot: 7585008486 - ID: {adId}
+      </div>
       <ins 
         className="adsbygoogle"
         style={{ display: 'block', width: `${width}px`, height: `${height}px` }}
