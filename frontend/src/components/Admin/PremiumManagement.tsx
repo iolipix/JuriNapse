@@ -174,7 +174,7 @@ const PremiumManagement: React.FC = () => {
       setShowSearchResults(true);
     } catch (err) {
       console.error('💥 Erreur de recherche complète:', err);
-      setError(`Erreur de recherche: ${err.message}`);
+      setError(`Erreur de recherche: ${err instanceof Error ? err.message : 'Erreur inconnue'}`);
       setSearchResults([]);
     } finally {
       setIsSearching(false);

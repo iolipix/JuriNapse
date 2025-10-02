@@ -847,12 +847,7 @@ const PostDetailPage: React.FC<PostDetailPageProps> = ({
         <div className="hidden xl:block xl:col-span-1">
           <div className="sticky top-32 space-y-6">
             <SponsoredContent>
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-96" style={{ maxHeight: 'calc(100vh - 10rem)' }}>
-                <div className="text-xs text-gray-500 mb-2 font-medium">
-                  Contenu sponsorisé
-                </div>
-                <RandomInstanceAd width={300} height={600} className="mx-auto" />
-              </div>
+              <RandomInstanceAd width={300} height={250} className="mx-auto" />
             </SponsoredContent>
           </div>
         </div>

@@ -700,12 +700,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                   {/* Ajouter une pub tous les 4 posts */}
                   {(index + 1) % 4 === 0 && index < userPosts.length - 1 && (
                     <SponsoredContent className="flex justify-center my-6">
-                      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-                        <div className="text-xs text-gray-500 mb-2 font-medium">
-                          Contenu sponsorisé
-                        </div>
-                        <BrandConsistentAd width={300} height={250} className="mx-auto" />
-                      </div>
+                      <BrandConsistentAd width={300} height={250} className="mx-auto" />
                     </SponsoredContent>
                   )}
                 </React.Fragment>
@@ -1017,20 +1012,10 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       {/* Sidebar avec publicités verticales */}
       <div className="hidden xl:block xl:col-span-1 space-y-6 sticky top-6">
         {/* Publicité verticale 1 */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-          <div className="text-xs text-gray-500 mb-2 font-medium text-center">
-            Contenu sponsorisé
-          </div>
-          <BrandConsistentAd width={300} height={600} className="mx-auto" />
-        </div>
+        <BrandConsistentAd width={300} height={600} className="mx-auto" />
         
         {/* Publicité verticale 2 */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
-          <div className="text-xs text-gray-500 mb-2 font-medium text-center">
-            Contenu sponsorisé
-          </div>
-          <BrandConsistentAd width={300} height={600} className="mx-auto" />
-        </div>
+        <BrandConsistentAd width={300} height={600} className="mx-auto" />
       </div>
     </div>
 

@@ -173,7 +173,7 @@ const PremiumManagementPage: React.FC = () => {
                 <h4 className="font-medium text-gray-900">Expiration</h4>
               </div>
               <p className="text-sm text-gray-600">
-                {premiumInfo?.isPermanent ? 'Jamais' : formatDate(premiumInfo?.expiresAt)}
+                {premiumInfo?.isPermanent ? 'Jamais' : formatDate(premiumInfo?.expiresAt || null)}
               </p>
             </div>
 
