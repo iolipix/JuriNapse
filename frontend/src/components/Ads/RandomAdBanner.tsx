@@ -130,13 +130,9 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
     return null;
   }
 
-  // Déterminer le slot AdSense basé sur la taille
+  // TOUJOURS utiliser le slot FEED comme demandé
   const getAdSlot = () => {
-    // Format vertical/sidebar (300x600 ou similaire)
-    if (height >= 500) {
-      return '8064995414'; // Slot vertical
-    }
-    // Format rectangle/feed (300x250 ou similaire)
+    // Toujours le slot feed, peu importe la taille
     return '7585008486'; // Slot feed native
   };
 
