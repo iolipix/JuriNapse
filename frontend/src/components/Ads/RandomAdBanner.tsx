@@ -152,14 +152,14 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
   const adId = React.useMemo(() => `adsense-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, []);
 
   return (
-    <div className={`google-adsense ${className || ''}`} key={adId}>
+    <div className={`google-adsense ${className || ''}`} style={{ width: `${width}px`, margin: '0 auto' }}>
       <ins 
         className="adsbygoogle"
-        style={{ display: 'block', width: `${width}px`, height: `${height}px` }}
+        style={{ display: 'inline-block', width: `${width}px`, height: `${height}px` }}
         data-ad-client="ca-pub-1676150794227736"
         data-ad-slot={getAdSlot()}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
+        data-ad-format={height >= 500 ? "auto" : "rectangle"}
+        data-full-width-responsive={height >= 500 ? "true" : "false"}
         id={adId}
       />
     </div>

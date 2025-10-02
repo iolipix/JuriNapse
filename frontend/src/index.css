@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Styles pour AdSense - forcer l'enlèvement des bordures */
+.google-adsense,
+.google-adsense *,
+.adsbygoogle,
+.adsbygoogle * {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.google-adsense {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
 /* Scrollbar utilities for responsive design */
 @layer utilities {
   .scrollbar-hide {

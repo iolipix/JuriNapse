@@ -54,19 +54,18 @@ export const RandomInstanceAd: React.FC<AdProps> = ({
   );
 
   return (
-    <div className={`google-adsense flex justify-center items-center ${className}`}>
+    <div className={`google-adsense ${className}`} style={{ width: `${width}px`, margin: '0 auto' }}>
       <ins 
         className="adsbygoogle"
         style={{ 
-          display: 'block', 
+          display: 'inline-block', 
           width: `${width}px`, 
-          height: `${height}px`,
-          margin: '0 auto'
+          height: `${height}px`
         }}
         data-ad-client="ca-pub-1676150794227736"
         data-ad-slot={getAdSlot()}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
+        data-ad-format={height >= 500 ? "auto" : "rectangle"}
+        data-full-width-responsive={height >= 500 ? "true" : "false"}
         id={adId}
       />
     </div>
