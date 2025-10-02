@@ -144,15 +144,19 @@ export const RandomAdBanner: React.FC<RandomAdBannerProps> = ({
     }
   }, []);
 
+  // ID unique pour forcer le rechargement AdSense
+  const adId = React.useMemo(() => `adsense-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, []);
+
   return (
-    <div className={`google-adsense ${className || ''}`}>
+    <div className={`google-adsense ${className || ''}`} key={adId}>
       <ins 
         className="adsbygoogle"
         style={{ display: 'block', width: `${width}px`, height: `${height}px` }}
         data-ad-client="ca-pub-1676150794227736"
-        data-ad-slot={getAdSlot()}
+        data-ad-slot="7585008486"
         data-ad-format="auto"
         data-full-width-responsive="true"
+        id={adId}
       />
     </div>
   );
