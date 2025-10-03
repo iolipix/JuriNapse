@@ -41,7 +41,6 @@ ins.adsbygoogle > *,
   outline: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  max-width: 300px !important;
   overflow: hidden !important;
 }
 
@@ -50,11 +49,58 @@ body {
   overflow-x: hidden !important;
 }
 
+/* Publicités responsives avec bordures propres */
 .google-adsense,
+.adsbygoogle {
+  margin: 0 auto !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Responsive ads - mobile first */
+.google-adsense {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
 .adsbygoogle {
   max-width: 300px !important;
   width: 300px !important;
-  margin: 0 auto !important;
+}
+
+/* Sur mobile (< 640px), limiter la largeur des pubs */
+@media (max-width: 640px) {
+  .google-adsense,
+  .adsbygoogle {
+    max-width: 280px !important;
+    width: 280px !important;
+  }
+}
+
+/* Sur très petits écrans (< 480px) */
+@media (max-width: 480px) {
+  .google-adsense,
+  .adsbygoogle {
+    max-width: 250px !important;
+    width: 250px !important;
+  }
+}
+
+/* Pour les publicités verticales spécifiquement */
+.adsbygoogle[data-ad-slot="8064995414"] {
+  height: 600px !important;
+}
+
+@media (max-width: 768px) {
+  .adsbygoogle[data-ad-slot="8064995414"] {
+    height: 400px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .adsbygoogle[data-ad-slot="8064995414"] {
+    height: 300px !important;
+  }
 }
 
 /* Scrollbar utilities for responsive design */

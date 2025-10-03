@@ -145,6 +145,7 @@ export const VerticalAd: React.FC<Omit<AdProps, 'width' | 'height'> & { classNam
   className = '' 
 }) => {
   const { isPremium } = usePremiumStatus();
+  useAdSenseCleanup();
   
   if (isPremium) {
     return null;
@@ -164,17 +165,19 @@ export const VerticalAd: React.FC<Omit<AdProps, 'width' | 'height'> & { classNam
   );
 
   return (
-    <div className={`google-adsense flex justify-center items-center w-full ${className}`}>
+    <div className={`google-adsense flex justify-center items-center w-full px-2 ${className}`}>
       <ins 
         className="adsbygoogle"
         style={{ 
           display: 'inline-block', 
           width: '300px', 
           height: '600px',
+          maxWidth: '100%',
           margin: '0 auto',
           border: 'none',
           boxShadow: 'none',
-          background: 'transparent'
+          background: 'transparent',
+          overflow: 'hidden'
         }}
         data-ad-client="ca-pub-1676150794227736"
         data-ad-slot="8064995414"
