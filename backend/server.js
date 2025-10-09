@@ -225,11 +225,13 @@ const webhookDiagnosticRoutes = require('./routes/webhook-diagnostic');
 const emergencyStripeRoutes = require('./routes/emergency-stripe');
 const quickFixRoutes = require('./routes/quick-fix');
 const theophaneFix = require('./routes/theophane-fix');
+const folderDebug = require('./routes/folder-debug');
 app.use('/api/debug', debugPremiumRoutes);
 app.use('/api/diagnostic', webhookDiagnosticRoutes);
 app.use('/api/emergency', emergencyStripeRoutes);
 app.use('/api/fix', quickFixRoutes);
 app.use('/api/theophane', theophaneFix);
+app.use('/api/folder-debug', folderDebug);
 
 // EMERGENCY: Test route simple pour debug
 app.get('/api/test-subscriptions', (req, res) => {

@@ -115,7 +115,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({ isOpen, onClose, 
 
             {/* Couleur */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center space-x-2">
+              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-3">
                 <Palette className="h-4 w-4" />
                 <span>Couleur du dossier</span>
               </label>
