@@ -1011,7 +1011,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
           
           {/* Sidebar publicitaire (desktop uniquement) */}
           <div className="hidden lg:block w-80 flex-shrink-0">
-            <div className="sticky top-6">
+            <div className="sticky top-20">
               {/* Publicité verticale uniquement */}
               <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div className="text-xs text-gray-500 mb-2 text-center">Sponsorisé</div>
