@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { api } from '../../services/api';
 
@@ -32,6 +32,20 @@ const AddPostToFolderModal: React.FC<AddPostToFolderModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
+  // Debug : log des changements de selectedPostId
+  React.useEffect(() => {
+    console.log('🎯 selectedPostId changed to:', selectedPostId);
+  }, [selectedPostId]);
+
+  const handlePostSelection = useCallback((postId: string) => {
+    console.log('🔍 handlePostSelection called with:', postId, 'current selected:', selectedPostId);
+    setSelectedPostId(prev => {
+      const newSelected = prev === postId ? null : postId;
+      console.log('🔄 Setting selectedPostId from', prev, 'to', newSelected);
+      return newSelected;
+    });
+  }, [selectedPostId]);
+
   useEffect(() => {
     if (isOpen) {
       setSelectedPostId(null); // Reset la sélection quand le modal s'ouvre
@@ -52,6 +66,7 @@ const AddPostToFolderModal: React.FC<AddPostToFolderModalProps> = ({
         !post.folderId || post.folderId !== folderId
       );
       
+      console.log('📋 Posts disponibles:', availablePosts.map((p: Post) => ({ id: p._id, title: p.title })));
       setPosts(availablePosts);
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Erreur lors du chargement des posts');
@@ -139,12 +154,12 @@ const AddPostToFolderModal: React.FC<AddPostToFolderModalProps> = ({
                   <span>Cliquez sur un post pour le sélectionner</span>
                 )}
               </div>
-              {posts.map((post, index) => {
+              {posts.map((post) => {
                 const isSelected = selectedPostId === post._id;
                 
                 return (
                   <div
-                    key={`${post._id}-${index}`}
+                    key={post._id}
                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       isSelected
                         ? 'border-blue-500 bg-blue-50'
@@ -153,8 +168,7 @@ const AddPostToFolderModal: React.FC<AddPostToFolderModalProps> = ({
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      const newSelectedId = isSelected ? null : post._id;
-                      setSelectedPostId(newSelectedId);
+                      handlePostSelection(post._id);
                     }}
                   >
                     <div className="flex items-center justify-between">
