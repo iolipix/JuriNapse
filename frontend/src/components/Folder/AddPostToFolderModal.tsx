@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { api } from '../../services/api';
 
 interface Post {
   _id: string;
@@ -43,16 +44,8 @@ const AddPostToFolderModal: React.FC<AddPostToFolderModalProps> = ({
     setError(null);
     
     try {
-      // Les requêtes utilisent maintenant les cookies HTTP automatiquement
-      const response = await fetch('/api/posts/user', {
-        credentials: 'include', // Pour envoyer les cookies
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des posts');
-      }
-
-      const data = await response.json();
+      const response = await api.get('/posts/user');
+      const data = response.data;
       
       // Filtrer les posts qui ne sont pas déjà dans ce dossier
       const availablePosts = data.filter((post: Post) => 
@@ -60,8 +53,8 @@ const AddPostToFolderModal: React.FC<AddPostToFolderModalProps> = ({
       );
       
       setPosts(availablePosts);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Erreur lors du chargement des posts');
     } finally {
       setLoading(false);
     }
@@ -75,26 +68,12 @@ const AddPostToFolderModal: React.FC<AddPostToFolderModalProps> = ({
     setError(null);
 
     try {
-      // Les requêtes utilisent maintenant les cookies HTTP automatiquement
-      const response = await fetch(`/api/posts/${selectedPostId}/move-to-folder`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Pour envoyer les cookies
-        body: JSON.stringify({ folderId }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Erreur lors de l'ajout du post: ${errorText}`);
-      }
-
-      const updatedPost = await response.json();
+      const response = await api.put(`/posts/${selectedPostId}/move-to-folder`, { folderId });
+      const updatedPost = response.data;
       onPostAdded(updatedPost);
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Erreur lors de l\'ajout du post');
     } finally {
       setLoading(false);
     }
