@@ -12,6 +12,7 @@ interface FolderContextType {
   deleteFolder: (folderId: string) => Promise<void>;
   getFolderById: (folderId: string) => Folder | undefined;
   loadFolders: () => Promise<void>;
+  refreshFolders: () => Promise<void>;
 }
 
 const FolderContext = createContext<FolderContextType | undefined>(undefined);
@@ -68,7 +69,18 @@ export const FolderProvider: React.FC<FolderProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
       const response = await api.post('/folders', folderData);
-      setFolders(prev => [...prev, response.data]);
+      
+      // Extraire le dossier créé de la réponse API
+      const newFolder = response.data.data || response.data;
+      const mappedFolder = {
+        ...newFolder,
+        id: newFolder._id || newFolder.id
+      };
+      
+      setFolders(prev => [...prev, mappedFolder]);
+      
+      // Recharger tous les dossiers pour s'assurer de la cohérence
+      setTimeout(() => loadFolders(), 100);
     } catch (err) {
       setError('Erreur lors de la création du dossier');
       throw err;
@@ -82,8 +94,16 @@ export const FolderProvider: React.FC<FolderProviderProps> = ({ children }) => {
       setLoading(true);
       setError(null);
       const response = await api.put('/folders/' + folderId, updates);
+      
+      // Extraire le dossier mis à jour de la réponse API
+      const updatedFolder = response.data.data || response.data;
+      const mappedFolder = {
+        ...updatedFolder,
+        id: updatedFolder._id || updatedFolder.id
+      };
+      
       setFolders(prev => prev.map(folder => 
-        (folder.id === folderId || folder._id === folderId) ? response.data : folder
+        (folder.id === folderId || folder._id === folderId) ? mappedFolder : folder
       ));
     } catch (err) {
       setError('Erreur lors de la mise à jour du dossier');
@@ -120,6 +140,12 @@ export const FolderProvider: React.FC<FolderProviderProps> = ({ children }) => {
     return folders.find(folder => folder.id === folderId || folder._id === folderId);
   };
 
+  const refreshFolders = async () => {
+    // Forcer un rechargement complet
+    loadedForUser.current = null;
+    await loadFolders();
+  };
+
   const value: FolderContextType = {
     folders: Array.isArray(folders) ? folders : [],
     loading,
@@ -128,7 +154,8 @@ export const FolderProvider: React.FC<FolderProviderProps> = ({ children }) => {
     updateFolder,
     deleteFolder,
     getFolderById,
-    loadFolders
+    loadFolders,
+    refreshFolders
   };
 
   return (
