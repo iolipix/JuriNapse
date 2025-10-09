@@ -758,9 +758,9 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
       />
       
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="grid grid-cols-1 gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           {/* Contenu principal */}
-          <div>
+          <div className="flex-1">
             {/* Profile Header */}
             <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 lg:p-10 mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row items-start justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
@@ -960,7 +960,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
                 <div className="text-3xl font-bold text-purple-600 mb-1 group-hover:text-purple-700">{userConnectionsCount}</div>
                 <div className="text-sm font-medium text-purple-700">Connexions</div>
               </button>
-              <div className="group bg-gradient-to-br from-rose-50 to-red-50 rounded-2xl p-6 border border-rose-100">
+              <div className="group bg-gradient-to-br from-rose-50 to-red-50 rounded-2xl p-6 border border-rose-100 text-center">
                 <div className="text-3xl font-bold text-rose-600 mb-1">
                   {statsLoading ? '...' : totalLikes}
                 </div>
@@ -1008,7 +1008,25 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
           </div>
         </div>
       </div>
-    </div>
+          
+          {/* Sidebar publicitaire (desktop uniquement) */}
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <div className="sticky top-6 space-y-6">
+              {/* Publicité verticale */}
+              <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="text-xs text-gray-500 mb-2 text-center">Sponsorisé</div>
+                <VerticalAd />
+              </div>
+              
+              {/* Publicité rectangulaire additionnelle */}
+              <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                <div className="text-xs text-gray-500 mb-2 text-center">Sponsorisé</div>
+                <RectangleAd />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Modal des abonnements */}
       <SubscriptionModal
@@ -1098,7 +1116,6 @@ const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onTagClick, o
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
