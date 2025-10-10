@@ -6,11 +6,15 @@ Allow: /folder/*
 Allow: /feed
 Allow: /trending
 
+# Protéger les données personnelles et images de profil
 Disallow: /api/*
 Disallow: /admin/*
 Disallow: /settings/*
 Disallow: /messaging/*
 Disallow: /privacy-policy
 Disallow: /politique-confidentialite
+Disallow: /uploads/*
+Disallow: /images/profiles/*
+Disallow: /static/profiles/*
 
 Sitemap: https://jurinapse.com/sitemap.xml

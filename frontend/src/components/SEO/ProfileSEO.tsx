@@ -47,7 +47,8 @@ const ProfileSEO: React.FC<ProfileSEOProps> = ({
   ].filter(Boolean).join(', ');
 
   const profileUrl = `${window.location.origin}/profile/${user.username}`;
-  const imageUrl = user.profilePicture || `${window.location.origin}/default-profile.png`;
+  // Ne pas exposer les photos de profil dans les meta tags pour protéger la vie privée
+  const imageUrl = `${window.location.origin}/default-profile.png`;
 
   const structuredData = {
     "@context": "https://schema.org",
