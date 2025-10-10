@@ -69,6 +69,7 @@ export interface Post {
   };
   isPrivate?: boolean;
   decisionNumber?: string;
+  jurisdiction?: string; // Juridiction pour les fiches d'arrêt
   folderId?: string; // Nouveau champ pour associer un post à un dossier
 }
 

@@ -41,13 +41,21 @@ const findPostBySlugOrId = async (slugOrId) => {
 // Créer un nouveau post
 const createPost = async (req, res) => {
   try {
-    const { type, title, content, tags, isPrivate, decisionNumber, folderId, pdfFile } = req.body;
+    const { type, title, content, tags, isPrivate, decisionNumber, jurisdiction, folderId, pdfFile } = req.body;
 
     // Validation des champs obligatoires
     if (!type || !title || !content) {
       return res.status(400).json({
         success: false,
         message: 'Type, titre et contenu sont obligatoires'
+      });
+    }
+
+    // Validation spécifique pour les fiches d'arrêt
+    if (type === 'fiche-arret' && (!jurisdiction || !jurisdiction.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'La juridiction est obligatoire pour les fiches d\'arrêt'
       });
     }
 
@@ -78,6 +86,7 @@ const createPost = async (req, res) => {
       tags: tags || [],
       isPrivate: isPrivate || false,
       decisionNumber: decisionNumber || null,
+      jurisdiction: jurisdiction || null,
       folderId: folderId || null,
       pdfFile: pdfFile || null,
       lastUserEdit: new Date() // Marquer comme créé par l'utilisateur
@@ -346,7 +355,7 @@ const getPostById = async (req, res) => {
 const updatePost = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, tags, isPrivate, decisionNumber, type } = req.body;
+    const { title, content, tags, isPrivate, decisionNumber, jurisdiction, type } = req.body;
 
     const post = await Post.findById(id);
 
@@ -371,6 +380,7 @@ const updatePost = async (req, res) => {
     if (tags !== undefined) post.tags = tags;
     if (isPrivate !== undefined) post.isPrivate = isPrivate;
     if (decisionNumber !== undefined) post.decisionNumber = decisionNumber;
+    if (jurisdiction !== undefined) post.jurisdiction = jurisdiction;
     if (type !== undefined) post.type = type;
 
     // Marquer comme modifié par l'utilisateur

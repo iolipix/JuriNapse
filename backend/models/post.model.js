@@ -87,6 +87,11 @@ const postSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  jurisdiction: {
+    type: String,
+    default: null,
+    maxlength: [200, 'Jurisdiction cannot exceed 200 characters']
+  },
   folderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Folder',

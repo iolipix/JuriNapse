@@ -39,6 +39,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const [editContent, setEditContent] = useState(post.content);
   const [editTitle, setEditTitle] = useState(post.title);
   const [editDecisionNumber, setEditDecisionNumber] = useState(post.decisionNumber || '');
+  const [editJurisdiction, setEditJurisdiction] = useState(post.jurisdiction || '');
   const [editType, setEditType] = useState(post.type);
   const [editTags, setEditTags] = useState<string[]>(post.tags || []);
   const [editTagsInput, setEditTagsInput] = useState('');
@@ -208,6 +209,7 @@ const PostCard: React.FC<PostCardProps> = ({
         title: editTitle,
         content: editContent,
         decisionNumber: editDecisionNumber || undefined,
+        jurisdiction: editJurisdiction || undefined,
         type: editType,
         tags: editTags
       });
@@ -220,6 +222,7 @@ const PostCard: React.FC<PostCardProps> = ({
     setEditContent(post.content);
     setEditTitle(post.title);
     setEditDecisionNumber(post.decisionNumber || '');
+    setEditJurisdiction(post.jurisdiction || '');
     setEditType(post.type);
     setEditTags(post.tags || []);
     setEditTagsInput('');
@@ -598,6 +601,36 @@ const PostCard: React.FC<PostCardProps> = ({
           <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 leading-tight">
             {post.title}
           </h2>
+        )}
+
+        {/* Juridiction pour les fiches d'arrêt */}
+        {post.type === 'fiche-arret' && (
+          <div className="mb-3">
+            {isEditing ? (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Juridiction <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={editJurisdiction}
+                  onChange={(e) => setEditJurisdiction(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Ex: Cour de cassation, Cour d'appel de Paris..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                />
+              </div>
+            ) : post.jurisdiction ? (
+              <p className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-2 rounded-lg border">
+                <span className="text-gray-500">Juridiction : </span>
+                <span className="text-gray-800">{post.jurisdiction}</span>
+              </p>
+            ) : (
+              <p className="text-sm text-gray-500 italic bg-gray-50 px-3 py-2 rounded-lg border">
+                Aucune juridiction renseignée
+              </p>
+            )}
+          </div>
         )}
 
         {/* Numéro de décision pour les fiches d'arrêt - Style discret */}
