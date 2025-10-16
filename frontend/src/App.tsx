@@ -396,7 +396,8 @@ const MainApp: React.FC = () => {
     setViewingPostId(null);
     setSelectedTag(null);
     
-    window.location.hash = `decision-${decisionNumber}`;
+    // Naviguer vers la racine avec le hash de décision
+    window.history.pushState({}, '', `/#decision-${decisionNumber}`);
     scrollToTop(); // Défiler vers le haut
   };
 
