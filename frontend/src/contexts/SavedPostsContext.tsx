@@ -116,6 +116,7 @@ export const SavedPostsProvider: React.FC<SavedPostsProviderProps> = ({ children
             pdfFile: post.pdfFile || null,
             isPrivate: Boolean(post.isPrivate),
             decisionNumber: post.decisionNumber || null,
+            jurisdiction: post.jurisdiction || null,
             folderId: post.folderId || null,
             savedAt: new Date(post.savedAt) // Maintenant nous avons la date de sauvegarde
           };

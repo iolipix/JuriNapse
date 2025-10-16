@@ -136,6 +136,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
             pdfFile: post.pdfFile || null,
             isPrivate: Boolean(post.isPrivate),
             decisionNumber: post.decisionNumber || null,
+            jurisdiction: post.jurisdiction || null,
             folderId: post.folderId || null
           };
           
@@ -263,6 +264,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
                 pdfFile: post.pdfFile || null,
                 isPrivate: Boolean(post.isPrivate),
                 decisionNumber: post.decisionNumber || null,
+                jurisdiction: post.jurisdiction || null,
                 folderId: post.folderId || null
               };
               
@@ -435,6 +437,7 @@ export const PostProvider: React.FC<PostProviderProps> = ({ children }) => {
           } : undefined,
           isPrivate: postData.isPrivate || false,
           decisionNumber: postData.decisionNumber || null,
+          jurisdiction: postData.jurisdiction || null,
           folderId: postData.folderId || null
         };
         return post;
