@@ -588,23 +588,39 @@ const MainApp: React.FC = () => {
       return;
     }
     
-    // Route racine - retour à l'accueil
-    if (path === '/' || path === '') {
-      setActiveTab('feed');
-      setViewingUserId(null);
-      setViewingPostId(null);
-      setViewingDecision(null);
-      setSelectedTag(null);
-      setSettingsTab(null);
-      setAdminTab(null);
-      // Forcer le scroll vers le haut
-      setTimeout(() => {
-        scrollToTop();
-      }, 100);
+  // Route racine - mais vérifier d'abord s'il y a un hash
+  if (path === '/' || path === '') {
+    const hash = window.location.hash.substring(1);
+    
+    // Si il y a un hash, le traiter en priorité
+    if (hash.startsWith('user-')) {
+      const userId = hash.replace('user-', '');
+      handleViewUserProfile(userId);
+      return;
+    } else if (hash.startsWith('post-')) {
+      const postId = hash.replace('post-', '');
+      handleViewPost(postId);
+      return;
+    } else if (hash.startsWith('decision-')) {
+      const decisionNumber = hash.replace('decision-', '');
+      handleViewDecision(decisionNumber);
       return;
     }
-
-    // Route profil privé
+    
+    // Sinon, retour à l'accueil normal
+    setActiveTab('feed');
+    setViewingUserId(null);
+    setViewingPostId(null);
+    setViewingDecision(null);
+    setSelectedTag(null);
+    setSettingsTab(null);
+    setAdminTab(null);
+    // Forcer le scroll vers le haut
+    setTimeout(() => {
+      scrollToTop();
+    }, 100);
+    return;
+  }    // Route profil privé
   if (path === '/profile') {
       if (!user) {
         openAuthModal();
