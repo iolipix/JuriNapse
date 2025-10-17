@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, FileText, Users, BookOpen, Upload, File, Lock, Globe, Scroll } from 'lucide-react';
+import { X, FileText, Users, BookOpen, Upload, File, Lock, Globe, Scroll, Search, Download, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { PostType } from '../../types';
 import { usePost } from '../../contexts';
+import { judilibreAPI } from '../../services/judilibre';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -26,6 +27,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, fold
   const [decisionSuggestions, setDecisionSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // États pour l'intégration Judilibre
+  const [isEnrichingFromJudilibre, setIsEnrichingFromJudilibre] = useState(false);
+  const [judilibreEnrichmentResult, setJudilibreEnrichmentResult] = useState<any>(null);
+  const [judilibreError, setJudilibreError] = useState<string | null>(null);
+  const [showJudilibreSuccess, setShowJudilibreSuccess] = useState(false);
 
   // Fonction pour vérifier si l'utilisateur a commencé à écrire
   const hasContent = () => {
@@ -66,6 +73,53 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, fold
     setTagInput('');
     setPdfFile(null);
     setShowSuggestions(false);
+    
+    // Reset Judilibre
+    setJudilibreEnrichmentResult(null);
+    setJudilibreError(null);
+    setShowJudilibreSuccess(false);
+    setIsEnrichingFromJudilibre(false);
+  };
+
+  // Enrichir automatiquement depuis Judilibre
+  const handleEnrichFromJudilibre = async () => {
+    if (!formData.decisionNumber.trim() || !formData.jurisdiction.trim()) {
+      setJudilibreError('Veuillez saisir un numéro de décision et sélectionner une juridiction');
+      return;
+    }
+
+    try {
+      setIsEnrichingFromJudilibre(true);
+      setJudilibreError(null);
+      
+      const result = await judilibreAPI.enrichDecision(formData.decisionNumber, formData.jurisdiction);
+      
+      if (result.success) {
+        const enrichedData = result.enrichedData;
+        
+        // Pré-remplir le formulaire avec les données enrichies
+        setFormData(prev => ({
+          ...prev,
+          title: enrichedData.title || prev.title,
+          content: enrichedData.content || prev.content,
+          decisionNumber: enrichedData.decisionNumber || prev.decisionNumber,
+          jurisdiction: enrichedData.jurisdiction || prev.jurisdiction
+        }));
+        
+        setJudilibreEnrichmentResult(result);
+        setShowJudilibreSuccess(true);
+        
+        // Masquer le message de succès après 5 secondes
+        setTimeout(() => setShowJudilibreSuccess(false), 5000);
+        
+      } else {
+        setJudilibreError(result.error || 'Erreur lors de l\'enrichissement');
+      }
+    } catch (error: any) {
+      setJudilibreError(error.message || 'Erreur de connexion avec Judilibre');
+    } finally {
+      setIsEnrichingFromJudilibre(false);
+    }
   };
 
   // Gérer le clic à l'extérieur du modal
@@ -493,41 +547,100 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, fold
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Juridiction <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.jurisdiction}
                 onChange={(e) => setFormData(prev => ({ ...prev, jurisdiction: e.target.value }))}
-                placeholder="Ex: Cour de cassation, Cour d'appel de Paris, Tribunal de grande instance..."
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
+                <option value="">Sélectionner une juridiction</option>
+                <option value="Cour de cassation">Cour de cassation</option>
+                <option value="Conseil d'État">Conseil d'État</option>
+                <option value="Autre">Autre (saisie libre)</option>
+              </select>
+              
+              {/* Champ libre si "Autre" est sélectionné */}
+              {formData.jurisdiction === 'Autre' && (
+                <input
+                  type="text"
+                  placeholder="Précisez la juridiction..."
+                  className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => setFormData(prev => ({ ...prev, jurisdiction: e.target.value || 'Autre' }))}
+                />
+              )}
             </div>
           )}
 
-          {/* Numéro de décision pour les fiches d'arrêt */}
+          {/* Numéro de décision pour les fiches d'arrêt avec enrichissement Judilibre */}
           {formData.type === 'fiche-arret' && (
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Numéro de la décision <span className="text-gray-500 text-xs">(optionnel)</span>
-              </label>
-              <input
-                type="text"
-                value={formData.decisionNumber}
-                onChange={(e) => handleDecisionNumberChange(e.target.value)}
-                onFocus={() => {
-                  if (formData.decisionNumber.trim()) {
-                    const suggestions = getDecisionSuggestions(formData.decisionNumber);
-                    setDecisionSuggestions(suggestions);
-                    setShowSuggestions(suggestions.length > 0);
-                  }
-                }}
-                onBlur={() => {
-                  // Délai pour permettre le clic sur les suggestions
-                  setTimeout(() => setShowSuggestions(false), 200);
-                }}
-                placeholder="Ex: 93-18.632"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+            <div className="space-y-3">
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Numéro de la décision <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.decisionNumber}
+                    onChange={(e) => handleDecisionNumberChange(e.target.value)}
+                    onFocus={() => {
+                      if (formData.decisionNumber.trim()) {
+                        const suggestions = getDecisionSuggestions(formData.decisionNumber);
+                        setDecisionSuggestions(suggestions);
+                        setShowSuggestions(suggestions.length > 0);
+                      }
+                    }}
+                    onBlur={() => {
+                      setTimeout(() => setShowSuggestions(false), 200);
+                    }}
+                    placeholder="Ex: 23-12.120"
+                    required
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  
+                  {/* Bouton d'enrichissement Judilibre */}
+                  {(formData.jurisdiction === 'Cour de cassation' || formData.jurisdiction === 'Conseil d\'État') && (
+                    <button
+                      type="button"
+                      onClick={handleEnrichFromJudilibre}
+                      disabled={isEnrichingFromJudilibre || !formData.decisionNumber.trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                    >
+                      {isEnrichingFromJudilibre ? (
+                        <Loader className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Search className="w-4 h-4" />
+                      )}
+                      {isEnrichingFromJudilibre ? 'Recherche...' : 'Auto-remplir'}
+                    </button>
+                  )}
+                </div>
+                
+                {/* Messages d'état Judilibre */}
+                {judilibreError && (
+                  <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {judilibreError}
+                  </div>
+                )}
+                
+                {showJudilibreSuccess && (
+                  <div className="mt-2 flex items-center gap-2 text-green-600 text-sm">
+                    <CheckCircle className="w-4 h-4" />
+                    Décision trouvée et données pré-remplies !
+                    {judilibreEnrichmentResult?.enrichedData?.savedFile && (
+                      <button
+                        type="button"
+                        onClick={() => judilibreAPI.downloadDecision(judilibreEnrichmentResult.enrichedData.savedFile)}
+                        className="ml-2 flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                      >
+                        <Download className="w-3 h-3" />
+                        Télécharger le texte complet
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
               
               {/* Suggestions dropdown */}
               {showSuggestions && decisionSuggestions.length > 0 && (
