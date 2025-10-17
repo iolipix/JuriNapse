@@ -139,9 +139,23 @@ const PostCard: React.FC<PostCardProps> = ({
   const userGroups = user ? (groups ? 
     groups
       .filter(g => g.members && g.members.some(m => m.id === user.id))
-      .filter((group, index, array) => 
-        array.findIndex(g => g.id === group.id) === index
-      ) 
+      .filter((group, index, array) => {
+        // Pour les conversations privées, filtrer par l'autre participant
+        if (group.isPrivate) {
+          const otherParticipant = getOtherParticipant(group);
+          if (otherParticipant) {
+            // Vérifier qu'aucun autre groupe privé n'a le même participant
+            const firstOccurrence = array.findIndex(g => {
+              if (!g.isPrivate) return false;
+              const otherInG = getOtherParticipant(g);
+              return otherInG?.id === otherParticipant.id;
+            });
+            return firstOccurrence === index;
+          }
+        }
+        // Pour les groupes publics, filtrer par ID
+        return array.findIndex(g => g.id === group.id) === index;
+      }) 
     : []) : [];
 
   const getPostTypeLabel = (type: string) => {
@@ -1146,14 +1160,15 @@ const PostCard: React.FC<PostCardProps> = ({
                   <>
                     <div className="border-t border-gray-200 my-4"></div>
                     <p className="text-sm font-medium text-gray-700 mb-3">Partager dans un groupe :</p>
-                    {userGroups.map((group) => {
-                      const privateDisplay = group.isPrivate ? getPrivateChatDisplay(group) : null;
-                      
-                      return (
-                        <button
-                          key={group.id}
-                          onClick={() => handleShareToGroup(group.id)}
-                          className="w-full flex items-center space-x-3 p-4 rounded-xl hover:bg-gray-50 transition-colors text-left"
+                    <div className="max-h-60 overflow-y-auto space-y-2 pr-2">
+                      {userGroups.map((group) => {
+                        const privateDisplay = group.isPrivate ? getPrivateChatDisplay(group) : null;
+                        
+                        return (
+                          <button
+                            key={group.id}
+                            onClick={() => handleShareToGroup(group.id)}
+                            className="w-full flex items-center space-x-3 p-4 rounded-xl hover:bg-gray-50 transition-colors text-left"
                         >
                           <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
                             {privateDisplay?.profilePicture ? (
@@ -1177,6 +1192,7 @@ const PostCard: React.FC<PostCardProps> = ({
                         </button>
                       );
                     })}
+                    </div>
                   </>
                 )}
               </div>
