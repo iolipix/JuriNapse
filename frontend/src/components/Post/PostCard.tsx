@@ -101,8 +101,19 @@ const PostCard: React.FC<PostCardProps> = ({
       }
     };
 
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowShareModal(false);
+        setIsMenuOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
   }, []);
 
   // Auto-hide success message
@@ -1095,7 +1106,11 @@ const PostCard: React.FC<PostCardProps> = ({
       {/* Modal de partage */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div ref={shareModalRef} className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+          <div 
+            ref={shareModalRef} 
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900">Partager cette publication</h3>
