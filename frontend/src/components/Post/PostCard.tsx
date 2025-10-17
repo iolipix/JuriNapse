@@ -135,6 +135,34 @@ const PostCard: React.FC<PostCardProps> = ({
     }).format(new Date(date));
   };
 
+  // Helper function to get the other participant in a private conversation
+  const getOtherParticipant = (group: Group) => {
+    if (group.isPrivate && group.members && group.members.length === 2) {
+      return group.members.find(member => member.id !== user?.id);
+    }
+    return null;
+  };
+
+  // Helper function to format private chat display
+  const getPrivateChatDisplay = (group: Group) => {
+    const otherParticipant = getOtherParticipant(group);
+    if (otherParticipant) {
+      const lastMessage = lastMessages[group.id];
+      const lastMessageText = lastMessage ? 
+        (lastMessage.content?.length > 30 ? 
+          lastMessage.content.substring(0, 30) + "..." : 
+          lastMessage.content) : 
+        "Aucun message";
+      
+      return {
+        name: `${otherParticipant.firstName} ${otherParticipant.lastName}`.trim() || 'Utilisateur',
+        profilePicture: otherParticipant.profilePicture,
+        lastMessage: lastMessageText
+      };
+    }
+    return null;
+  };
+
   // Récupérer les groupes de l'utilisateur pour le partage (sans doublons)
   const userGroups = user ? (groups ? 
     groups
@@ -182,34 +210,6 @@ const PostCard: React.FC<PostCardProps> = ({
         return 'bg-purple-100 text-purple-800';
       default: return 'bg-purple-100 text-purple-800';
     }
-  };
-
-  // Helper function to get the other participant in a private conversation
-  const getOtherParticipant = (group: Group) => {
-    if (group.isPrivate && group.members && group.members.length === 2) {
-      return group.members.find(member => member.id !== user?.id);
-    }
-    return null;
-  };
-
-  // Helper function to format private chat display
-  const getPrivateChatDisplay = (group: Group) => {
-    const otherParticipant = getOtherParticipant(group);
-    if (otherParticipant) {
-      const lastMessage = lastMessages[group.id];
-      const lastMessageText = lastMessage ? 
-        (lastMessage.content?.length > 30 ? 
-          lastMessage.content.substring(0, 30) + "..." : 
-          lastMessage.content) : 
-        "Aucun message";
-      
-      return {
-        name: `${otherParticipant.firstName} ${otherParticipant.lastName}`.trim() || 'Utilisateur',
-        profilePicture: otherParticipant.profilePicture,
-        lastMessage: lastMessageText
-      };
-    }
-    return null;
   };
 
   // Fonction pour déterminer si un post est tendance
