@@ -135,8 +135,14 @@ const PostCard: React.FC<PostCardProps> = ({
     }).format(new Date(date));
   };
 
-  // Récupérer les groupes de l'utilisateur pour le partage
-  const userGroups = user ? (groups ? groups.filter(g => g.members && g.members.some(m => m.id === user.id)) : []) : [];
+  // Récupérer les groupes de l'utilisateur pour le partage (sans doublons)
+  const userGroups = user ? (groups ? 
+    groups
+      .filter(g => g.members && g.members.some(m => m.id === user.id))
+      .filter((group, index, array) => 
+        array.findIndex(g => g.id === group.id) === index
+      ) 
+    : []) : [];
 
   const getPostTypeLabel = (type: string) => {
     switch (type) {
