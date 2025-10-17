@@ -3,8 +3,13 @@ const axios = require('axios');
 class JudilibreService {
   constructor() {
     this.baseURL = 'https://sandbox-api.piste.gouv.fr/cassation/judilibre/v1.0';
-    this.apiKey = '796f47b5-b3ac-4cd4-89a3-9f1042e6b6a3';
+    this.apiKey = process.env.JUDILIBRE_API_KEY;
     this.timeout = 10000;
+
+    // Vérifier que la clé API est configurée
+    if (!this.apiKey) {
+      console.error('⚠️  JUDILIBRE_API_KEY non configurée dans les variables d\'environnement');
+    }
   }
 
   /**
@@ -14,6 +19,15 @@ class JudilibreService {
    * @returns {Promise<Object>} Résultat de la recherche
    */
   async searchDecisionByNumber(decisionNumber, jurisdiction = 'cc') {
+    // Vérifier que la clé API est disponible
+    if (!this.apiKey) {
+      return {
+        success: false,
+        error: 'Clé API Judilibre non configurée',
+        decisions: []
+      };
+    }
+
     try {
       const searchQuery = `number:${decisionNumber}`;
       
@@ -52,6 +66,14 @@ class JudilibreService {
    * @returns {Promise<Object>} Décision complète avec texte
    */
   async getFullDecision(decisionId) {
+    // Vérifier que la clé API est disponible
+    if (!this.apiKey) {
+      return {
+        success: false,
+        error: 'Clé API Judilibre non configurée'
+      };
+    }
+
     try {
       const response = await axios.get(`${this.baseURL}/decision`, {
         headers: {
