@@ -58,6 +58,7 @@ const messageRoutes = require('./routes/message.routes');
 const subscriptionRoutes = require('./routes/subscription.routes');
 const seoRoutes = require('./routes/seo.routes');
 const judilibreRoutes = require('./routes/judilibre.routes');
+const decisionRoutes = require('./routes/decision.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -139,6 +140,7 @@ app.use('/api/groups', socketMiddleware, groupRoutes); // Socket.io seulement po
 app.use('/api/messages', socketMiddleware, messageRoutes); // Socket.io seulement pour les messages
 app.use('/api/subscriptions', socketMiddleware, subscriptionRoutes); // Socket.io pour les notifications d'abonnement
 app.use('/api/judilibre', judilibreRoutes); // Routes pour l'intégration Judilibre
+app.use('/api/decisions', decisionRoutes); // Routes pour les décisions automatiques
 
 // Middleware de détection de bot pour SEO
 const botUserAgents = /bot|crawl|slurp|spider|facebook|twitter|linkedinbot|whatsapp|telegram|googlebot|bingbot|yandexbot|duckduckbot|applebot/i;

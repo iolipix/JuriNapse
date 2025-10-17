@@ -47,4 +47,39 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-module.exports = authenticateToken;
+// Middleware d'authentification optionnelle
+const optionalAuth = async (req, res, next) => {
+  try {
+    // Essayer de récupérer le token comme dans authenticateToken
+    let token = req.cookies.jurinapse_token;
+    
+    if (!token) {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'jurinapse_secret_key');
+        const user = await User.findById(decoded.userId);
+        
+        if (user) {
+          req.user = user; // Utilisateur disponible si token valide
+        }
+      } catch (error) {
+        // Token invalide, mais on continue sans utilisateur
+        console.log('Token optionnel invalide, continuation sans auth');
+      }
+    }
+
+    // Continuer dans tous les cas (avec ou sans utilisateur)
+    next();
+  } catch (error) {
+    // En cas d'erreur, continuer sans utilisateur
+    next();
+  }
+};
+
+module.exports = { authenticateToken, optionalAuth };

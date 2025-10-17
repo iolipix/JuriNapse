@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Scale, FileText, SortAsc, SortDesc, TrendingUp, ChevronDown, AlertTriangle, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Scale, FileText, SortAsc, SortDesc, TrendingUp, ChevronDown, AlertTriangle, Plus, Loader2 } from 'lucide-react';
 import { usePost } from '../../contexts';
 import PostCard from '../Post/PostCard';
 
@@ -28,9 +28,14 @@ const DecisionPage: React.FC<DecisionPageProps> = ({
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [proposalType, setProposalType] = useState<'add' | 'modify'>('add');
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
+  
+  // États pour la gestion automatique des décisions
+  const [decisionData, setDecisionData] = useState<any>(null);
+  const [isLoadingDecision, setIsLoadingDecision] = useState(false);
+  const [decisionError, setDecisionError] = useState<string | null>(null);
 
   // Auto-hide success message
-  React.useEffect(() => {
+  useEffect(() => {
     if (showSuccessMessage) {
       const timer = setTimeout(() => {
         setShowSuccessMessage(null);
@@ -38,6 +43,50 @@ const DecisionPage: React.FC<DecisionPageProps> = ({
       return () => clearTimeout(timer);
     }
   }, [showSuccessMessage]);
+
+  // Auto-chargement de la décision depuis la BDD/Judilibre
+  useEffect(() => {
+    const loadDecisionData = async () => {
+      if (!decisionNumber) return;
+
+      setIsLoadingDecision(true);
+      setDecisionError(null);
+
+      try {
+        // Essayer de récupérer la décision (auto-import si nécessaire)
+        const response = await fetch(`/api/decisions/${encodeURIComponent(decisionNumber)}?jurisdiction=Cour de cassation`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setDecisionData(result.decision);
+          
+          // Message de succès selon la source
+          if (result.source === 'judilibre_auto_import') {
+            setShowSuccessMessage('✅ Décision importée automatiquement depuis Judilibre !');
+          } else if (result.source === 'database') {
+            console.log('📚 Décision trouvée en base de données');
+          }
+        } else {
+          setDecisionError(result.error || 'Erreur lors du chargement');
+        }
+
+      } catch (error) {
+        console.error('Erreur chargement décision:', error);
+        setDecisionError('Erreur de connexion');
+      } finally {
+        setIsLoadingDecision(false);
+      }
+    };
+
+    loadDecisionData();
+  }, [decisionNumber]);
 
   // Filtrer les fiches d'arrêt pour cette décision
   const decisionPosts = posts.filter(post => 
@@ -164,30 +213,130 @@ const DecisionPage: React.FC<DecisionPageProps> = ({
           <div className="flex items-center space-x-2">
             <Scale className="h-5 w-5 text-blue-600" />
             <h2 className="text-lg font-bold text-gray-900">Texte de la décision</h2>
+            {isLoadingDecision && (
+              <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+            )}
           </div>
-          
-          {/* Bouton de proposition sur le texte */}
-          <button
-            onClick={handleProposalClick}
-            className="flex items-center space-x-2 px-3 py-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-sm"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Proposer ajout</span>
-          </button>
         </div>
         
-        <div className="flex items-start space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-          <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-orange-800 mb-1">
-              Texte de décision non disponible
-            </p>
-            <p className="text-sm text-orange-700">
-              Le texte officiel de cette décision n'est pas encore disponible dans notre base de données. 
-              Vous pouvez consulter les fiches d'arrêt ci-dessous pour des analyses détaillées.
-            </p>
+        {/* Chargement */}
+        {isLoadingDecision && (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex items-center space-x-3 text-gray-600">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Recherche automatique de la décision...</span>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Erreur de chargement */}
+        {!isLoadingDecision && decisionError && (
+          <div className="flex items-start space-x-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-red-800 mb-1">
+                Décision non trouvée
+              </p>
+              <p className="text-sm text-red-700">
+                {decisionError}. Cette décision n'est peut-être pas disponible dans Judilibre ou nécessite un ajout manuel.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Décision trouvée */}
+        {!isLoadingDecision && decisionData && (
+          <div className="space-y-4">
+            {/* Métadonnées de la décision */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-blue-800">Juridiction:</span>
+                  <span className="ml-2 text-blue-700">{decisionData.jurisdiction}</span>
+                </div>
+                {decisionData.chamber && (
+                  <div>
+                    <span className="font-medium text-blue-800">Chambre:</span>
+                    <span className="ml-2 text-blue-700">{decisionData.chamber}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="font-medium text-blue-800">Date:</span>
+                  <span className="ml-2 text-blue-700">
+                    {new Date(decisionData.date).toLocaleDateString('fr-FR')}
+                  </span>
+                </div>
+                {decisionData.solution && (
+                  <div>
+                    <span className="font-medium text-blue-800">Solution:</span>
+                    <span className="ml-2 text-blue-700">{decisionData.solution}</span>
+                  </div>
+                )}
+                {decisionData.ecli && (
+                  <div className="md:col-span-2">
+                    <span className="font-medium text-blue-800">ECLI:</span>
+                    <span className="ml-2 text-blue-700 font-mono text-xs">{decisionData.ecli}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Résumé */}
+            {decisionData.summary && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="font-medium text-gray-900 mb-2">Résumé</h3>
+                <p className="text-sm text-gray-700 leading-relaxed">{decisionData.summary}</p>
+              </div>
+            )}
+
+            {/* Texte complet */}
+            {decisionData.fullText ? (
+              <div className="bg-white border border-gray-300 rounded-lg p-4">
+                <h3 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
+                  <FileText className="h-4 w-4" />
+                  <span>Texte intégral</span>
+                </h3>
+                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {decisionData.fullText}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start space-x-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-amber-800 mb-1">
+                    Texte intégral non disponible
+                  </p>
+                  <p className="text-sm text-amber-700">
+                    Seules les métadonnées et le résumé sont disponibles pour cette décision.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Badge source */}
+            <div className="flex justify-end">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                📚 Importé depuis Judilibre
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Aucune décision trouvée */}
+        {!isLoadingDecision && !decisionError && !decisionData && (
+          <div className="flex items-start space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-orange-800 mb-1">
+                Décision en cours de recherche
+              </p>
+              <p className="text-sm text-orange-700">
+                Nous recherchons automatiquement cette décision dans nos bases de données.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Titre de la section fiches */}
