@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Share2, Bookmark, Tag, User as UserIcon, LogIn, M
 import { Post, Group } from '../../types';
 import { useAuth, usePost, useMessaging } from '../../contexts';
 import { useSavedPosts } from '../../contexts/SavedPostsContext';
+import { useSubscription } from '../../contexts/SubscriptionContext';
 import CommentsList from './CommentsList';
 import LikesList from './LikesList';
 import { getUserDisplayInfo, handleProfileClick } from '../../utils/deletedUserUtils';
@@ -34,6 +35,7 @@ const PostCard: React.FC<PostCardProps> = ({
   const { toggleLike, deletePost, updatePost } = usePost();
   const { groups, lastMessages } = useMessaging();
   const { savePost, unsavePost, isPostSaved } = useSavedPosts();
+  const { subscriptions, followers } = useSubscription();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
@@ -163,12 +165,27 @@ const PostCard: React.FC<PostCardProps> = ({
     return null;
   };
 
-  // Récupérer les groupes de l'utilisateur pour le partage (sans doublons)
+  // Récupérer les groupes de l'utilisateur pour le partage (sans doublons + connexions mutuelles seulement)
   const userGroups = user ? (groups ? 
     groups
       .filter(g => g.members && g.members.some(m => m.id === user.id))
+      .filter(group => {
+        // Pour les conversations privées, ne garder que les connexions mutuelles
+        if (group.isPrivate) {
+          const otherParticipant = getOtherParticipant(group);
+          if (otherParticipant) {
+            // Vérifier que c'est une connexion mutuelle
+            const isFollowingThem = subscriptions?.some(sub => sub.id === otherParticipant.id) || false;
+            const isFollowedByThem = followers?.some(follower => follower.id === otherParticipant.id) || false;
+            return isFollowingThem && isFollowedByThem;
+          }
+          return false;
+        }
+        // Pour les groupes publics, les garder tous (si on est membre)
+        return true;
+      })
       .filter((group, index, array) => {
-        // Pour les conversations privées, filtrer par l'autre participant
+        // Éliminer les doublons après le filtrage des connexions mutuelles
         if (group.isPrivate) {
           const otherParticipant = getOtherParticipant(group);
           if (otherParticipant) {
