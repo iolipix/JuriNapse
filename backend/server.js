@@ -76,6 +76,7 @@ const {
   authLimiter, 
   registerLimiter, 
   apiLimiter, 
+  generalApiLimiter,
   helmetConfig, 
   mongoSanitize, 
   ipWhitelist 
@@ -110,9 +111,13 @@ const io = new Server(server, {
       'https://juri-napse-bix1.vercel.app', // Frontend Vercel ancien domaine
       'https://juri-napse.vercel.app', // Frontend Vercel nouveau domaine
       'https://jurinapse.vercel.app', // Domaine potentiel futur
-      'https://www.jurinapse.com' // Domaine custom potentiel
+      'https://www.jurinapse.com', // Domaine custom .com
+      'https://jurinapse.com', // Domaine custom .com sans www
+      'https://www.jurinapse.fr', // Domaine custom .fr
+      'https://jurinapse.fr' // Domaine custom .fr sans www
     ],
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST']
   }
 });
 const PORT = process.env.PORT || 5000;
@@ -147,12 +152,7 @@ app.use(helmetConfig);
 // 🛡️ Sécurité - Protection contre les injections NoSQL
 app.use(mongoSanitize);
 
-// 🛡️ Sécurité - Rate limiting global
-app.use('/api/', apiLimiter);
-
-// 🛡️ Sécurité - Surveillance IP (optionnel)
-// app.use(ipWhitelist); // Décommenter si nécessaire
-
+// 🛡️ CORS - Doit être avant rate limiting pour éviter les erreurs
 app.use(cors({
   origin: [
     'http://localhost:3000', 
@@ -167,8 +167,32 @@ app.use(cors({
     'https://www.jurinapse.fr', // Domaine custom .fr
     'https://jurinapse.fr' // Domaine custom .fr sans www
   ],
-  credentials: true // Pour permettre les cookies
+  credentials: true, // Pour permettre les cookies
+  optionsSuccessStatus: 200, // Pour support IE11
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['X-Total-Count', 'X-Page-Count']
 }));
+
+// Middleware spécial pour les requêtes OPTIONS (preflight)
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
+// 🛡️ Sécurité - Rate limiting général plus permissif
+app.use('/api/posts', generalApiLimiter);
+app.use('/api/auth/profile', generalApiLimiter);
+app.use('/api/user', generalApiLimiter);
+
+// 🛡️ Sécurité - Rate limiting global (plus strict pour autres routes)
+app.use('/api/', apiLimiter);
+
+// 🛡️ Sécurité - Surveillance IP (optionnel)
+// app.use(ipWhitelist); // Décommenter si nécessaire
 app.use(cookieParser()); // Pour parser les cookies
 app.use(express.json({ limit: '50mb' })); // Augmenter la limite pour les fichiers PDF
 app.use(express.urlencoded({ limit: '50mb', extended: true }));

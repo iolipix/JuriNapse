@@ -17,7 +17,7 @@ const createRateLimit = (windowMs, max, message) => {
 // Rate limits spécifiques
 const authLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  5, // 5 tentatives max
+  15, // 15 tentatives max (au lieu de 5) - Plus permissif
   'Trop de tentatives de connexion. Réessayez dans 15 minutes.'
 );
 
@@ -29,7 +29,14 @@ const registerLimiter = createRateLimit(
 
 const apiLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  250, // 250 requêtes max (1000/heure)
+  2000, // 2000 requêtes max (8000/heure) - Encore plus permissif
+  'Trop de requêtes. Réessayez plus tard.'
+);
+
+// Rate limiter plus permissif pour les requêtes générales (posts, profils, etc.)
+const generalApiLimiter = createRateLimit(
+  15 * 60 * 1000, // 15 minutes
+  5000, // 5000 requêtes max - Très permissif pour navigation normale
   'Trop de requêtes. Réessayez plus tard.'
 );
 
@@ -74,6 +81,7 @@ module.exports = {
   authLimiter,
   registerLimiter,
   apiLimiter,
+  generalApiLimiter,
   helmetConfig,
   mongoSanitize: mongoSanitize(),
   ipWhitelist
