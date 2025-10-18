@@ -29,14 +29,14 @@ const registerLimiter = createRateLimit(
 
 const apiLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  2000, // 2000 requêtes max (8000/heure) - Encore plus permissif
+  500, // 500 requêtes max (2000/heure) - Raisonnable pour usage normal
   'Trop de requêtes. Réessayez plus tard.'
 );
 
-// Rate limiter plus permissif pour les requêtes générales (posts, profils, etc.)
+// Rate limiter pour les requêtes de navigation (posts, profils, etc.)
 const generalApiLimiter = createRateLimit(
   15 * 60 * 1000, // 15 minutes
-  5000, // 5000 requêtes max - Très permissif pour navigation normale
+  200, // 200 requêtes max - Suffisant pour navigation normale sans spam
   'Trop de requêtes. Réessayez plus tard.'
 );
 

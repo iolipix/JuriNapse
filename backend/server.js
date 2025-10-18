@@ -194,8 +194,8 @@ app.use('/api/', apiLimiter);
 // 🛡️ Sécurité - Surveillance IP (optionnel)
 // app.use(ipWhitelist); // Décommenter si nécessaire
 app.use(cookieParser()); // Pour parser les cookies
-app.use(express.json({ limit: '50mb' })); // Augmenter la limite pour les fichiers PDF
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '10mb' })); // Limite raisonnable pour documents/images
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Routes
 app.get('/', (req, res) => {
