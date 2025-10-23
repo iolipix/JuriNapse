@@ -603,7 +603,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogin, onViewUserProfile, o
             {/* Message fin de liste */}
             {!hasMorePosts && userPosts.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-                <p className="text-gray-500">Vous avez vu toutes vos publications ✨</p>
+                <p className="text-gray-500">Vous avez vu toutes vos publications</p>
               </div>
             )}
           </div>
