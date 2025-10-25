@@ -1,4 +1,5 @@
-const axios = require('axios');
+const https = require('https');
+const url = require('url');
 
 /**
  * 🏛️ Service d'intégration avec l'API Judilibre
@@ -15,8 +16,58 @@ const JUDILIBRE_CONFIG = {
   }
 };
 
-// Créer instance Axios pour Judilibre
-const judilibreClient = axios.create(JUDILIBRE_CONFIG);
+/**
+ * Fonction helper pour faire des requêtes HTTPS
+ */
+const makeRequest = (endpoint, method = 'GET') => {
+  return new Promise((resolve, reject) => {
+    const fullUrl = `${JUDILIBRE_CONFIG.baseURL}${endpoint}`;
+    const parsedUrl = url.parse(fullUrl);
+    
+    const options = {
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || 443,
+      path: parsedUrl.path,
+      method: method,
+      headers: JUDILIBRE_CONFIG.headers,
+      timeout: JUDILIBRE_CONFIG.timeout
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          const jsonData = JSON.parse(data);
+          resolve({
+            status: res.statusCode,
+            data: jsonData
+          });
+        } catch (error) {
+          resolve({
+            status: res.statusCode,
+            data: data
+          });
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      reject(error);
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Request timeout'));
+    });
+
+    req.end();
+  });
+};
 
 /**
  * Enrichir automatiquement les données d'une décision via Judilibre
@@ -29,14 +80,11 @@ const enrichDecisionData = async (decisionNumber, jurisdiction = 'Cour de cassat
     console.log(`🔍 [JUDILIBRE] Recherche décision: ${decisionNumber} (${jurisdiction})`);
 
     // 1. Rechercher la décision via l'API export
-    const searchResponse = await judilibreClient.get('/export', {
-      params: {
-        query: decisionNumber.trim(),
-        type: 'arret',
-        jurisdiction: mapJurisdictionToCode(jurisdiction),
-        batch_size: 1
-      }
-    });
+    const query = encodeURIComponent(decisionNumber.trim());
+    const jurisdictionCode = encodeURIComponent(mapJurisdictionToCode(jurisdiction));
+    const endpoint = `/export?query=${query}&type=arret&jurisdiction=${jurisdictionCode}&batch_size=1`;
+    
+    const searchResponse = await makeRequest(endpoint);
 
     if (!searchResponse.data || !searchResponse.data.results || searchResponse.data.results.length === 0) {
       console.log(`❌ [JUDILIBRE] Décision ${decisionNumber} non trouvée`);
@@ -137,12 +185,18 @@ const searchDecisions = async (criteria = {}) => {
       jurisdiction
     };
 
-    if (query.trim()) searchParams.query = query.trim();
-    if (theme) searchParams.theme = theme;
-    if (dateStart) searchParams.date_start = dateStart;
-    if (dateEnd) searchParams.date_end = dateEnd;
+    if (query.trim()) searchParams.query = encodeURIComponent(query.trim());
+    if (theme) searchParams.theme = encodeURIComponent(theme);
+    if (dateStart) searchParams.date_start = encodeURIComponent(dateStart);
+    if (dateEnd) searchParams.date_end = encodeURIComponent(dateEnd);
 
-    const response = await judilibreClient.get('/export', { params: searchParams });
+    // Construire l'URL avec les paramètres
+    const queryString = Object.entries(searchParams)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&');
+    const endpoint = `/export?${queryString}`;
+
+    const response = await makeRequest(endpoint);
 
     return {
       success: true,
@@ -181,9 +235,8 @@ const mapJurisdictionToCode = (jurisdiction) => {
  */
 const getTaxonomies = async (type = 'theme') => {
   try {
-    const response = await judilibreClient.get('/taxonomy', {
-      params: { id: type }
-    });
+    const endpoint = `/taxonomy?id=${encodeURIComponent(type)}`;
+    const response = await makeRequest(endpoint);
 
     return {
       success: true,
@@ -203,11 +256,11 @@ const getTaxonomies = async (type = 'theme') => {
  */
 const checkApiHealth = async () => {
   try {
-    const response = await judilibreClient.get('/taxonomy?id=type');
+    const response = await makeRequest('/taxonomy?id=type');
     return {
       success: true,
       status: 'API Judilibre opérationnelle',
-      responseTime: response.headers['x-response-time'] || 'N/A'
+      responseTime: 'N/A'
     };
   } catch (error) {
     return {
