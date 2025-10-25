@@ -63,6 +63,7 @@ const userRoutes = require('./routes/user.routes');
 const groupRoutes = require('./routes/group.routes');
 const messageRoutes = require('./routes/message.routes');
 const subscriptionRoutes = require('./routes/subscription.routes');
+const decisionRoutes = require('./routes/decision.routes');
 const seoRoutes = require('./routes/seo.routes');
 const adminRoutes = require('./routes/admin');
 const prerenderRoutes = require('./routes/prerender.routes');
@@ -235,6 +236,7 @@ app.use('/api/folders', checkPremiumExpiration, folderRoutes);
 app.use('/api/notifications', checkPremiumExpiration, socketMiddleware, notificationRoutes); // Socket.io pour les notifications en temps réel
 app.use('/api/users', checkPremiumExpiration, userRoutes);
 app.use('/api/groups', checkPremiumExpiration, socketMiddleware, groupRoutes); // Socket.io seulement pour les groupes
+app.use('/api/decisions', decisionRoutes); // Routes pour décisions Judilibre - pas besoin de premium
 app.use('/api/messages', middlewareMessagesOrphelins, checkPremiumExpiration, socketMiddleware, messageRoutes); // Nettoyage auto + Socket.io pour messages
 app.use('/api/subscriptions', checkPremiumExpiration, subscriptionRoutes); // TEMP: Test sans socketMiddleware pour debug 404
 app.use('/api/admin', checkPremiumExpiration, adminRoutes); // Routes d'administration

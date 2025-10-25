@@ -1,9 +1,11 @@
 const Post = require('../models/post.model');
 const User = require('../models/user.model');
 const Folder = require('../models/folder.model');
+const Decision = require('../models/decision.model');
 // Ancienne import de ProfilePicture supprimée (profil embarqué désormais)
 const NodeCache = require('node-cache');
 const mongoose = require('mongoose');
+const judilibreService = require('../services/judilibre.service');
 
 // Fonction pour générer un slug
 const generateSlug = (title) => {
@@ -99,7 +101,56 @@ const createPost = async (req, res) => {
     newPost.slug = slug;
     await newPost.save();
 
-    await newPost.save();
+    // 🏛️ IMPORT AUTOMATIQUE JUDILIBRE - Si fiche d'arrêt avec numéro de décision
+    if (type === 'fiche-arret' && decisionNumber && decisionNumber.trim()) {
+      console.log(`🔍 [AUTO-IMPORT] Fiche d'arrêt créée avec décision ${decisionNumber}, vérification import...`);
+      
+      try {
+        // Vérifier si la décision existe déjà
+        let existingDecision = await Decision.findOne({ 
+          decisionNumber: decisionNumber.trim(),
+          jurisdiction 
+        });
+
+        if (!existingDecision) {
+          console.log(`📥 [AUTO-IMPORT] Décision ${decisionNumber} non trouvée, import depuis Judilibre...`);
+          
+          // Import automatique depuis Judilibre
+          const enrichmentResult = await judilibreService.enrichDecisionData(decisionNumber, jurisdiction);
+          
+          if (enrichmentResult.success) {
+            // Créer la décision en base
+            const enrichedData = enrichmentResult.enrichedData;
+            const newDecision = new Decision({
+              decisionNumber: enrichedData.decisionNumber,
+              jurisdiction: enrichedData.jurisdiction,
+              chamber: enrichedData.chamber,
+              date: new Date(enrichedData.date),
+              solution: enrichedData.solution,
+              ecli: enrichedData.ecli,
+              judilibreId: enrichedData.judilibreId,
+              summary: enrichedData.summary,
+              fullText: enrichedData.fullText,
+              publication: enrichedData.publication,
+              themes: enrichedData.themes || [],
+              source: 'judilibre',
+              rawJudilibreData: enrichedData.rawJudilibreData,
+              createdBy: req.user._id
+            });
+
+            await newDecision.save();
+            console.log(`✅ [AUTO-IMPORT] Décision ${decisionNumber} importée avec succès (ID: ${newDecision._id})`);
+          } else {
+            console.warn(`⚠️ [AUTO-IMPORT] Échec import ${decisionNumber}: ${enrichmentResult.error}`);
+          }
+        } else {
+          console.log(`ℹ️ [AUTO-IMPORT] Décision ${decisionNumber} existe déjà (ID: ${existingDecision._id})`);
+        }
+      } catch (error) {
+        console.error(`❌ [AUTO-IMPORT] Erreur import décision ${decisionNumber}:`, error.message);
+        // Ne pas faire échouer la création du post si l'import échoue
+      }
+    }
 
     // Mettre à jour le compteur de posts dans le dossier
     if (folderId) {
