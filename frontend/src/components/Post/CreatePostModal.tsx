@@ -94,14 +94,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, fold
       
       const result = await judilibreAPI.enrichDecision(formData.decisionNumber, formData.jurisdiction);
       
-      if (result.success) {
-        const enrichedData = result.enrichedData;
+      if (result.success && result.data) {
+        const enrichedData = result.data;
         
         // Pré-remplir le formulaire avec les données enrichies
         setFormData(prev => ({
           ...prev,
-          title: enrichedData.title || prev.title,
-          content: enrichedData.content || prev.content,
+          title: enrichedData.summary || prev.title,
+          content: enrichedData.fullText || prev.content,
           decisionNumber: enrichedData.decisionNumber || prev.decisionNumber,
           jurisdiction: enrichedData.jurisdiction || prev.jurisdiction
         }));
