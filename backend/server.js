@@ -102,21 +102,37 @@ const botDetection = (req, res, next) => {
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = new Set([
+  'http://localhost:3000', 
+  'http://localhost:5173', 
+  'http://localhost:5175', 
+  'http://localhost:5176',
+  'https://juri-napse-bix1.vercel.app', // Frontend Vercel ancien domaine
+  'https://juri-napse.vercel.app', // Frontend Vercel nouveau domaine
+  'https://jurinapse.vercel.app', // Domaine potentiel futur
+  'https://www.jurinapse.com', // Domaine custom .com
+  'https://jurinapse.com', // Domaine custom .com sans www
+  'https://www.jurinapse.fr', // Domaine custom .fr
+  'https://jurinapse.fr' // Domaine custom .fr sans www
+]);
+
+if (process.env.FRONTEND_URL) allowedOrigins.add(process.env.FRONTEND_URL);
+if (process.env.FRONTEND_HOST) allowedOrigins.add(process.env.FRONTEND_HOST);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    return callback(null, allowedOrigins.has(origin));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  optionsSuccessStatus: 204
+};
+
 const io = new Server(server, {
   cors: {
-    origin: [
-      'http://localhost:3000', 
-      'http://localhost:5173', 
-      'http://localhost:5175', 
-      'http://localhost:5176',
-      'https://juri-napse-bix1.vercel.app', // Frontend Vercel ancien domaine
-      'https://juri-napse.vercel.app', // Frontend Vercel nouveau domaine
-      'https://jurinapse.vercel.app', // Domaine potentiel futur
-      'https://www.jurinapse.com', // Domaine custom .com
-      'https://jurinapse.com', // Domaine custom .com sans www
-      'https://www.jurinapse.fr', // Domaine custom .fr
-      'https://jurinapse.fr' // Domaine custom .fr sans www
-    ],
+    origin: Array.from(allowedOrigins),
     credentials: true,
     methods: ['GET', 'POST']
   }
@@ -154,26 +170,8 @@ app.use(helmetConfig);
 app.use(mongoSanitize);
 
 // 🛡️ CORS - Doit être avant rate limiting pour éviter les erreurs
-app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://localhost:5173', 
-    'http://localhost:5175', 
-    'http://localhost:5176',
-    'https://juri-napse-bix1.vercel.app', // Frontend Vercel ancien domaine
-    'https://juri-napse.vercel.app', // Frontend Vercel nouveau domaine
-    'https://jurinapse.vercel.app', // Domaine potentiel futur
-    'https://www.jurinapse.com', // Domaine custom .com
-    'https://jurinapse.com', // Domaine custom .com sans www
-    'https://www.jurinapse.fr', // Domaine custom .fr
-    'https://jurinapse.fr' // Domaine custom .fr sans www
-  ],
-  credentials: true, // Pour permettre les cookies
-  optionsSuccessStatus: 200, // Pour support IE11
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['X-Total-Count', 'X-Page-Count']
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Middleware spécial pour les requêtes OPTIONS (preflight)
 app.options('*', (req, res) => {
