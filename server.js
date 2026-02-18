@@ -62,10 +62,36 @@ const decisionRoutes = require('./routes/decision.routes');
 
 const app = express();
 const server = http.createServer(app);
+const allowedOrigins = new Set([
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'https://www.jurinapse.com',
+  'https://jurinapse.com',
+  'https://www.jurinapse.fr',
+  'https://jurinapse.fr'
+]);
+
+if (process.env.FRONTEND_URL) allowedOrigins.add(process.env.FRONTEND_URL);
+if (process.env.FRONTEND_HOST) allowedOrigins.add(process.env.FRONTEND_HOST);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    return callback(null, allowedOrigins.has(origin));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  optionsSuccessStatus: 204
+};
+
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5175', 'http://localhost:5176'],
-    credentials: true
+    origin: Array.from(allowedOrigins),
+    credentials: true,
+    methods: ['GET', 'POST']
   }
 });
 const PORT = process.env.PORT || 5000;
@@ -101,17 +127,8 @@ const connectDB = async () => {
 };
 
 // Middleware
-app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://localhost:5173', 
-    'http://localhost:5175', 
-    'http://localhost:5176',
-    'https://www.jurinapse.com',
-    'https://jurinapse.com'
-  ], // Les origines de votre frontend + production
-  credentials: true // Pour permettre les cookies
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(cookieParser()); // Pour parser les cookies
 app.use(express.json({ limit: '50mb' })); // Augmenter la limite pour les fichiers PDF
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
